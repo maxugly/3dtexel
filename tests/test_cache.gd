@@ -1,0 +1,44 @@
+extends SceneTree
+const Client = preload("res://addons/3dtexel/client.gd")
+class FakeClient:
+	extends Client
+	var calls := 0
+	var files := 0
+	func transport_json(_path: String,_method:=HTTPClient.METHOD_GET,_body:={})->Dictionary:
+		calls+=1
+		return {"id":99,"title":"Cached grass","type":"pbr","author":{"name":"Test Artist","api_key":"NEVER_STORE"},"license":{"name":"CC-BY 4.0","url":"https://example.test/license"},"price":{"free":true,"credits":0},"owned":true}
+	func get_bytes(_url: String,_destination:="",_max_bytes:=67108864,_redirects_left:=5)->Dictionary:
+		files+=1
+		var image := Image.create(8,8,false,Image.FORMAT_RGBA8);image.fill(Color.GREEN)
+		return {"bytes":image.save_png_to_buffer()}
+var failures := 0
+func check(value: bool,message: String):
+	if not value:failures+=1;push_error(message)
+func _initialize():call_deferred("run")
+func run():
+	var client := FakeClient.new();root.add_child(client);client.cache.root="user://offline_cache_test_%s" % Time.get_ticks_usec()
+	var missing: Dictionary=await client.json_request("/assets/99")
+	check(missing.has("error") and client.calls==0,"Cache miss never contacts API without explicit refresh")
+	client.network_allowed=true;client.refreshing=true
+	await client.json_request("/assets/99")
+	client.network_allowed=false;client.refreshing=false
+	await client.json_request("/assets/99")
+	check(client.calls==1,"Repeated API lookup served from disk")
+	var other := FakeClient.new();root.add_child(other);other.cache.root=client.cache.root
+	var restored: Dictionary=await other.json_request("/assets/99")
+	check(restored.get("title")=="Cached grass" and other.calls==0,"Cache survives a new client/editor session")
+	check(not restored.has("owned") and not restored.author.has("api_key"),"Public metadata sanitization")
+	other.cache.put_response("/me",{"authorization":"NEVER_STORE"})
+	other.cache.put_response("/assets/99/download",{"files":{"url":"https://example.test/?signature=secret"}})
+	check(other.cache.get_response("/me").is_empty() and other.cache.get_response("/assets/99/download").is_empty(),"Account and signed-link responses never cached")
+	var thumb := "https://example.test/thumbnail.png"
+	await client.thumbnail(thumb);check(client.files==0,"Uncached thumbnail stays offline")
+	client.allowed_thumbnails[thumb]=true
+	await client.thumbnail(thumb)
+	await other.thumbnail(thumb)
+	check(client.files==1 and other.files==0,"Thumbnail persists on disk")
+	check(other.cache.search("grass","pbr",true,"CC-BY 4.0").size()==1,"Free non-CC0 asset filter")
+	check(other.cache.search("grass","pbr",true,"CC0").is_empty(),"Exact local license filter")
+	client.queue_free();other.queue_free();await process_frame
+	print("Disk cache tests complete; failures=",failures)
+	quit(1 if failures else 0)

@@ -3,6 +3,7 @@ extends SceneTree
 const Browser = preload("res://addons/3dtexel/browser.gd")
 func _initialize():call_deferred("run")
 func run():
+	if OS.get_environment("TEXEL_ALLOW_LIVE_TESTS")!="1":push_error("Live network tests disabled. Explicit TEXEL_ALLOW_LIVE_TESTS=1 required.");quit(1);return
 	var browser := Browser.new();root.add_child(browser)
 	await process_frame
 	if browser.client.api_key().is_empty():push_error("Environment key required.");quit(1);return
@@ -15,7 +16,8 @@ func run():
 	browser.output.text="res://3DTexel/live_smoke"
 	browser.handoff.button_pressed=true
 	browser.inbox.text="res://3DTexel/inbox"
-	browser.resolution.select(1)
+	browser.update_resolution_choices(asset)
+	browser.resolution_boxes["2k"].button_pressed=true
 	await browser.download_selected()
 	print(browser.status.text)
 	if not browser.status.text.begins_with("Ready:"):quit(1);return

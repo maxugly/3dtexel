@@ -7,3 +7,5 @@ All network downloads use HTTPS. Native materials use GPU compression and mipmap
 Keep source maps and provenance; do not overwrite completed imports.
 Run `godot --headless --path . -s tests/test_core.gd` after changes.
 Live tests are explicit opt-in, zero-credit CC0 downloads only.
+
+Network policy: all automated tests and previews must be OFFLINE using mocks or existing cache. Do not hit the provider to validate limits or populate test data. Search/selection/page/filter changes are local-only. Explicit user Refresh/download actions authorize network access; API calls are paced. Preserve author/license sidecars and mark unknown metadata rather than inventing credits.

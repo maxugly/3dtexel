@@ -2,13 +2,20 @@
 extends Control
 const Client = preload("res://addons/3dtexel/client.gd")
 const Importer = preload("res://addons/3dtexel/importer.gd")
+const Credits = preload("res://addons/3dtexel/credits.gd")
 const Pagination = preload("res://addons/3dtexel/pagination.gd")
 var content: VBoxContainer
 var editor_plugin: EditorPlugin
 var client: Node
 var search: LineEdit
 var kind: OptionButton
-var resolution: OptionButton
+var resolution_boxes := {}
+var resolution_row: HFlowContainer
+var resolution_note: Label
+var price_filter: OptionButton
+var license_filter: OptionButton
+var refresh: Button
+var stop_refresh := false
 var output: LineEdit
 var inbox: LineEdit
 var handoff: CheckBox
@@ -51,19 +58,25 @@ func _ready() -> void:
 	var toolbar := HFlowContainer.new();content.add_child(toolbar)
 	search = LineEdit.new();search.custom_minimum_size.x = 220;search.placeholder_text = "Search grass, worn concrete, rusty metal…";search.size_flags_horizontal = Control.SIZE_EXPAND_FILL;toolbar.add_child(search)
 	search.text_submitted.connect(func(_text): start_search())
-	kind = OptionButton.new();kind.add_item("Handmade · free CC0");kind.add_item("Community · AI materials");toolbar.add_child(kind)
-	button("Search",start_search,toolbar)
+	kind = OptionButton.new();kind.add_item("Handmade materials");kind.add_item("Community · AI materials");kind.add_item("All PBR materials");toolbar.add_child(kind)
+	button("Search cache",start_search,toolbar)
+	refresh=button("Refresh",refresh_search,toolbar)
 	button("Check connection",check_connection,toolbar)
 	button("Website",func(): OS.shell_open("https://3dtexel.com/pbr-material/"),toolbar)
 	account = Label.new();account.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART;account.text = "Environment key found." if not client.api_key().is_empty() else "Browsing works without a key. Downloads need an environment API key; restart Godot after setting it."
 	content.add_child(account)
 	var settings := HFlowContainer.new();content.add_child(settings)
-	var label := Label.new();label.text = "Download:";settings.add_child(label)
-	resolution = OptionButton.new()
-	for value in ["1K","2K","4K"]: resolution.add_item(value)
-	resolution.select(1); settings.add_child(resolution)
+	var label := Label.new();label.text = "Save to:";settings.add_child(label)
 	output = LineEdit.new();output.custom_minimum_size.x = 180;output.text = str(ProjectSettings.get_setting("3dtexel/output_directory","res://3DTexel/Materials"));output.tooltip_text = "Native material and original maps; separate asset and actual-resolution folders.";output.size_flags_horizontal = Control.SIZE_EXPAND_FILL;settings.add_child(output)
 	button("Open folder",func(): OS.shell_open(ProjectSettings.globalize_path(output.text)),settings)
+	var filters := HFlowContainer.new();content.add_child(filters)
+	price_filter=OptionButton.new();price_filter.add_item("Free only");price_filter.add_item("All prices · browse");filters.add_child(price_filter)
+	license_filter=OptionButton.new();license_filter.add_item("Any license");license_filter.tooltip_text="License names reported by cached assets; free does not mean CC0.";filters.add_child(license_filter)
+	price_filter.item_selected.connect(func(_index):start_search())
+	license_filter.item_selected.connect(func(_index):start_search())
+	button("Write saved-scene credits",write_scene_credits,filters)
+	var auto_credits := CheckBox.new();auto_credits.text="Credits on scene save";auto_credits.button_pressed=bool(ProjectSettings.get_setting("3dtexel/automatic_scene_credits",true));filters.add_child(auto_credits)
+	auto_credits.toggled.connect(func(value):ProjectSettings.set_setting("3dtexel/automatic_scene_credits",value);ProjectSettings.save())
 	var terrain_row := HFlowContainer.new();content.add_child(terrain_row)
 	handoff = CheckBox.new();handoff.text = "Also send to Terrain imports";handoff.button_pressed = false;terrain_row.add_child(handoff)
 	inbox = LineEdit.new();inbox.custom_minimum_size.x = 180;inbox.text = str(ProjectSettings.get_setting("3dtexel/terrain_inbox","res://assets/terrain/inbox"));inbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL;terrain_row.add_child(inbox)
@@ -74,6 +87,10 @@ func _ready() -> void:
 	side = VBoxContainer.new();side.custom_minimum_size.x = 240;side.size_flags_horizontal = Control.SIZE_EXPAND_FILL;body.add_child(side)
 	preview = TextureRect.new();preview.custom_minimum_size = Vector2(180,180);preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE;preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED;side.add_child(preview)
 	detail = RichTextLabel.new();detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART;detail.custom_minimum_size.y = 100;detail.size_flags_vertical = Control.SIZE_EXPAND_FILL;detail.text = "Search the library, then select a material.\n\nOriginal source maps and provenance are preserved. Godot materials use mipmapped BC3 textures and anisotropic filtering.\n\nFree downloads only in this version; paid assets can be opened on the website.";side.add_child(detail)
+	resolution_row=HFlowContainer.new();side.add_child(resolution_row)
+	resolution_note=Label.new();resolution_note.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;side.add_child(resolution_note)
+	update_resolution_choices({})
+	button("Refresh selected metadata",refresh_selected_metadata,side)
 	download = button("Download and prepare",download_selected,side);download.disabled = true
 	button("Open selected on website",func():
 		if not selected.is_empty(): OS.shell_open(str(selected.get("url","https://3dtexel.com"))),side)
@@ -92,9 +109,11 @@ func _ready() -> void:
 	page_label = Label.new();page_label.clip_text = true;page_label.size_flags_horizontal=Control.SIZE_EXPAND_FILL;pages.add_child(page_label)
 	next = button("Next →",func(): page+=1; run_search(),pages)
 	previous.disabled=true;next.disabled=true
-	status = Label.new();status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;status.text="Ready. No downloads or changes occur until you choose a material.";content.add_child(status)
+	status = Label.new();status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;status.text="Search reads the local cache. Refresh checks the website; downloads are explicit.";content.add_child(status)
 	resized.connect(update_layout)
 	results_scroll.resized.connect(update_columns)
+	client.cache.load_local_imports(output.text)
+	update_license_choices()
 	call_deferred("update_layout")
 func update_layout() -> void:
 	if not is_instance_valid(body): return
@@ -112,7 +131,6 @@ func update_columns() -> void:
 func start_search() -> void:
 	if busy: return
 	page = 1
-	search_cache.clear()
 	run_search()
 func change_page_size(_index: int) -> void:
 	var preferences := ConfigFile.new()
@@ -120,52 +138,86 @@ func change_page_size(_index: int) -> void:
 	preferences.save("user://3dtexel_browser.cfg")
 	page=1
 	run_search()
+func update_license_choices() -> void:
+	var chosen := license_filter.get_item_text(license_filter.selected)
+	license_filter.clear();license_filter.add_item("Any license")
+	for name in client.cache.licenses():license_filter.add_item(name)
+	for i in license_filter.item_count:
+		if license_filter.get_item_text(i)==chosen:license_filter.select(i);break
 func run_search() -> void:
-	if busy: return
-	busy=true;serial+=1
-	var token := serial
+	if busy:return
+	serial+=1
 	var count := per_page.get_selected_id()
-	per_page.disabled=true
-	status.text="Searching…"
-	previous.disabled=true;next.disabled=true
 	thumbnail_queue.clear()
-	for child in grid.get_children():
-		grid.remove_child(child)
-		child.queue_free()
+	for child in grid.get_children():grid.remove_child(child);child.queue_free()
 	results_scroll.scroll_vertical=0
-	var type := "pbr" if kind.selected == 0 else "ai-pbr"
-	var query := search.text.uri_encode()
-	var items: Array = []
-	var total := 0
+	var type: String = ["pbr","ai-pbr","all"][kind.selected]
+	var items: Array=client.cache.search(search.text,type,price_filter.selected==0,license_filter.get_item_text(license_filter.selected))
+	var page_count := maxi(1,ceili(float(items.size())/count))
+	page=clampi(page,1,page_count)
+	var first := (page-1)*count
+	var shown := items.slice(first,mini(items.size(),first+count))
+	page_label.text="Page %s / %s · %s cached" % [page,page_count,items.size()]
+	previous.disabled=page<=1;next.disabled=page>=page_count
+	for asset: Dictionary in shown:grid.add_child(make_asset_tile(asset,serial))
+	status.text="%s cached results on this page. Refresh checks for new or updated matches." % shown.size()
+	if items.is_empty():status.text="No cached matches. Click Refresh to fetch this search, or change the local filters."
+func refresh_search() -> void:
+	if busy:
+		if client.refreshing:stop_refresh=true;status.text="Stopping after the current request; cached data will be kept."
+		return
+	stop_refresh=false
+	busy=true;refresh.text="Stop refresh";per_page.disabled=true
+	client.network_allowed=true;client.refreshing=true
+	var types := ["pbr","ai-pbr"] if kind.selected==2 else [["pbr","ai-pbr"][kind.selected]]
 	var failure := ""
-	for request in Pagination.request_plan(page,count):
-		var path := "/assets/search?q=%s&type=%s&page=%s&per_page=%s" % [query,type,request.page,Pagination.API_PAGE_SIZE]
-		var data: Dictionary
-		if search_cache.has(path): data=search_cache[path]
-		else:
-			data=await client.json_request(path)
-			if token!=serial: return
-			if not data.has("error"): search_cache[path]=data
-		if data.has("error"):
-			failure=str(data.error)
-			break
-		total=int(data.get("total",0))
-		var batch: Array=data.get("items",[])
-		items.append_array(batch.slice(request.skip,mini(batch.size(),request.skip+request.take)))
-		status.text="Loading results: %s / %s…" % [items.size(),mini(count,maxi(0,total-(page-1)*count))]
-		if request.page*Pagination.API_PAGE_SIZE>=total:break
-	var available := mini(total,Pagination.API_MAX_RESULTS)
-	var page_count := maxi(1,ceili(float(available)/count))
-	page_label.text="Page %s / %s · %s materials" % [page,page_count,total]
-	previous.disabled=page<=1
-	next.disabled=page>=page_count or not failure.is_empty()
-	for asset: Dictionary in items:
-		grid.add_child(make_asset_tile(asset,token))
-		if grid.get_child_count() % 48 == 0:await get_tree().process_frame
-	busy=false;per_page.disabled=false
-	status.text="%s results on this page. Select a tile for details." % items.size()
-	if not failure.is_empty():status.text+=" Loading stopped: "+failure+". Search again to retry."
-	elif total>Pagination.API_MAX_RESULTS:status.text+=" The service exposes the first %s matches; narrow the search for more." % Pagination.API_MAX_RESULTS
+	var fetched := 0
+	for type in types:
+		for request in Pagination.request_plan(1,Pagination.API_MAX_RESULTS):
+			if stop_refresh:failure="Stopped; cached data retained.";break
+			status.text="Refreshing %s · server page %s…" % [type,request.page]
+			var data: Dictionary=await client.json_request("/assets/search?q=%s&type=%s&page=%s&per_page=50" % [search.text.uri_encode(),type,request.page])
+			if data.has("error"):failure=str(data.error);break
+			for asset: Dictionary in data.get("items",[]):
+				var url := str(asset.get("thumbnail",""))
+				if not url.is_empty():client.allowed_thumbnails[url]=true
+				fetched+=1
+			if request.page*50>=int(data.get("total",0)):break
+		if not failure.is_empty():break
+	client.network_allowed=false;client.refreshing=false
+	busy=false;refresh.text="Refresh";refresh.disabled=false;per_page.disabled=false
+	update_license_choices();page=1;run_search()
+	status.text="Refresh cached %s records. " % fetched + ("Stopped: "+failure if not failure.is_empty() else "Search and paging are local; missing thumbnails from this refresh load as you scroll.")
+func update_resolution_choices(asset: Dictionary) -> void:
+	var previously_checked := []
+	for value in resolution_boxes:
+		if resolution_boxes[value].button_pressed:previously_checked.append(value)
+	for child in resolution_row.get_children():resolution_row.remove_child(child);child.queue_free()
+	resolution_boxes.clear()
+	var available := Credits.available_resolutions(asset)
+	var known := not available.is_empty()
+	if not known:available.assign(["1k","2k","4k"])
+	for value in available:
+		var box := CheckBox.new();box.text=value.to_upper();resolution_row.add_child(box);resolution_boxes[value]=box
+		box.button_pressed=value in previously_checked if not previously_checked.is_empty() else value==("2k" if "2k" in available else available[0])
+	resolution_note.text="Reported available sizes. Select one or more." if known else "Sizes not reported yet. These are requests; the provider may substitute. Refresh metadata to check."
+func write_scene_credits() -> void:
+	if not Engine.is_editor_hint():status.text="Scene credits are available in the Godot editor.";return
+	var root := EditorInterface.get_edited_scene_root()
+	if not root or root.scene_file_path.is_empty():status.text="Save the scene first.";return
+	var result := Credits.write_scene(root.scene_file_path)
+	status.text=str(result.error) if result.has("error") else "Wrote %s · %s assets, %s resources missing credits. Uses saved dependencies; review dynamic assets separately." % [result.path,result.asset_count,result.missing_count]
+func refresh_selected_metadata() -> void:
+	if busy or selected.is_empty():return
+	busy=true;client.network_allowed=true;client.refreshing=true
+	status.text="Refreshing selected asset metadata…"
+	var data: Dictionary=await client.json_request("/assets/%s" % int(selected.id))
+	if not data.has("error"):data=await client.enrich_asset(data,true)
+	client.network_allowed=false;client.refreshing=false;busy=false
+	if data.has("error"):status.text="Metadata refresh failed: "+str(data.error);return
+	select_asset(data,preview.texture)
+	update_license_choices()
+	status.text="Selected metadata cached. Author or resolution fields not supplied remain marked unknown."
 func _process(delta: float) -> void:
 	thumbnail_tick+=delta
 	if thumbnail_tick<0.2:return
@@ -224,7 +276,9 @@ func make_asset_tile(asset: Dictionary, token: int) -> Button:
 	var license_label := Label.new()
 	license_label.name = "License"
 	license_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	license_label.text = "Free · CC0" if Importer.free_asset(asset) else "Check license on website"
+	var license_name := str(Credits.license_record(asset.get("license","")).name)
+	license_label.text = ("Free · " if Importer.free_asset(asset) else "Browse · ")+("CC0" if "cc0" in license_name.to_lower() else license_name)
+	license_label.tooltip_text=license_name
 	license_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	license_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	contents.add_child(license_label)
@@ -238,23 +292,18 @@ func load_thumbnail(url: String, image: TextureRect, token: int) -> void:
 	var texture: Texture2D = await client.thumbnail(url)
 	if is_instance_valid(image) and serial==token: image.texture=texture
 func select_asset(asset: Dictionary, texture: Texture2D) -> void:
-	if busy: return
-	selected=asset;preview.texture=texture;download.disabled=true
-	pending_details=true
-	var id := int(asset.id)
-	detail.text=str(asset.title)+"\n\nLoading details…"
-	var data: Dictionary = await client.json_request("/assets/%s" % id)
-	if selected.is_empty() or int(selected.id)!=id: return
-	pending_details=false
-	if data.has("error"): detail.text="Details unavailable: "+str(data.error);return
-	# API may expand license and return canonical asset metadata.
-	selected.merge(data,true)
-	var license_value: Variant = selected.get("license","")
-	var license_text := str(license_value.get("name","")) if license_value is Dictionary else str(license_value)
-	var availability: Dictionary = selected.get("download",{})
-	detail.text="%s\n\n%s\n\nLicense: %s\nAsset ID: %s\n%s" % [selected.get("title",""),str(selected.get("description","")).strip_edges(),license_text,id,"Available through the API." if availability.get("via_api",true) else "Download this asset from its website."]
+	if busy:return
+	selected=asset.duplicate(true);preview.texture=texture;download.disabled=true
+	var cached: Dictionary=client.cache.asset(int(asset.id))
+	selected.merge(cached,true)
+	var record := Credits.asset_record(selected)
+	var names := []
+	for person in record.authors:names.append(str(person.name))
+	detail.text="%s\n\n%s\n\nAuthor: %s\nLicense: %s\nAsset ID: %s" % [selected.get("title",""),str(selected.get("description","")).strip_edges(),", ".join(names) if not names.is_empty() else "Not supplied · review source",record.license.name,selected.id]
+	update_resolution_choices(selected)
+	var availability: Dictionary=selected.get("download",{})
 	download.disabled=not Importer.free_asset(selected) or client.api_key().is_empty() or availability.get("via_api",true)==false
-	if not Importer.free_asset(selected): status.text="Paid assets are browse-only here. Open the website to review them."
+	if not Importer.free_asset(selected):status.text="Paid assets are browse-only. Free and license are separate filters."
 func check_connection() -> void:
 	if busy:return
 	if client.api_key().is_empty():account.text="No key in Godot’s environment. Launch Godot from a shell that loads your secrets.";return
@@ -262,24 +311,49 @@ func check_connection() -> void:
 	var result: Dictionary = await client.json_request("/me")
 	account.text="Connection failed: "+str(result.error) if result.has("error") else "Connected · API key accepted. Key remains in the environment."
 func download_selected() -> void:
-	if busy or pending_details or selected.is_empty():return
-	if not Importer.free_asset(selected):return
-	if not output.text.begins_with("res://") or ".." in output.text:
-		status.text="Choose an output directory inside res://, without parent traversal.";return
-	if handoff.button_pressed and (not inbox.text.begins_with("res://") or ".." in inbox.text):
-		status.text="Choose a terrain inbox inside res://, without parent traversal.";return
-	busy=true;download.disabled=true
+	if busy or pending_details or selected.is_empty() or not Importer.free_asset(selected):return
+	if not output.text.begins_with("res://") or ".." in output.text:status.text="Choose an output directory inside res://.";return
+	if handoff.button_pressed and (not inbox.text.begins_with("res://") or ".." in inbox.text):status.text="Choose an inbox inside res://.";return
+	var requests := []
+	for value in resolution_boxes:
+		if resolution_boxes[value].button_pressed:requests.append(value)
+	if requests.is_empty():status.text="Select at least one resolution.";return
+	busy=true;download.disabled=true;client.network_allowed=true
 	var asset := selected.duplicate(true)
-	var requested := resolution.get_item_text(resolution.selected).to_lower()
+	var done := []
+	for requested in requests:
+		var result: Dictionary=await download_resolution(asset,requested)
+		if result.has("error"):
+			client.network_allowed=false;finish_error(str(result.error));return
+		done.append(str(result.note))
+	client.network_allowed=false;busy=false;download.disabled=false
+	if Engine.is_editor_hint():EditorInterface.get_resource_filesystem().scan()
+	status.text="Ready: "+"; ".join(done)
+func download_resolution(asset: Dictionary, requested: String) -> Dictionary:
+	var base := output.text.path_join("%s_%s" % [Importer.slug(str(asset.title)),int(asset.id)])
+	var folder := base.path_join(requested)
+	var alias_path := base.path_join("request_"+requested+".json")
+	if FileAccess.file_exists(alias_path):
+		var alias: Variant=JSON.parse_string(FileAccess.get_file_as_string(alias_path))
+		if alias is Dictionary:folder=base.path_join(Importer.slug(str(alias.get("returned_resolution",requested))))
+	if FileAccess.file_exists(folder.path_join("provenance.json")) and FileAccess.file_exists(folder.path_join("material.res")):
+		return reuse_local(folder,asset,requested)
+	var fresh: Dictionary=await client.json_request("/assets/%s" % int(asset.id))
+	if fresh.has("error"):return fresh
+	asset.merge(fresh,true)
+	asset=await client.enrich_asset(asset)
+	if not Importer.free_asset(asset):return {"error":"The current price is not free; no download requested."}
 	status.text="Requesting free %s download…" % requested
-	var response: Dictionary = await client.json_request("/assets/%s/download" % int(asset.id),HTTPClient.METHOD_POST,{"max_credits":0,"resolution":requested})
-	if response.has("error"): finish_error(str(response.error));return
-	var files: Dictionary = response.get("files",{})
-	if int(response.get("charged_credits",0))!=0:finish_error("Unexpected charged response; no further action taken.");return
+	var response: Dictionary=await client.json_request("/assets/%s/download" % int(asset.id),HTTPClient.METHOD_POST,{"max_credits":0,"resolution":requested})
+	if response.has("error"):return response
+	if int(response.get("charged_credits",0))!=0:return {"error":"Unexpected charged response."}
+	var files: Dictionary=response.get("files",{})
 	var actual := Importer.slug(str(files.get("resolution",requested)))
-	var folder := output.text.path_join("%s_%s" % [Importer.slug(str(asset.title)),int(asset.id)]).path_join(actual)
-	if FileAccess.file_exists(folder.path_join("provenance.json")):
-		finish_error("This version already exists at %s. Choose another resolution or move that folder to preserve it before retrying." % folder);return
+	folder=base.path_join(actual)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(base))
+	Importer.write_json(alias_path,{"requested_resolution":requested,"returned_resolution":actual})
+	if FileAccess.file_exists(folder.path_join("provenance.json")) and FileAccess.file_exists(folder.path_join("material.res")):
+		return reuse_local(folder,asset,requested)
 	var source := folder.path_join("_source")
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(source))
 	var ignore := FileAccess.open(source.path_join(".gdignore"),FileAccess.WRITE)
@@ -292,28 +366,45 @@ func download_selected() -> void:
 		var destination := folder.path_join(relative)
 		status.text="Downloading %s · %s…" % [asset.title,role]
 		var result: Dictionary = await client.get_bytes(url,ProjectSettings.globalize_path(destination+".pending"),256*1024*1024)
-		if result.has("error"):finish_error(str(result.error));return
+		if result.has("error"):return result
 		if DirAccess.rename_absolute(ProjectSettings.globalize_path(destination+".pending"),ProjectSettings.globalize_path(destination))!=OK:
-			finish_error("Cannot finish downloaded map.");return
+			return {"error":"Cannot finish downloaded map."}
 		maps[role]=relative;hashes[role]=FileAccess.get_sha256(destination)
-	if not maps.has("albedo"):finish_error("No supported albedo map was returned. Original files are retained.");return
+	if not maps.has("albedo"):return {"error":"No supported albedo map returned."}
 	status.text="Packing mipmaps and GPU-compressed materials…"
 	await get_tree().process_frame
 	var normal_format := str(files.get("normal_format","opengl"))
 	var result := Importer.make_material(folder,maps,normal_format,files.get("material_props",{}))
-	if result.has("error"):finish_error(str(result.error));return
+	if result.has("error"):return result
 	var provenance := {"provider":"3DTexel","asset_id":int(asset.id),"title":asset.title,"source_url":asset.get("url",""),"license":response.get("license",asset.get("license","")),"requested_resolution":requested,"returned_resolution":actual,"normal_format":normal_format,"maps":maps,"sha256":hashes,"dimensions":result.dimensions,"imported_utc":Time.get_datetime_string_from_system(true),"charged_credits":0}
-	if Importer.write_json(folder.path_join("provenance.json"),provenance)!=OK:finish_error("Could not save provenance.");return
+	var credit_asset := asset.duplicate(true)
+	credit_asset.license=provenance.license
+	var credits := Credits.asset_record(credit_asset)
+	credits.requested_resolution=requested;credits.returned_resolution=actual;credits.sha256=hashes;credits.dimensions=result.dimensions
+	provenance.merge(credits,true)
+	if Importer.write_json(folder.path_join("provenance.json"),provenance)!=OK or Credits.write_asset_sidecars(folder,credits)!=OK:return {"error":"Could not save provenance or credits."}
 	var note := ""
 	if handoff.button_pressed:
 		var terrain := Importer.terrain_handoff(folder,maps,asset,normal_format,inbox.text)
 		note=" Terrain handoff failed: "+str(terrain.error) if terrain.has("error") else " Sent to Terrain imports at its current output size."
-	ProjectSettings.set_setting("3dtexel/output_directory",output.text)
-	ProjectSettings.set_setting("3dtexel/terrain_inbox",inbox.text)
-	ProjectSettings.save()
-	if Engine.is_editor_hint():EditorInterface.get_resource_filesystem().scan()
-	status.text="Ready: %s.%s%s" % [result.material," Server supplied %s instead of %s." % [actual,requested] if actual!=requested else "",note]
-	busy=false;download.disabled=false
+	return {"note":"%s prepared as %s%s" % [requested.to_upper(),actual.to_upper(),note]}
+func reuse_local(folder: String, asset: Dictionary, requested: String) -> Dictionary:
+	var provenance: Variant=JSON.parse_string(FileAccess.get_file_as_string(folder.path_join("provenance.json")))
+	if provenance is not Dictionary:return {"error":"Existing provenance needs review."}
+	var credit_source: Dictionary=provenance.duplicate(true)
+	for key in asset:
+		var value: Variant=asset[key]
+		if value==null:continue
+		if value is String and value.is_empty():continue
+		if value is Array and value.is_empty():continue
+		credit_source[key]=value
+	credit_source.id=asset.id;credit_source.title=asset.title;credit_source.url=asset.get("url",provenance.get("source_url",""))
+	var credits := Credits.asset_record(credit_source)
+	if Credits.write_asset_sidecars(folder,credits)!=OK:return {"error":"Could not update local credits."}
+	if handoff.button_pressed:
+		var result := Importer.terrain_handoff(folder,provenance.get("maps",{}),credit_source,str(provenance.get("normal_format","opengl")),inbox.text)
+		if result.has("error"):return result
+	return {"note":requested.to_upper()+" reused locally · "+str(provenance.get("returned_resolution",folder.get_file())).to_upper()}
 func finish_error(message: String) -> void:
 	status.text="Import stopped: "+message
 	busy=false;download.disabled=false

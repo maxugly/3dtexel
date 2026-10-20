@@ -1,6 +1,7 @@
 @tool
 extends RefCounted
 ## Standalone native Godot material preparation and optional Terrain Auto Import handoff.
+const Credits = preload("res://addons/3dtexel/credits.gd")
 const MAPS := ["albedo","normal","roughness","height","ao","metallic"]
 static func slug(value: String) -> String:
 	var regex := RegEx.create_from_string("[^a-z0-9]+")
@@ -69,7 +70,10 @@ static func terrain_handoff(folder: String, maps: Dictionary, asset: Dictionary,
 		var error := DirAccess.copy_absolute(ProjectSettings.globalize_path(folder.path_join(maps[role])),ProjectSettings.globalize_path(source.path_join(name)))
 		if error != OK: return {"error":"Could not copy terrain source maps."}
 		manifest_maps[role] = "_source/"+name
-	var manifest := {"name":str(asset.title),"maps":manifest_maps,"normal_format":normal_format,"source_url":asset.get("url",""),"provider":"3DTexel","asset_id":asset.id,"license":asset.get("license","")}
+	var record := Credits.asset_record(asset)
+	var credit_error := Credits.write_json(target.path_join("asset.credits.json"),record)
+	if credit_error!=OK:return {"error":"Cannot preserve terrain credits."}
+	var manifest := {"credits":record,"credits_sidecar":"asset.credits.json","name":"%s (%s source)" % [asset.title,folder.get_file().to_upper()],"maps":manifest_maps,"normal_format":normal_format,"source_url":asset.get("url",""),"provider":"3DTexel","asset_id":asset.id,"license":asset.get("license","")}
 	# Final atomic manifest publishes a complete set; watcher ignores _source while copying.
 	if write_json(target.path_join("terrain_import.json"),manifest) != OK: return {"error":"Cannot publish terrain manifest."}
 	return {"manifest":target.path_join("terrain_import.json")}

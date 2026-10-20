@@ -1,108 +1,122 @@
 # 3D Texel Import for Godot
 
-Browse 3DTexel PBR materials inside Godot, download free sets, and prepare native
-GPU-compressed materials without manually packing maps.
+A cache-first Godot editor browser for 3DTexel PBR materials, with GPU-compressed
+material preparation, multi-resolution downloads and attribution sidecars.
+Independent community addon, MIT. Godot 4.4+; tested on 4.4.1 and 4.7.2.
+[Inspiration and attribution](ATTRIBUTION.md).
 
-![3D Texel editor browser](docs/browser.png)
+## Install and browse
 
-Independent community addon for **Godot 4.4+**, tested on 4.7.2 with the Compatibility
-renderer. No C#, Python runtime, Terrain3D or external image tools are required by
-the addon. MIT licensed. [Inspiration and attribution](ATTRIBUTION.md).
+Copy `addons/3dtexel/` into your project. Enable **3D Texel Import** in
+**Project → Project Settings → Plugins**, then open the **3D Texel** editor tab.
+After updating an installed addon, toggle it off/on to rebuild its controls.
 
-## Install
+- **Search cache**, source/price/license filters, page changes and tile selection
+  read local metadata only. An empty cache needs an explicit **Refresh**.
+- **Refresh** fills/updates the current search's catalog, up to the service limit
+  of 50 API pages / 2500 matches per source. It uses sequential 50-record requests,
+  paced to at most one API request per second per plugin instance. Click **Stop
+  refresh** to stop after the current request, keeping what was cached.
+- The **Per page** dropdown offers 12, 24, 48, 96, 192, 512 and 1024 locally.
+- Thumbnails are stored on disk. A refresh authorizes missing thumbnails from its
+  result set to load near the visible scroll area, with at most four active requests.
+  Reopening the editor stays offline until another explicit refresh/download.
+- **Refresh selected metadata** updates one asset and, when author/format information
+  is missing, reads its public product page. Selecting a tile never does this itself.
+- **Free only** is independent of **Any license**. Exact reported license names become
+  filter choices as metadata is cached. Free non-CC0 materials are supported; unknown
+  license fields remain unknown. Paid assets are browse-only, including owned assets.
 
-Copy `addons/3dtexel/` into your project. Enable **3D Texel Import** under
-**Project → Project Settings → Plugins**. Open the **3D Texel** main editor tab.
+Cache: `user://3dtexel_cache/`. No automatic expiration, background catalog polling,
+account responses, API keys or signed download responses are stored. Restarting the
+editor preserves the cache. Local completed imports also populate the catalog.
+**Check connection** is a separate, explicit account request, not a background check.
 
-1. Search for a surface and select a preview card.
-2. Choose 1K, 2K or 4K and an output directory.
-3. Click **Download and prepare**.
-4. Find `material.res` under the asset's actual-resolution folder and drag it onto a mesh.
+## Download and prepare
 
-The handmade library is free CC0. Community AI materials are browse-only in this
-first release: the importer sends `max_credits: 0` and does not provide paid downloads
-or generation. Source pages remain available through **Open selected on website**.
-Some assets are website-only; API errors are shown without exposing credentials.
+Select a tile, then check one or more resolution boxes above **Download and prepare**.
+Reported available sizes are shown when known. When the service has not supplied
+availability, 1K/2K/4K are clearly labeled requests, not confirmed offerings; use
+**Refresh selected metadata** to look for format declarations. No download probes
+are used to guess sizes. The provider can substitute a size: the result and receipt
+state the requested size, returned label and actual image dimensions.
 
-The browser fills the editor panel, adapts its grid column count to the available
-width, wraps toolbar controls and stacks details beneath results in narrow windows.
-Each material is one clickable tile: thumbnail, title, license and padding all select
-it, with hover/focus feedback and a persistent selection highlight.
+Each checked size is processed sequentially. Completed local versions are reused
+without contacting the API or downloading maps again. Request→returned-size aliases
+avoid repeating a substituted download. Imports retain original source maps and
+prepare mipmapped BC3/S3TC `*_texture.res` files and `material.res`, with anisotropic
+filtering and DirectX→OpenGL normal conversion. Height is retained with displacement
+off by default; AO stays a separate material map. Existing completed sources are
+preserved; their credits can be filled in from cached metadata.
 
-The **Per page** dropdown offers **12, 24, 48, 96, 192, 512 and 1024** and remembers
-its choice locally in `user://3dtexel_browser.cfg`. Large UI pages are assembled from
-50-result API pages, with correct offsets and cached overlapping server pages.
-Thumbnails load near the visible scroll area, with at most four requests active.
-The service caps search access at 50 API pages (2500 matches); the UI explains this
-limit when relevant. Search again to retry a partial failure or refresh cached results.
+All download calls carry `max_credits: 0`. No paid downloads or generation controls
+are implemented. The addon needs no Python, C#, Terrain3D or external image tools.
 
 ## Authentication
 
-Search works without a key. Downloads require a 3DTexel account and an API key with
-download permission: https://3dtexel.com/api-keys/ . Set **TEXEL_API_KEY** in the
-shell/environment that launches Godot. `3DTEXEL_API_KEY` and `TEXEL` are also recognized.
-For fish, add `set -gx TEXEL_API_KEY ...` to your existing private secrets setup.
-Do not put a real key in this repository, project settings or source files.
+Refresh/searching the public service needs no key. Downloads need a free account
+and API key with download permission: https://3dtexel.com/api-keys/ . Put
+**TEXEL_API_KEY** in the environment that launches Godot. `3DTEXEL_API_KEY` and
+`TEXEL` are also recognized. Keep using your normal launcher, including
+`mise run godot -- --editor`, when it inherits that environment.
 
-Restart Godot after changing its launch environment. A desktop launcher may not
-inherit your terminal's environment. From a shell with your secrets loaded, use:
+The optional `python3 tools/launch_editor.py /path/to/project` normalizes a
+digit-leading variable name for shells that discard it; Python is not required by
+the addon. Keys are never saved in project settings, sidecars, cache or screenshots,
+and are sent only to the official API origin, never a file/CDN host.
+
+## Credits and release preparation
+
+New imports write `provenance.json`, `asset.credits.json`, `material.res.credits.json`
+and sidecars for prepared texture resources. They include author names/URLs when
+supplied, source URL, original license details, attribution requirements/text,
+resolution and hashes. Explicit API/product-page author declarations are used;
+publishers are not assumed to be asset creators. Missing authors/license fields
+are flagged for review rather than invented. License labels are not blanket
+permissions: retain and review the actual license record for release.
+
+**Write saved-scene credits** traverses the saved scene's resource dependencies,
+deduplicates asset credits and writes `<scene>.tscn.credits.json` plus a readable
+`.credits.md`. **Credits on scene save** is enabled by default and can be switched
+off. Other importers can use the same per-resource `.credits.json` or folder
+`asset.credits.json` convention. Existing third-party metadata is normalized where
+possible; assets with missing sidecars are listed explicitly. This does not
+retroactively recover missing authors for every old import.
+
+Runtime/dynamically loaded assets need separate inclusion: a saved dependency scan
+cannot see everything a script may spawn. Unsaved edits are not included. A manual
+command is also available (addon must be installed in the target project):
 
 ```sh
-python3 tools/launch_editor.py /path/to/your/project
+godot --headless --path /path/to/project -s /path/to/this/repo/tools/collect_scene_credits.gd -- res://scenes/world/example.tscn
 ```
-
-The optional launcher normalizes digit-leading `3DTEXEL_API_KEY` into conventional
-`TEXEL_API_KEY` for shells that discard unusual names. It reads inherited environment
-variables only; it does not read a secrets file. The addon never saves a key or sends it to a CDN. Use **Check connection** to verify.
-
-## What gets prepared
-
-- Original downloaded maps in `_source/`, ignored by Godot's resource importer.
-- Mipmapped BC3/S3TC `*_texture.res` resources and a native `StandardMaterial3D` in `material.res`.
-- OpenGL normal maps, automatically converted from DirectX when declared by the API.
-- Anisotropic material filtering. Height is retained but displacement is off by default.
-- Independent material AO; AO is not baked into the base color.
-- `provenance.json`: asset ID/title/URL, returned license, requested and returned
-  resolutions, actual packed dimensions, map hashes and import time.
-
-The provider sometimes returns a resolution different from the requested one.
-The UI reports it and folders use the returned label; provenance records actual
-image dimensions as well. BC3 block storage can round non-aligned dimensions.
-Existing completed imports are not overwritten. Incomplete downloads can be retried.
-Signed download links and API responses containing account data are not saved.
 
 ## Optional Terrain3D handoff
 
-If your project has the **Terrain Auto Import** companion used by scrappersDelight,
-check **Also send to Terrain imports** and choose its watched inbox. The addon copies
-original maps and publishes a `terrain_import.json` manifest only after the copy
-finishes. It does not include or require Terrain3D and does not paint your terrain.
+Check **Also send to Terrain imports** for the companion Terrain Auto Import watcher
+used by scrappersDelight. It receives original maps, a complete manifest and credits;
+it does not paint terrain. The updated companion preserves credit sidecars on all
+prepared terrain material/texture variants. Earlier companion versions retain the
+source manifest but need their own sidecar propagation support.
 
-**Download resolution and terrain packing resolution are separate.** The companion
-uses its current global output size; all texture layers in one Terrain3D library
-must match. For a genuine 1K/2K/4K A/B, use separate target libraries/output roots and
-matching companion output sizes. Downloading a 4K set while that packer is set to
-1K still yields a 1K terrain layer. The standalone native material preserves source
-resolution independently of terrain settings.
+Download resolution and terrain packing resolution are separate. The companion's
+current global output size controls the packed terrain textures; all layers in one
+Terrain3D library must match. Use separate libraries/output roots for 1K/2K/4K trials.
+A 4K download passed to a 1K terrain packer still produces a 1K terrain layer.
 
-## Development and tests
+## Tests: no live API traffic
+
+CI, cache/pagination/credits tests and screenshot previews are offline. Network
+behavior is replaced with fixtures/mocks, including provider limits and failures.
+Previews use existing local cache entries and never fill missing entries remotely.
 
 ```sh
 godot --headless --path . -s tests/test_core.gd
+godot --headless --path . -s tests/test_cache.gd
+godot --headless --path . -s tests/test_credits.gd
 ```
 
-Core tests are offline: saved compressed textures/mipmaps, DirectX conversion,
-material settings, path safety, free-price gating, UI construction and terrain manifests.
-The explicit live smoke uses your environment key and downloads asset 24509 (CC0)
-with a zero-credit ceiling into the ignored `3DTexel/live_smoke/` directory:
-
-```sh
-godot --headless --path . -s tests/test_live.gd
-```
-
-Delete/move that ignored smoke folder to repeat the download test. For rendering the
-browser screenshot with live public search: `godot --path . -s tests/preview.gd`.
-The main development project enables the addon without altering a game's scenes.
-
-API documentation: https://3dtexel.com/developers/ . Initial scope is PBR materials;
-HDRIs, models, paid downloads, generation and user-library management are not implemented.
+The old live smoke is guarded by `TEXEL_ALLOW_LIVE_TESTS=1`; do not use it for normal
+validation. Explicit user browsing/downloads are how the real cache gets populated.
+API documentation: https://3dtexel.com/developers/ . HDRIs/models/generation are outside
+this addon's current scope. Screenshots in docs illustrate earlier UI versions.

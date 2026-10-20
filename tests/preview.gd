@@ -1,4 +1,9 @@
 extends SceneTree
+const Client = preload("res://addons/3dtexel/client.gd")
+class OfflineClient:
+	extends Client
+	func transport_json(_path: String,_method:=HTTPClient.METHOD_GET,_body:={})->Dictionary:return {"error":"Preview is offline."}
+	func get_bytes(_url: String,_destination:="",_max_bytes:=67108864,_redirects_left:=5)->Dictionary:return {"error":"Preview is offline."}
 const Browser = preload("res://addons/3dtexel/browser.gd")
 func _initialize():call_deferred("run")
 func run():
@@ -11,6 +16,7 @@ func run():
 	root.add_child(margin)
 	var browser := Browser.new();margin.add_child(browser)
 	await process_frame
+	browser.client.queue_free();browser.client=OfflineClient.new();browser.add_child(browser.client)
 	browser.output.text="res://3DTexel/Materials"
 	browser.inbox.text="res://assets/terrain/inbox"
 	browser.search.text="grass"

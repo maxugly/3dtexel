@@ -21,3 +21,6 @@ jobs:
           timeout 30s godot --headless --path . -s tests/test_tiles.gd
           timeout 90s godot --headless --path . -s tests/test_pagination.gd
           timeout 30s godot --headless --path . -s tests/test_thumbnails.gd
+          timeout 45s godot --headless --path . -s tests/test_cache.gd
+          timeout 45s godot --headless --path . -s tests/test_credits.gd
+          timeout 45s godot --headless --path . -s tests/test_download_choices.gd
