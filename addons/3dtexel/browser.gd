@@ -28,6 +28,7 @@ var page := 1
 var busy := false
 var serial := 0
 var pending_details := false
+var tile_group := ButtonGroup.new()
 func button(text: String, action: Callable, parent: Node) -> Button:
 	var item := Button.new(); item.text = text; item.pressed.connect(action); parent.add_child(item)
 	return item
@@ -113,12 +114,49 @@ func run_search() -> void:
 	previous.disabled=page<=1;next.disabled=page*12>=total or page>=50
 	status.text="%s results on this page. Select a card for details." % items.size()
 	for asset: Dictionary in items:
-		var card := VBoxContainer.new();card.custom_minimum_size.x=165;grid.add_child(card)
-		var image := TextureRect.new();image.custom_minimum_size=Vector2(155,130);image.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;image.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;card.add_child(image)
-		var choose := button(str(asset.get("title","Material")),func(): select_asset(asset,image.texture),card)
-		choose.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;choose.custom_minimum_size.y=54
-		var license_label := Label.new();license_label.text="Free · CC0" if Importer.free_asset(asset) else "Website download · check license";card.add_child(license_label)
-		load_thumbnail(str(asset.get("thumbnail","")),image,token)
+		grid.add_child(make_asset_tile(asset,token))
+func make_asset_tile(asset: Dictionary, token: int) -> Button:
+	var tile := Button.new()
+	tile.custom_minimum_size = Vector2(165,236)
+	tile.toggle_mode = true
+	tile.button_group = tile_group
+	tile.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	tile.tooltip_text = str(asset.get("title","Material"))
+	var padding := MarginContainer.new()
+	padding.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	padding.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for edge in ["margin_left","margin_right","margin_top","margin_bottom"]: padding.add_theme_constant_override(edge,8)
+	tile.add_child(padding)
+	var contents := VBoxContainer.new()
+	contents.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	contents.add_theme_constant_override("separation",8)
+	padding.add_child(contents)
+	var image := TextureRect.new()
+	image.name = "Thumbnail"
+	image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	image.custom_minimum_size = Vector2(145,130)
+	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	contents.add_child(image)
+	var title := Label.new()
+	title.name = "Title"
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title.text = str(asset.get("title","Material"))
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.custom_minimum_size.y = 60
+	contents.add_child(title)
+	var license_label := Label.new()
+	license_label.name = "License"
+	license_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	license_label.text = "Free · CC0" if Importer.free_asset(asset) else "Check license on website"
+	license_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	license_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	contents.add_child(license_label)
+	contents.minimum_size_changed.connect(func(): tile.custom_minimum_size.y = maxf(236,contents.get_combined_minimum_size().y+16))
+	tile.pressed.connect(func(): select_asset(asset,image.texture))
+	load_thumbnail(str(asset.get("thumbnail","")),image,token)
+	return tile
 func load_thumbnail(url: String, image: TextureRect, token: int) -> void:
 	if url.is_empty(): return
 	var texture: Texture2D = await client.thumbnail(url)

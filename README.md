@@ -26,6 +26,8 @@ Some assets are website-only; API errors are shown without exposing credentials.
 
 The browser fills the editor panel, adapts its grid column count to the available
 width, wraps toolbar controls and stacks details beneath results in narrow windows.
+Each material is one clickable tile: thumbnail, title, license and padding all select
+it, with hover/focus feedback and a persistent selection highlight.
 
 ## Authentication
 

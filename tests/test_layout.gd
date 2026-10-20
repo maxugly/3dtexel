@@ -12,10 +12,7 @@ func run():
 	var browser := Browser.new();editor_host.add_child(browser)
 	await settle()
 	for i in 12:
-		var card := VBoxContainer.new();card.custom_minimum_size.x=165;browser.grid.add_child(card)
-		var image := TextureRect.new();image.custom_minimum_size=Vector2(155,130);image.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;card.add_child(image)
-		var choose := browser.button("A long ground material title for layout testing",func():pass,card)
-		choose.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+		browser.grid.add_child(browser.make_asset_tile({"id":i,"title":"A long ground material title for layout testing","price":{"free":true,"credits":0}},0))
 	for viewport_size in [Vector2i(1600,900),Vector2i(850,1000),Vector2i(640,960)]:
 		root.size=viewport_size
 		await settle()
