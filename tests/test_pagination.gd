@@ -16,6 +16,8 @@ func check(value: bool,message: String):
 func _initialize():call_deferred("run")
 func run():
 	var browser := Browser.new();root.add_child(browser);await process_frame
+	for id in browser.client.providers:
+		if id != "texel": browser.client.providers[id].enabled = false
 	var adapter: Node=browser.client.providers.texel
 	adapter.client.free();var fake := FakeClient.new();adapter.add_child(fake);adapter.client=fake;fake.cache.root="user://offline_page_test_%s" % Time.get_ticks_usec()
 	browser.client.catalog.root=fake.cache.root+"_core";browser.client.catalog.loaded=false;browser.client.catalog.records={}

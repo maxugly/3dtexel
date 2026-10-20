@@ -11,6 +11,11 @@ Godot's built-in editor theme supplies the material icon at runtime.
 3DTexel is a third-party service; this community addon is not an official
 3DTexel product. Service names belong to their respective owners.
 
-Downloaded textures retain their own licenses, separate from this addon's MIT
+Downloaded textures and assets retain their own licenses, separate from this addon's MIT
 license. Each import writes its returned license and source URL in provenance.json.
-Screenshots may depict CC0 materials from 3DTexel; they are not bundled texture packs.
+Screenshots may depict CC0 materials from 3DTexel or OpenGameArt; they are not bundled asset packs.
+
+OpenGameArt is a community repository for game media hosted at https://opengameart.org/.
+The OpenGameArt provider adapter is an independent community implementation under the MIT license;
+it is not affiliated with or endorsed by OpenGameArt.org. All assets imported via OpenGameArt
+preserve their declared author credits, attribution requirements, and original licenses.

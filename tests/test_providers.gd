@@ -30,6 +30,7 @@ func run():
 	check(hub.providers.has("texel"),"Texel discovered through provider directory")
 	for provider in hub.providers.values():provider.enabled=false
 	hub.catalog.root="user://provider_contract_%s" % Time.get_ticks_usec()
+	hub.inventory.root=hub.catalog.root.path_join("imports")
 	var first := FakeProvider.new();var second := FakeProvider.new();second.id="other_site"
 	check(hub.register_provider(first)==OK and hub.register_provider(second)==OK,"Independent sites register without browser changes")
 	first.enabled=true;second.enabled=true
