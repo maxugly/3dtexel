@@ -99,7 +99,8 @@ watcher's output packing resolution are independent. Handoff does not paint terr
 
 ## Extension and verification
 
-[Provider contract](docs/PROVIDERS.md) · [Antigravity implementation prompt](docs/ANTIGRAVITY_PROMPT.md).
+[Contributor guide: adding and maintaining site providers](docs/ADDING_PROVIDERS.md) ·
+[Provider contract reference](docs/PROVIDERS.md).
 Adapters are discovered in `providers/*/provider.gd`; the browser contains no site
 endpoints. Catalog: `user://asset_browser/catalog/assets.json`; import index:
 `user://asset_browser/imports/imports.json`; legacy Texel cache: `user://3dtexel_cache/`.

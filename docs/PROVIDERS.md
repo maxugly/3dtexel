@@ -1,12 +1,16 @@
 # Provider contract v1
 
+For the implementation and maintenance workflow, read
+[Adding and maintaining site providers](ADDING_PROVIDERS.md). This file is the
+compact interface reference; the base script is the source of method signatures.
+
 The editor displays **Asset Library**. The installation path `addons/3dtexel/`
 and repository name stay unchanged for compatibility; this is one addon, not one
 addon per website. Site protocol code belongs only in `providers/<site>/`.
 
 ## Responsibilities
 
-- `browser.gd`: shared tiles, site scope, local filters, refresh/stop, variant choices,
+- `browser.gd`: shared tiles, site scope, local filters, search/stop, variant choices,
   credential controls, native import controls. It knows no site endpoints.
 - `core/search_session.gd`: bounded fresh site queries with on-demand additional pages.
 - `core/download_inventory.gd`: receipt-backed local version indicators.
@@ -54,7 +58,7 @@ returns a transient plan. Every operation checks `network_allowed`; search submi
 rendering reuse existing metadata. Search responses must be fresh, while repeated
 detail/image requests reuse cache. `refreshing` means bypass cached search responses during a submitted search. `can_download()` is an offline availability
 check, not a network probe. `check_connection()` is explicit. Thumbnail downloading
-must honor a cache plus authorization granted by an explicit refresh/download;
+must honor a cache plus authorization granted by an explicit search/details/download action;
 keep lazy viewport loading, bounded concurrency and disk caching. `cancel_all()`
 cancels outstanding requests when disabled/removed. No hidden catalog updates.
 
@@ -125,7 +129,8 @@ returns `{}` on success or `{error: ...}` and writes the file; obey HTTPS, bound
 redirects/size limits, and never forward authorization to CDN/file hosts. Core checks
 filenames before generic downloads, refuses executable/script types, and preserves
 partial files rather than silently overwriting them. Multi-file model dependencies
-must be included explicitly. Archives are retained with credits; extraction into a
+must be included explicitly. The current generic handler applies one asset credit
+record to all files; mixed-license extraction needs a shared per-file handler. Archives are retained with credits; extraction into a
 usable scene needs a shared safe format handler, not undocumented manual steps.
 
 ## Credits and policy
