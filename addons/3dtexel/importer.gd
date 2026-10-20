@@ -61,7 +61,7 @@ static func make_material(folder: String, maps: Dictionary, normal_format: Strin
 	return {"material":path,"dimensions":sizes}
 static func terrain_handoff(folder: String, maps: Dictionary, asset: Dictionary, normal_format: String, inbox: String) -> Dictionary:
 	if not inbox.begins_with("res://") or ".." in inbox: return {"error":"Terrain inbox must be inside res://."}
-	var target := inbox.path_join("3dtexel").path_join(str(asset.id)).path_join(folder.get_file())
+	var target := inbox.path_join(slug(str(asset.get("provider_id","3dtexel")))).path_join(slug(str(asset.id))+"_"+str(asset.id).sha256_text().left(12)).path_join(folder.get_file())
 	var source := target.path_join("_source")
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(source))
 	var manifest_maps := {}
@@ -73,7 +73,7 @@ static func terrain_handoff(folder: String, maps: Dictionary, asset: Dictionary,
 	var record := Credits.asset_record(asset)
 	var credit_error := Credits.write_json(target.path_join("asset.credits.json"),record)
 	if credit_error!=OK:return {"error":"Cannot preserve terrain credits."}
-	var manifest := {"credits":record,"credits_sidecar":"asset.credits.json","name":"%s (%s source)" % [asset.title,folder.get_file().to_upper()],"maps":manifest_maps,"normal_format":normal_format,"source_url":asset.get("url",""),"provider":"3DTexel","asset_id":asset.id,"license":asset.get("license","")}
+	var manifest := {"credits":record,"credits_sidecar":"asset.credits.json","name":"%s (%s source)" % [asset.title,folder.get_file().to_upper()],"maps":manifest_maps,"normal_format":normal_format,"source_url":asset.get("url",""),"provider":asset.get("provider",asset.get("provider_id","Unknown")),"asset_id":asset.id,"license":asset.get("license","")}
 	# Final atomic manifest publishes a complete set; watcher ignores _source while copying.
 	if write_json(target.path_join("terrain_import.json"),manifest) != OK: return {"error":"Cannot publish terrain manifest."}
 	return {"manifest":target.path_join("terrain_import.json")}

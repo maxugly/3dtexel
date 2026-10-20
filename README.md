@@ -1,20 +1,25 @@
-# 3D Texel Import for Godot
+# Asset Library for Godot
 
-A cache-first Godot editor browser for 3DTexel PBR materials, with GPU-compressed
-material preparation, multi-resolution downloads and attribution sidecars.
+A cache-first Godot editor asset browser with site adapters, portable creator/license
+sidecars, GPU-compressed material preparation and generic source-file imports.
+3D Texel is the first adapter. OpenGameArt, Poly Haven and ambientCG are not installed
+as adapters yet.
 Independent community addon, MIT. Godot 4.4+; tested on 4.4.1 and 4.7.2.
 [Inspiration and attribution](ATTRIBUTION.md).
 
 ## Install and browse
 
-Copy `addons/3dtexel/` into your project. Enable **3D Texel Import** in
-**Project → Project Settings → Plugins**, then open the **3D Texel** editor tab.
+Copy `addons/3dtexel/` into your project. Enable **Asset Library** in
+**Project → Project Settings → Plugins**, then open the **Asset Library** editor tab.
 After updating an installed addon, toggle it off/on to rebuild its controls.
 
+- **Sites / keys** enables/disables providers and accepts masked session-only API keys.
+  Environment keys still work. **All enabled sites** searches the combined local catalog;
+  select a site to narrow it. No provider registration code belongs in the browser.
 - **Search cache**, source/price/license filters, page changes and tile selection
   read local metadata only. An empty cache needs an explicit **Refresh**.
 - **Refresh** fills/updates the current search's catalog, up to the service limit
-  of 50 API pages / 2500 matches per source. It uses sequential 50-record requests,
+  of 50 API pages / 2500 matches per source for Texel. That adapter uses sequential 50-record requests,
   paced to at most one API request per second per plugin instance. Click **Stop
   refresh** to stop after the current request, keeping what was cached.
 - The **Per page** dropdown offers 12, 24, 48, 96, 192, 512 and 1024 locally.
@@ -27,21 +32,23 @@ After updating an installed addon, toggle it off/on to rebuild its controls.
   filter choices as metadata is cached. Free non-CC0 materials are supported; unknown
   license fields remain unknown. Paid assets are browse-only, including owned assets.
 
-Cache: `user://3dtexel_cache/`. No automatic expiration, background catalog polling,
+Shared catalog: `user://asset_browser/catalog/assets.json`. Texel transport/thumbnail
+cache: `user://3dtexel_cache/` (preserved from earlier versions). No automatic expiration, background catalog polling,
 account responses, API keys or signed download responses are stored. Restarting the
 editor preserves the cache. Local completed imports also populate the catalog.
 **Check connection** is a separate, explicit account request, not a background check.
 
 ## Download and prepare
 
-Select a tile, then check one or more resolution boxes above **Download and prepare**.
+Select a tile, then check one or more variant boxes above **Download and prepare**.
+Texel variants are resolutions; other adapters can offer model/audio/image formats.
 Reported available sizes are shown when known. When the service has not supplied
 availability, 1K/2K/4K are clearly labeled requests, not confirmed offerings; use
 **Refresh selected metadata** to look for format declarations. No download probes
 are used to guess sizes. The provider can substitute a size: the result and receipt
 state the requested size, returned label and actual image dimensions.
 
-Each checked size is processed sequentially. Completed local versions are reused
+For Texel materials, each checked size is processed sequentially. Completed local versions are reused
 without contacting the API or downloading maps again. Request→returned-size aliases
 avoid repeating a substituted download. Imports retain original source maps and
 prepare mipmapped BC3/S3TC `*_texture.res` files and `material.res`, with anisotropic
@@ -120,3 +127,17 @@ The old live smoke is guarded by `TEXEL_ALLOW_LIVE_TESTS=1`; do not use it for n
 validation. Explicit user browsing/downloads are how the real cache gets populated.
 API documentation: https://3dtexel.com/developers/ . HDRIs/models/generation are outside
 this addon's current scope. Screenshots in docs illustrate earlier UI versions.
+
+## Extend with more sites
+
+See [provider contract](docs/PROVIDERS.md) and the ready-to-use
+[Antigravity implementation prompt](docs/ANTIGRAVITY_PROMPT.md). The addon folder
+name remains `3dtexel` for upgrade compatibility. Provider scripts are discovered
+from `providers/*/provider.gd`; no browser fork or extra plugin is needed.
+
+Four license workflow statuses supplement exact terms: permissive, unknown/review,
+commercial with attribution, blocked for this project. Share-alike/GPL are review
+cases, not blanket prohibitions. Paid downloads remain unsupported.
+
+Generic file imports keep a credit sidecar beside every source file. Archives are
+preserved intact; automatic extraction/model wrapping are not implemented yet.

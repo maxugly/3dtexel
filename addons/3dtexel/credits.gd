@@ -36,18 +36,27 @@ static func available_resolutions(asset: Dictionary) -> Array[String]:
 static func asset_record(asset: Dictionary) -> Dictionary:
 	var people := authors(asset)
 	var license := license_record(asset.get("license",""))
-	return {"schema_version":1,"provider":str(asset.get("provider","3DTexel")),"asset_id":asset.get("asset_id",asset.get("id",null)),"title":str(asset.get("title",asset.get("name","Untitled"))),"source_url":str(asset.get("source_url",asset.get("url",""))),"authors":people,"author_status":"reported" if not people.is_empty() else "not_supplied","license":license,"metadata_source_url":str(asset.get("metadata_source_url",asset.get("url",asset.get("source_url","")))),"attribution_text":str(asset.get("attribution",asset.get("attribution_text",""))),"review_required":people.is_empty() or license.name=="Unknown" or license.get("attribution_required")==null or (license.get("attribution_required")==true and str(license.get("url","")).is_empty())}
+	var record := {"schema_version":1,"provider":str(asset.get("provider","Unknown")),"asset_id":asset.get("asset_id",asset.get("id",null)),"title":str(asset.get("title",asset.get("name","Untitled"))),"source_url":str(asset.get("source_url",asset.get("url",""))),"authors":people,"author_status":"reported" if not people.is_empty() else "not_supplied","license":license,"metadata_source_url":str(asset.get("metadata_source_url",asset.get("url",asset.get("source_url","")))),"attribution_text":str(asset.get("attribution",asset.get("attribution_text",""))),"review_required":people.is_empty() or license.name=="Unknown" or license.get("attribution_required")==null or (license.get("attribution_required")==true and str(license.get("url","")).is_empty())}
+	var policy := preload("res://addons/3dtexel/core/license_policy.gd").evaluate(asset)
+	record.license_status=policy.status;record.license_reason=policy.reason
+	for key in ["provider_id","licenses","selected_license","license_status","license_reason","source_metadata","retrieved_utc"]:
+		if asset.has(key):record[key]=asset[key]
+	return record
 static func write_json(path: String, value: Dictionary) -> Error:
 	var file := FileAccess.open(path+".pending",FileAccess.WRITE)
 	if not file:return FileAccess.get_open_error()
-	file.store_string(JSON.stringify(value,"\t"));file.close()
+	file.store_string(JSON.stringify(preload("res://addons/3dtexel/core/public_metadata.gd").sanitize(value),"\t"));file.close()
 	return DirAccess.rename_absolute(ProjectSettings.globalize_path(path+".pending"),ProjectSettings.globalize_path(path))
 static func write_asset_sidecars(folder: String, record: Dictionary) -> Error:
 	var paths := ["asset.credits.json","material.res.credits.json"]
 	var directory := DirAccess.open(folder)
 	if directory:
 		for name in directory.get_files():
-			if name.ends_with("_texture.res"):paths.append(name+".credits.json")
+			if name.ends_with("_texture.res") or name.get_extension().to_lower() in ["glb","gltf","obj","fbx","blend","png","jpg","jpeg","webp","tga","exr","hdr","wav","ogg","mp3","zip","7z","tar","gz","txt","md","pdf"]:paths.append(name+".credits.json")
+	var sources := DirAccess.open(folder.path_join("_source"))
+	if sources:
+		for name in sources.get_files():
+			if not name.begins_with(".") and not name.ends_with(".credits.json") and not name.ends_with(".pending"):paths.append("_source/"+name+".credits.json")
 	for name in paths:
 		var error := write_json(folder.path_join(name),record)
 		if error!=OK:return error

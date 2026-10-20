@@ -18,16 +18,17 @@ func check(value: bool,message: String):
 func _initialize():call_deferred("run")
 func run():
 	var browser := ChoiceBrowser.new();root.add_child(browser);await process_frame
-	var asset := {"id":77,"title":"Local dirt","price":{"free":true,"credits":0},"resolutions":["2k","4k"],"author":"Local Artist","license":"CC0"}
-	browser.selected=asset;browser.update_resolution_choices(asset)
+	var asset := {"provider_id":"texel","provider":"3DTexel","id":"77","title":"Local dirt","price":{"free":true,"credits":0},"resolutions":["2k","4k"],"author":"Local Artist","license":"CC0"}
+	browser.client.providers.texel.set_session_key("offline-fixture");browser.selected=asset;browser.update_resolution_choices(asset)
 	check(browser.resolution_boxes.size()==2 and browser.resolution_boxes.has("4k") and not browser.resolution_boxes.has("1k"),"Only reported available resolutions shown")
 	for box in browser.resolution_boxes.values():box.button_pressed=true
 	await browser.download_selected()
 	check(browser.requested==["2k","4k"],"Every checked resolution handled once")
 	browser.queue_free();await process_frame
 	var real_browser := Browser.new();root.add_child(real_browser);await process_frame
-	real_browser.client.queue_free();var offline := OfflineClient.new();real_browser.add_child(offline);real_browser.client=offline
-	real_browser.output.text="res://3DTexel/reuse_test"
+	var adapter: Node=real_browser.client.providers.texel
+	adapter.client.free();var offline := OfflineClient.new();adapter.add_child(offline);adapter.client=offline
+	real_browser.output.text="res://3DTexel/reuse_test_%s" % Time.get_ticks_usec()
 	var folder := real_browser.output.text.path_join("%s_77" % Importer.slug(asset.title)).path_join("2k")
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(folder))
 	ResourceSaver.save(StandardMaterial3D.new(),folder.path_join("material.res"))

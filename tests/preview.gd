@@ -16,15 +16,16 @@ func run():
 	root.add_child(margin)
 	var browser := Browser.new();margin.add_child(browser)
 	await process_frame
-	browser.client.queue_free();browser.client=OfflineClient.new();browser.add_child(browser.client)
+	var adapter: Node=browser.client.providers.texel
+	adapter.client.free();adapter.client=OfflineClient.new();adapter.add_child(adapter.client)
 	browser.output.text="res://3DTexel/Materials"
 	browser.inbox.text="res://assets/terrain/inbox"
 	browser.search.text="grass"
 	await browser.run_search()
-	var asset: Dictionary = await browser.client.json_request("/assets/24509")
+	var asset: Dictionary = await adapter.client.json_request("/assets/24509")
 	if not asset.has("error"):
-		var thumbnail: Texture2D = await browser.client.thumbnail(str(asset.get("thumbnail","")))
-		await browser.select_asset(asset,thumbnail)
+		var thumbnail: Texture2D = await adapter.client.thumbnail(str(asset.get("thumbnail","")))
+		await browser.select_asset(adapter.normalize(asset),thumbnail)
 	await create_timer(2).timeout
 	await RenderingServer.frame_post_draw
 	var image := root.get_texture().get_image()

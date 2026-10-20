@@ -5,7 +5,7 @@ class FakeClient:
 	var started := 0
 	var active := 0
 	var peak := 0
-	func thumbnail(_url: String) -> Texture2D:
+	func thumbnail(_url: String,_asset: Dictionary) -> Texture2D:
 		started+=1;active+=1;peak=maxi(peak,active)
 		await get_tree().create_timer(.02).timeout
 		active-=1
