@@ -2,6 +2,7 @@
 extends Control
 const Client = preload("res://addons/3dtexel/client.gd")
 const Importer = preload("res://addons/3dtexel/importer.gd")
+const Pagination = preload("res://addons/3dtexel/pagination.gd")
 var content: VBoxContainer
 var editor_plugin: EditorPlugin
 var client: Node
@@ -22,6 +23,7 @@ var preview: TextureRect
 var download: Button
 var previous: Button
 var next: Button
+var per_page: OptionButton
 var page_label: Label
 var selected := {}
 var page := 1
@@ -29,6 +31,10 @@ var busy := false
 var serial := 0
 var pending_details := false
 var tile_group := ButtonGroup.new()
+var search_cache := {}
+var thumbnail_queue: Array[Dictionary] = []
+var thumbnails_active := 0
+var thumbnail_tick := 0.0
 func button(text: String, action: Callable, parent: Node) -> Button:
 	var item := Button.new(); item.text = text; item.pressed.connect(action); parent.add_child(item)
 	return item
@@ -73,6 +79,16 @@ func _ready() -> void:
 		if not selected.is_empty(): OS.shell_open(str(selected.get("url","https://3dtexel.com"))),side)
 	var pages := HBoxContainer.new();content.add_child(pages)
 	previous = button("← Previous",func(): page=maxi(1,page-1); run_search(),pages)
+	var count_label := Label.new();count_label.text="Per page:";pages.add_child(count_label)
+	per_page = OptionButton.new()
+	var preferences := ConfigFile.new()
+	preferences.load("user://3dtexel_browser.cfg")
+	var saved_count := int(preferences.get_value("browser","per_page",12))
+	for count in Pagination.PAGE_SIZES: per_page.add_item(str(count),count)
+	per_page.select(maxi(0,per_page.get_item_index(saved_count)))
+	per_page.tooltip_text="Large batches are assembled from multiple server pages. Thumbnails load as you scroll."
+	pages.add_child(per_page)
+	per_page.item_selected.connect(change_page_size)
 	page_label = Label.new();page_label.clip_text = true;page_label.size_flags_horizontal=Control.SIZE_EXPAND_FILL;pages.add_child(page_label)
 	next = button("Next →",func(): page+=1; run_search(),pages)
 	previous.disabled=true;next.disabled=true
@@ -96,25 +112,84 @@ func update_columns() -> void:
 func start_search() -> void:
 	if busy: return
 	page = 1
+	search_cache.clear()
+	run_search()
+func change_page_size(_index: int) -> void:
+	var preferences := ConfigFile.new()
+	preferences.set_value("browser","per_page",per_page.get_selected_id())
+	preferences.save("user://3dtexel_browser.cfg")
+	page=1
 	run_search()
 func run_search() -> void:
 	if busy: return
 	busy=true;serial+=1
 	var token := serial
+	var count := per_page.get_selected_id()
+	per_page.disabled=true
 	status.text="Searching…"
 	previous.disabled=true;next.disabled=true
-	for child in grid.get_children(): child.queue_free()
+	thumbnail_queue.clear()
+	for child in grid.get_children():
+		grid.remove_child(child)
+		child.queue_free()
+	results_scroll.scroll_vertical=0
 	var type := "pbr" if kind.selected == 0 else "ai-pbr"
-	var data: Dictionary = await client.json_request("/assets/search?q=%s&type=%s&page=%s&per_page=12" % [search.text.uri_encode(),type,page])
-	busy=false
-	if data.has("error"): status.text="Search failed: "+str(data.error);return
-	var items: Array = data.get("items",[])
-	var total := int(data.get("total",0))
-	page_label.text="Page %s · %s materials" % [page,total]
-	previous.disabled=page<=1;next.disabled=page*12>=total or page>=50
-	status.text="%s results on this page. Select a card for details." % items.size()
+	var query := search.text.uri_encode()
+	var items: Array = []
+	var total := 0
+	var failure := ""
+	for request in Pagination.request_plan(page,count):
+		var path := "/assets/search?q=%s&type=%s&page=%s&per_page=%s" % [query,type,request.page,Pagination.API_PAGE_SIZE]
+		var data: Dictionary
+		if search_cache.has(path): data=search_cache[path]
+		else:
+			data=await client.json_request(path)
+			if token!=serial: return
+			if not data.has("error"): search_cache[path]=data
+		if data.has("error"):
+			failure=str(data.error)
+			break
+		total=int(data.get("total",0))
+		var batch: Array=data.get("items",[])
+		items.append_array(batch.slice(request.skip,mini(batch.size(),request.skip+request.take)))
+		status.text="Loading results: %s / %s…" % [items.size(),mini(count,maxi(0,total-(page-1)*count))]
+		if request.page*Pagination.API_PAGE_SIZE>=total:break
+	var available := mini(total,Pagination.API_MAX_RESULTS)
+	var page_count := maxi(1,ceili(float(available)/count))
+	page_label.text="Page %s / %s · %s materials" % [page,page_count,total]
+	previous.disabled=page<=1
+	next.disabled=page>=page_count or not failure.is_empty()
 	for asset: Dictionary in items:
 		grid.add_child(make_asset_tile(asset,token))
+		if grid.get_child_count() % 48 == 0:await get_tree().process_frame
+	busy=false;per_page.disabled=false
+	status.text="%s results on this page. Select a tile for details." % items.size()
+	if not failure.is_empty():status.text+=" Loading stopped: "+failure+". Search again to retry."
+	elif total>Pagination.API_MAX_RESULTS:status.text+=" The service exposes the first %s matches; narrow the search for more." % Pagination.API_MAX_RESULTS
+func _process(delta: float) -> void:
+	thumbnail_tick+=delta
+	if thumbnail_tick<0.2:return
+	thumbnail_tick=0.0
+	pump_thumbnails()
+func pump_thumbnails() -> void:
+	if not is_visible_in_tree() or not is_instance_valid(results_scroll):return
+	var visible_area := results_scroll.get_global_rect().grow(140)
+	var i := 0
+	while i<thumbnail_queue.size() and thumbnails_active<4:
+		var job: Dictionary=thumbnail_queue[i]
+		var image: TextureRect=job.image if is_instance_valid(job.image) else null
+		if job.token!=serial or not image:
+			thumbnail_queue.remove_at(i)
+			continue
+		if not image.is_inside_tree() or not image.get_global_rect().intersects(visible_area):
+			i+=1
+			continue
+		thumbnail_queue.remove_at(i)
+		thumbnails_active+=1
+		load_queued_thumbnail(job)
+func load_queued_thumbnail(job: Dictionary) -> void:
+	await load_thumbnail(job.url,job.image,job.token)
+	thumbnails_active-=1
 func make_asset_tile(asset: Dictionary, token: int) -> Button:
 	var tile := Button.new()
 	tile.custom_minimum_size = Vector2(165,236)
@@ -155,7 +230,8 @@ func make_asset_tile(asset: Dictionary, token: int) -> Button:
 	contents.add_child(license_label)
 	contents.minimum_size_changed.connect(func(): tile.custom_minimum_size.y = maxf(236,contents.get_combined_minimum_size().y+16))
 	tile.pressed.connect(func(): select_asset(asset,image.texture))
-	load_thumbnail(str(asset.get("thumbnail","")),image,token)
+	var thumbnail_url := str(asset.get("thumbnail",""))
+	if not thumbnail_url.is_empty():thumbnail_queue.append({"url":thumbnail_url,"image":image,"token":token})
 	return tile
 func load_thumbnail(url: String, image: TextureRect, token: int) -> void:
 	if url.is_empty(): return

@@ -29,6 +29,13 @@ width, wraps toolbar controls and stacks details beneath results in narrow windo
 Each material is one clickable tile: thumbnail, title, license and padding all select
 it, with hover/focus feedback and a persistent selection highlight.
 
+The **Per page** dropdown offers **12, 24, 48, 96, 192, 512 and 1024** and remembers
+its choice locally in `user://3dtexel_browser.cfg`. Large UI pages are assembled from
+50-result API pages, with correct offsets and cached overlapping server pages.
+Thumbnails load near the visible scroll area, with at most four requests active.
+The service caps search access at 50 API pages (2500 matches); the UI explains this
+limit when relevant. Search again to retry a partial failure or refresh cached results.
+
 ## Authentication
 
 Search works without a key. Downloads require a 3DTexel account and an API key with
