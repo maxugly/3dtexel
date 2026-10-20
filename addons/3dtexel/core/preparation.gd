@@ -15,6 +15,9 @@ func prepare(asset: Dictionary, requested: String) -> Dictionary:
 	if int(Policy.evaluate(asset).status)==Policy.Status.BLOCKED:return {"error":"Asset is blocked by project license/entitlement policy."}
 	var provider: Node=registry.provider_for(asset)
 	if not provider or not provider.enabled:return {"error":"Provider is disabled or unavailable."}
+	if registry.get("inventory")!=null:
+		var imports: Dictionary=registry.inventory.versions(asset)
+		if imports.has(requested):return reuse_local(str(imports[requested].folder),asset,requested)
 	var base := output_directory.path_join(str(provider.descriptor().id)).path_join("%s_%s" % [Importer.slug(str(asset.title)),Importer.slug(str(asset.id))+"_"+str(asset.id).sha256_text().left(12)])
 	var folder := base.path_join(requested)
 	var alias_path := base.path_join("request_"+requested+".json")
@@ -43,7 +46,9 @@ func prepare(asset: Dictionary, requested: String) -> Dictionary:
 	if plan.get("kind","")=="files":
 		var handler := Files.new();add_child(handler)
 		var prepared: Dictionary=await handler.prepare(provider,folder,asset,plan)
-		handler.queue_free();return prepared
+		handler.queue_free()
+		if not prepared.has("error"):remember(asset,actual,folder,requested)
+		return prepared
 	if plan.get("kind","")!="material":return {"error":"Unsupported preparation kind; expected material or files."}
 	var source := folder.path_join("_source")
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(source))
@@ -78,6 +83,7 @@ func prepare(asset: Dictionary, requested: String) -> Dictionary:
 	if send_to_terrain:
 		var terrain := Importer.terrain_handoff(folder,maps,asset,normal_format,terrain_inbox)
 		note=" Terrain handoff failed: "+str(terrain.error) if terrain.has("error") else " Sent to Terrain imports at its current output size."
+	remember(asset,actual,folder,requested)
 	return {"note":"%s prepared as %s%s" % [requested.to_upper(),actual.to_upper(),note]}
 func reuse_local(folder: String, asset: Dictionary, requested: String) -> Dictionary:
 	var provenance: Variant=JSON.parse_string(FileAccess.get_file_as_string(folder.path_join("provenance.json")))
@@ -95,4 +101,8 @@ func reuse_local(folder: String, asset: Dictionary, requested: String) -> Dictio
 	if send_to_terrain and not provenance.get("maps",{}).is_empty():
 		var result := Importer.terrain_handoff(folder,provenance.get("maps",{}),credit_source,str(provenance.get("normal_format","opengl")),terrain_inbox)
 		if result.has("error"):return result
+	remember(asset,str(provenance.get("returned_resolution",folder.get_file())),folder,requested)
 	return {"note":requested.to_upper()+" reused locally · "+str(provenance.get("returned_resolution",folder.get_file())).to_upper()}
+
+func remember(asset: Dictionary,actual: String,folder: String,requested: String) -> void:
+	if registry.get("inventory")!=null:registry.inventory.record_import(asset,actual,folder,requested)

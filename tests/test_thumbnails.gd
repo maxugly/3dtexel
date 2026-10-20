@@ -1,7 +1,7 @@
 extends SceneTree
 const Browser = preload("res://addons/3dtexel/browser.gd")
 class FakeClient:
-	extends Node
+	extends "res://addons/3dtexel/core/registry.gd"
 	var started := 0
 	var active := 0
 	var peak := 0
@@ -19,7 +19,7 @@ func run():
 	var browser := Browser.new();root.add_child(browser);await process_frame
 	browser.set_process(false)
 	browser.client.queue_free()
-	var fake := FakeClient.new();browser.add_child(fake);browser.client=fake
+	var fake := FakeClient.new();browser.add_child(fake);browser.client=fake;browser.selection.registry=fake;browser.session.registry=fake
 	for i in 100:
 		browser.grid.add_child(browser.make_asset_tile({"id":i,"title":"Test","thumbnail":"https://example.invalid/thumbnail","price":{"free":true,"credits":0}},browser.serial))
 	for i in 8:await process_frame

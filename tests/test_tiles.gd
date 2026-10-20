@@ -15,7 +15,8 @@ func run():
 	var tile := browser.make_asset_tile({"id":42,"title":"Test material","price":{"free":true,"credits":0}},0)
 	browser.grid.add_child(tile)
 	for i in 6:await process_frame
-	var contents := tile.get_child(0).get_child(0)
+	var main := tile.get_node("Contents/Inspect")
+	var contents := main.get_child(0).get_child(0)
 	for region in [contents.get_node("Thumbnail"),contents.get_node("Title"),contents.get_node("License")]:
 		var point: Vector2 = region.get_global_rect().get_center()
 		for down in [true,false]:
@@ -23,6 +24,6 @@ func run():
 			root.push_input(event)
 			await process_frame
 	check(browser.clicked==[42,42,42],"Thumbnail, title and license clicks all select exactly once")
-	check(tile.button_pressed,"Selected tile stays highlighted")
+	check(tile.get_node("Contents/Header/Select") is CheckBox,"Card selection is separate from inspecting its image")
 	print("Tile hit tests complete; failures=",failures)
 	quit(1 if failures else 0)

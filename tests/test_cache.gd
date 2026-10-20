@@ -31,6 +31,8 @@ func run():
 	other.cache.put_response("/me",{"authorization":"NEVER_STORE"})
 	other.cache.put_response("/assets/99/download",{"files":{"url":"https://example.test/?signature=secret"}})
 	check(other.cache.get_response("/me").is_empty() and other.cache.get_response("/assets/99/download").is_empty(),"Account and signed-link responses never cached")
+	client.cache.put_response("/assets/search?q=fixture",{"items":[],"total":0},{"etag":"fixture-v1"})
+	check(client.cache.conditional_headers("/assets/search?q=fixture")==PackedStringArray(["If-None-Match: fixture-v1"]),"Provider queries can revalidate existing metadata without a repeated body")
 	var thumb := "https://example.test/thumbnail.png"
 	await client.thumbnail(thumb);check(client.files==0,"Uncached thumbnail stays offline")
 	client.allowed_thumbnails[thumb]=true

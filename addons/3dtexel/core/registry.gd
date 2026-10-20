@@ -4,6 +4,7 @@ extends Node
 const Catalog = preload("res://addons/3dtexel/core/catalog.gd")
 const Policy = preload("res://addons/3dtexel/core/license_policy.gd")
 var catalog := Catalog.new()
+var inventory := preload("res://addons/3dtexel/core/download_inventory.gd").new()
 var providers := {}
 var scope := ""
 var network_allowed := false:
@@ -45,10 +46,13 @@ func index_assets(items: Array) -> void:
 		asset.license_status=policy.status;asset.license_reason=policy.reason;catalog.upsert(asset)
 	catalog.save()
 func seed(output: String) -> void:
+	inventory.scan(output)
 	# Legacy import discovery is optional and belongs to its adapter.
 	for provider in providers.values():
 		if provider.has_method("load_local_imports"):provider.load_local_imports(output)
 		index_assets(provider.local_assets())
+		for folder in provider.local_import_roots():inventory.scan(str(folder))
+	inventory.save()
 func search(query: String,category: String,free_only: bool,license_name: String) -> Array:
 	return catalog.search(active_ids(),query,category,free_only,license_name)
 func licenses() -> Array[String]:

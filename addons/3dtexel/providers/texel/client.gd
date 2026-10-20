@@ -13,6 +13,7 @@ const BASE := "https://3dtexel.com/wp-json/3dtexel-api/v1"
 const KEY_NAMES := ["3DTEXEL_API_KEY", "TEXEL_API_KEY", "TEXEL"]
 var session_key := ""
 var active: Array[HTTPRequest] = []
+var response_validators := {}
 func api_key() -> String:
 	if not session_key.is_empty():return session_key
 	for name in KEY_NAMES:
@@ -28,9 +29,9 @@ func json_request(path: String, method := HTTPClient.METHOD_GET, body := {}) -> 
 		if not refreshing:
 			var cached := cache.get_response(path)
 			if not cached.is_empty():return cached
-		if not network_allowed:return {"error":"Not cached. Use Refresh to fetch this information."}
+		if not network_allowed:return {"error":"Asset details are not available yet."}
 	var result := await transport_json(path,method,body)
-	if method==HTTPClient.METHOD_GET:cache.put_response(path,result)
+	if method==HTTPClient.METHOD_GET:cache.put_response(path,result,response_validators.get(path,{}))
 	return result
 func transport_json(path: String, method := HTTPClient.METHOD_GET, body := {}) -> Dictionary:
 	var remaining := 1000-(Time.get_ticks_msec()-last_network_request_ms)
@@ -43,6 +44,7 @@ func transport_json(path: String, method := HTTPClient.METHOD_GET, body := {}) -
 	add_child(request)
 	active.append(request)
 	var headers := PackedStringArray(["Accept: application/json", "User-Agent: Godot3DTexel/0.1"])
+	if method==HTTPClient.METHOD_GET:headers.append_array(cache.conditional_headers(path))
 	var key := api_key()
 	if not key.is_empty(): headers.append("Authorization: Bearer " + key)
 	if method != HTTPClient.METHOD_GET:
@@ -55,6 +57,15 @@ func transport_json(path: String, method := HTTPClient.METHOD_GET, body := {}) -
 	var response: Array = await request.request_completed
 	active.erase(request); request.queue_free()
 	if response[0] != HTTPRequest.RESULT_SUCCESS: return {"error":"Connection failed (%s). Check your connection and retry." % response[0]}
+	if int(response[1])==304:
+		var cached := cache.get_response(path)
+		return cached if not cached.is_empty() else {"error":"The site returned an unchanged response without local metadata."}
+	var validators := {}
+	if method==HTTPClient.METHOD_GET and Cache.cacheable(path):
+		for header: String in response[2]:
+			if header.to_lower().begins_with("etag:"):validators.etag=header.substr(header.find(":")+1).strip_edges()
+			elif header.to_lower().begins_with("last-modified:"):validators.last_modified=header.substr(header.find(":")+1).strip_edges()
+		response_validators[path]=validators
 	var data: Variant = JSON.parse_string(response[3].get_string_from_utf8())
 	if int(response[1]) < 200 or int(response[1]) >= 300:
 		var code := "HTTP %s" % response[1]

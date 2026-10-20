@@ -8,6 +8,9 @@ addon per website. Site protocol code belongs only in `providers/<site>/`.
 
 - `browser.gd`: shared tiles, site scope, local filters, refresh/stop, variant choices,
   credential controls, native import controls. It knows no site endpoints.
+- `core/search_session.gd`: bounded fresh site queries with on-demand additional pages.
+- `core/download_inventory.gd`: receipt-backed local version indicators.
+- `core/download_selection.gd`: per-card selection and version-filtered queues.
 - `core/registry.gd`: discovers `providers/*/provider.gd` at startup, rejects duplicate
   IDs, applies enable flags, combines enabled providers' catalogs, routes operations.
 - `core/provider.gd`: adapter interface. Extend this script; do not introduce global
@@ -41,14 +44,15 @@ services or timers in the constructor. Store session keys only in memory;
 `refresh_page(query, category, cursor)` returns `{items: [...], next_cursor: "..."}`
 or `{error: "..."}`. Empty cursor starts; empty next_cursor completes. Cursor
 translation, pagination limits, rate pacing and retry-after handling belong to the
-adapter. The core stops after 100 batches or a repeated cursor and preserves all
-completed batches. Do not claim unsupported query categories work. Skip categories
+adapter. The core fetches only enough batches for the requested page size and requests
+additional pages as needed. A repeated cursor stops that provider. Do not claim unsupported query categories work. Skip categories
 that your provider cannot supply; return an empty result without network calls.
 
-`refresh_asset(asset)` returns normalized details. `resolve_download(asset, variant)`
-returns a transient plan. Every operation checks `network_allowed`; selection,
-search, paging and variant rendering are offline. `refreshing` means bypass cached
-metadata only during an explicit refresh. `can_download()` is an offline availability
+`asset_details(asset)` returns normalized details, reusing prior responses/page
+metadata where available. `refresh_asset(asset)` can explicitly update those details. `resolve_download(asset, variant)`
+returns a transient plan. Every operation checks `network_allowed`; search submissions query the site; filtering, already-fetched pages and variant
+rendering reuse existing metadata. Search responses must be fresh, while repeated
+detail/image requests reuse cache. `refreshing` means bypass cached search responses during a submitted search. `can_download()` is an offline availability
 check, not a network probe. `check_connection()` is explicit. Thumbnail downloading
 must honor a cache plus authorization granted by an explicit refresh/download;
 keep lazy viewport loading, bounded concurrency and disk caching. `cancel_all()`
@@ -89,9 +93,14 @@ sanitized original public metadata snapshot. Never persist signed URLs, account
 responses, secrets or authorization. No live fixture harvesting.
 
 `variants(asset)` returns offline choices, whose IDs are safe lowercase slugs.
-Only label availability confirmed when reported. Materials can return requested
-resolutions explicitly marked `confirmed: false`; models/audio may just have
-`original` or distinct documented file formats. Do not pretend every asset has 2K/4K.
+Only expose confirmed reported versions. Unknown availability returns an empty
+array, never guessed 1K/2K/4K requests. Material options include `resolution: "2k"`;
+model options can include `lod: "low"` and `triangles: 1200`. `filter_key` and
+`filter_label` optionally express cross-asset version filters. IDs remain safe slugs.
+Models/audio may have `original` or documented formats. Do not assign texture
+resolutions to model options. Cards render version buttons and imported indicators;
+always-visible card checkboxes feed a sequential queue filtered by version, with
+a five-second default pause. No separate batch mode.
 
 ## Transient download plans
 
@@ -139,7 +148,7 @@ not implemented. Default imports must never spend money or credits.
 
 ## Verification
 
-Run the nine scripts in `.github/workflows/test.yml`, using mocks only.
+Run the twelve scripts in `.github/workflows/test.yml`, using mocks only.
 `tests/test_providers.gd` demonstrates a second provider with string IDs, namespace
 collisions, disabled sites, nested secret stripping, persistence, generic file import,
 sidecars and completed-import reuse. Do not run `test_live.gd` or hit real providers

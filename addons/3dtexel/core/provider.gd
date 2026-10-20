@@ -12,6 +12,8 @@ func set_session_key(_value: String) -> void:pass
 func credential_status() -> String:return "No key required."
 func can_download(_asset: Dictionary) -> bool:return false
 func local_assets() -> Array:return []
+func local_import_roots() -> Array:return []
+func asset_details(asset: Dictionary) -> Dictionary:return await refresh_asset(asset)
 func refresh_page(_query: String,_category: String,_cursor: String) -> Dictionary:
 	return {"error":"Provider does not implement refresh_page."}
 func refresh_asset(_asset: Dictionary) -> Dictionary:

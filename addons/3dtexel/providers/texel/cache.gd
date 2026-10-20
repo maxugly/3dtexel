@@ -19,7 +19,7 @@ func get_response(path: String) -> Dictionary:
 	if not cacheable(path) or not FileAccess.file_exists(response_path(path)):return {}
 	var data: Variant=JSON.parse_string(FileAccess.get_file_as_string(response_path(path)))
 	return data.get("data",{}) if data is Dictionary else {}
-func put_response(path: String, data: Dictionary) -> void:
+func put_response(path: String, data: Dictionary, validators := {}) -> void:
 	ensure_loaded()
 	if not cacheable(path) or data.has("error"):return
 	# Only public asset metadata is persisted. No account responses, keys or download links.
@@ -30,7 +30,9 @@ func put_response(path: String, data: Dictionary) -> void:
 		clean.items=[]
 		for asset: Dictionary in data.get("items",[]):clean.items.append(public_asset(asset));upsert(asset)
 	else:clean=public_asset(data);upsert(data)
-	Credits.write_json(response_path(path),{"fetched_utc":Time.get_datetime_string_from_system(true),"data":clean})
+	var prior := response_validators(path)
+	prior.merge(validators,true)
+	Credits.write_json(response_path(path),{"fetched_utc":Time.get_datetime_string_from_system(true),"data":clean,"validators":prior})
 	Credits.write_json(root.path_join("catalog.json"),catalog)
 static func public_asset(asset: Dictionary) -> Dictionary:
 	var clean := {}
@@ -91,3 +93,15 @@ func load_local_imports(folder: String, depth := 3) -> void:
 	for name in directory.get_directories():
 		if not name.begins_with(".") and name!="_source":load_local_imports(folder.path_join(name),depth-1)
 	Credits.write_json(root.path_join("catalog.json"),catalog)
+
+func response_validators(path: String) -> Dictionary:
+	ensure_loaded()
+	if not cacheable(path) or not FileAccess.file_exists(response_path(path)):return {}
+	var record: Variant=JSON.parse_string(FileAccess.get_file_as_string(response_path(path)))
+	return record.get("validators",{}) if record is Dictionary else {}
+func conditional_headers(path: String) -> PackedStringArray:
+	var values := response_validators(path);var headers := PackedStringArray()
+	for pair in [["etag","If-None-Match"],["last_modified","If-Modified-Since"]]:
+		var value := str(values.get(pair[0],""))
+		if not value.is_empty() and value.length()<512 and "\r" not in value and "\n" not in value:headers.append(str(pair[1])+": "+value)
+	return headers

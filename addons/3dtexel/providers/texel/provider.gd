@@ -17,18 +17,18 @@ func credential_status() -> String:
 func can_download(asset: Dictionary) -> bool:
 	return Importer.free_asset(asset) and not api_key().is_empty() and asset.get("download",{}).get("via_api",true)
 func normalize(raw: Dictionary, fetched := false) -> Dictionary:
-	var asset := raw.duplicate(true)
+	var asset: Dictionary=client.cache.asset(int(raw.get("id",raw.get("asset_id",0))))
+	asset.merge(raw,true)
 	asset.provider_id="texel";asset.provider="3DTexel";asset.id=str(raw.get("id",raw.get("asset_id","")))
-	asset.type="material";asset.authors=Credits.authors(raw)
+	asset.type="material";asset.authors=Credits.authors(asset)
 	asset.source_metadata=preload("res://addons/3dtexel/providers/texel/cache.gd").public_asset(raw)
 	asset.retrieved_utc=Time.get_datetime_string_from_system(true) if fetched else raw.get("retrieved_utc","")
-	asset.license=Credits.license_record(raw.get("license",""))
-	asset.variants=variants(raw)
+	asset.license=Credits.license_record(asset.get("license",""))
+	asset.variants=variants(asset)
 	return asset
 func variants(asset: Dictionary) -> Array:
-	var sizes := Credits.available_resolutions(asset);var known := not sizes.is_empty();var result := []
-	if not known:sizes.assign(["1k","2k","4k"])
-	for size in sizes:result.append({"id":size,"label":size.to_upper(),"confirmed":known,"kind":"material"})
+	var sizes := Credits.available_resolutions(asset);var result := []
+	for size in sizes:result.append({"id":size,"label":size.to_upper(),"confirmed":true,"kind":"material","resolution":size})
 	return result
 func local_assets() -> Array:
 	client.cache.ensure_loaded();var result := []
@@ -91,3 +91,11 @@ func cancel_all() -> void:client.cancel_all()
 func load_local_imports(output: String) -> void:
 	client.cache.load_local_imports(output)
 	if output!="res://3DTexel/Materials":client.cache.load_local_imports("res://3DTexel/Materials")
+
+func local_import_roots() -> Array:return ["res://3DTexel/Materials"]
+func asset_details(asset: Dictionary) -> Dictionary:
+	if not network_allowed:return {"error":"Choose an asset first."}
+	sync_network();client.refreshing=false
+	var data: Dictionary=await client.json_request("/assets/%s" % int(asset.id))
+	if data.has("error"):return data
+	return normalize(await client.enrich_asset(data),false)

@@ -18,10 +18,10 @@ func run():
 	browser.output.text="res://3DTexel/live_smoke"
 	browser.handoff.button_pressed=true
 	browser.inbox.text="res://3DTexel/inbox"
-	browser.update_resolution_choices(asset)
-	browser.resolution_boxes["2k"].button_pressed=true
-	await browser.download_selected()
+	if not browser.selection.options(asset,false).any(func(option):return option.id=="2k"):
+		push_error("Asset does not report a 2K version; refusing a probe.");quit(1);return
+	await browser.download_one(asset,"2k")
 	print(browser.status.text)
-	if not browser.status.text.begins_with("Ready:"):quit(1);return
+	if not browser.status.text.begins_with("1 / 1 downloads complete"):quit(1);return
 	browser.queue_free();await process_frame
 	quit()

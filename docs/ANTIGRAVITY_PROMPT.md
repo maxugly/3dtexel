@@ -44,18 +44,26 @@ FAQ is https://opengameart.org/content/faq and OGA-BY guidance is
 https://opengameart.org/content/oga-by-30-faq . Verify current official documentation
 when implementing; do not assume an API or undocumented endpoints exist.
 
-Match existing cache-first behavior: opening Godot, typing, selecting, filtering,
-paging and changing variants are LOCAL. Only explicit Refresh, Refresh selected
-metadata, Check connection or Download authorizes network. Persist metadata and
-thumbnails; reuse completed downloads; no background expiration or polling.
-Respect published site access policies, robots/terms, rate limits, Retry-After,
-and cancellation. No rapid retries, scraping an entire site, account bypasses,
-paid downloads or speculative resolution/file probes. If a documented API/feed
-is unavailable, use a permitted bounded page reader, or support explicit pasted
-asset URLs first and explain the limitation. Ordinary browsing must remain useful
-from cache when offline. No keys should be requested for sites that do not need them.
-Secrets come from documented inherited env vars or masked session-only fields;
-never commit/save/log keys or cache signed download URLs/account data.
+Match the current normal search behavior: **Search queries the site**, fetching
+only enough pages for the requested page size. Next loads more as needed; never
+sweep the full query/site automatically. Reuse stored details and thumbnails without
+cache/offline jargon or extra modes. Site metadata payloads may contain all summary
+fields; do not issue redundant per-asset detail calls. Persist metadata/images and
+completed imports. Respect robots/terms, site access policies, rate limits,
+Retry-After and cancellation. No rapid retries, account bypasses, paid downloads,
+speculative resolutions, or download probes. If no API/feed exists, use a permitted
+bounded page reader or start with explicitly pasted asset URLs and explain limitations.
+Keys come from environment or masked session-only fields, never persisted/logged.
+
+Cards contain always-visible asset-selection checkboxes, direct buttons for each
+confirmed real version, and imported-version checkmarks. Never invent options when
+availability is unknown. Texture resolutions apply only to texture materials; model
+providers report actual format/LOD/triangle choices. The version filter controls
+checkbox downloads: 2K means only 2K; no filter means all missing versions. Missing
+versions are selected by default; imported versions are excluded unless explicitly
+selected for local reuse. Check all acts on displayed cards. No batch mode or
+experimental toggle; the queue waits five seconds between downloads by default and
+supports Stop. Keep status visible. These controls belong to the core, not adapters.
 
 OpenGameArt includes models, textures, 2D art and audio. Populate actual format/file
 variants rather than fictitious resolution choices. Use `material` plans for known
