@@ -1,0 +1,31 @@
+extends SceneTree
+const Browser = preload("res://addons/3dtexel/browser.gd")
+var failures := 0
+func check(value: bool, message: String):
+	if not value: failures+=1;push_error(message)
+func _initialize():call_deferred("run")
+func settle():
+	for i in 8:await process_frame
+func run():
+	# Godot editor main screen is container-managed, unlike the original MarginContainer preview.
+	var editor_host := VBoxContainer.new();editor_host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);root.add_child(editor_host)
+	var browser := Browser.new();editor_host.add_child(browser)
+	await settle()
+	for i in 12:
+		var card := VBoxContainer.new();card.custom_minimum_size.x=165;browser.grid.add_child(card)
+		var image := TextureRect.new();image.custom_minimum_size=Vector2(155,130);image.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;card.add_child(image)
+		var choose := browser.button("A long ground material title for layout testing",func():pass,card)
+		choose.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	for viewport_size in [Vector2i(1600,900),Vector2i(850,1000),Vector2i(640,960)]:
+		root.size=viewport_size
+		await settle()
+		check(browser.size.y>=editor_host.size.y-2,"Browser must fill editor host vertically: %s" % viewport_size)
+		check(browser.size.x<=viewport_size.x+2,"No horizontal overflow: %s" % viewport_size)
+		check(browser.body.size.y>viewport_size.y*.45,"Results consume available height: %s" % viewport_size)
+		check(browser.side.get_global_rect().end.x<=viewport_size.x+2,"Details pane visible: %s" % viewport_size)
+		check(browser.grid.size.x<=browser.results_scroll.size.x+2,"Grid fits its scroll pane: %s" % viewport_size)
+		check(browser.body.vertical==(viewport_size.x<720),"Responsive stacked layout: %s" % viewport_size)
+		print("Layout ",viewport_size,": browser=",browser.size," results=",browser.body.size," columns=",browser.grid.columns," stacked=",browser.body.vertical)
+	browser.queue_free()
+	print("Layout tests complete; failures=",failures)
+	quit(1 if failures else 0)

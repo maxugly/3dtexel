@@ -15,4 +15,6 @@ jobs:
           sudo install /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 /usr/local/bin/godot
           rm godot.zip
       - name: Offline tests
-        run: timeout 90s godot --headless --path . -s tests/test_core.gd
+        run: |
+          timeout 90s godot --headless --path . -s tests/test_core.gd
+          timeout 30s godot --headless --path . -s tests/test_layout.gd

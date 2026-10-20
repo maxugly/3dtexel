@@ -1,7 +1,8 @@
 @tool
-extends VBoxContainer
+extends Control
 const Client = preload("res://addons/3dtexel/client.gd")
 const Importer = preload("res://addons/3dtexel/importer.gd")
+var content: VBoxContainer
 var editor_plugin: EditorPlugin
 var client: Node
 var search: LineEdit
@@ -12,6 +13,9 @@ var inbox: LineEdit
 var handoff: CheckBox
 var status: Label
 var account: Label
+var body: SplitContainer
+var results_scroll: ScrollContainer
+var side: VBoxContainer
 var grid: GridContainer
 var detail: RichTextLabel
 var preview: TextureRect
@@ -29,44 +33,65 @@ func button(text: String, action: Callable, parent: Node) -> Button:
 	return item
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_theme_constant_override("separation",10)
-	client = Client.new(); add_child(client)
-	var title := Label.new(); title.text = "3D Texel · PBR material library"; title.add_theme_font_size_override("font_size",24);add_child(title)
-	var toolbar := HBoxContainer.new();add_child(toolbar)
-	search = LineEdit.new();search.placeholder_text = "Search grass, worn concrete, rusty metal…";search.size_flags_horizontal = Control.SIZE_EXPAND_FILL;toolbar.add_child(search)
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content = VBoxContainer.new()
+	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	self.add_child(content)
+	content.add_theme_constant_override("separation",10)
+	client = Client.new(); content.add_child(client)
+	var title := Label.new(); title.text = "3D Texel · PBR material library"; title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; title.add_theme_font_size_override("font_size",24);content.add_child(title)
+	var toolbar := HFlowContainer.new();content.add_child(toolbar)
+	search = LineEdit.new();search.custom_minimum_size.x = 220;search.placeholder_text = "Search grass, worn concrete, rusty metal…";search.size_flags_horizontal = Control.SIZE_EXPAND_FILL;toolbar.add_child(search)
 	search.text_submitted.connect(func(_text): start_search())
 	kind = OptionButton.new();kind.add_item("Handmade · free CC0");kind.add_item("Community · AI materials");toolbar.add_child(kind)
 	button("Search",start_search,toolbar)
 	button("Check connection",check_connection,toolbar)
 	button("Website",func(): OS.shell_open("https://3dtexel.com/pbr-material/"),toolbar)
-	account = Label.new();account.text = "Environment key found." if not client.api_key().is_empty() else "Browsing works without a key. Downloads need an environment API key; restart Godot after setting it."
-	add_child(account)
-	var settings := HBoxContainer.new();add_child(settings)
+	account = Label.new();account.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART;account.text = "Environment key found." if not client.api_key().is_empty() else "Browsing works without a key. Downloads need an environment API key; restart Godot after setting it."
+	content.add_child(account)
+	var settings := HFlowContainer.new();content.add_child(settings)
 	var label := Label.new();label.text = "Download:";settings.add_child(label)
 	resolution = OptionButton.new()
 	for value in ["1K","2K","4K"]: resolution.add_item(value)
 	resolution.select(1); settings.add_child(resolution)
-	output = LineEdit.new();output.text = str(ProjectSettings.get_setting("3dtexel/output_directory","res://3DTexel/Materials"));output.tooltip_text = "Native material and original maps; separate asset and actual-resolution folders.";output.size_flags_horizontal = Control.SIZE_EXPAND_FILL;settings.add_child(output)
+	output = LineEdit.new();output.custom_minimum_size.x = 180;output.text = str(ProjectSettings.get_setting("3dtexel/output_directory","res://3DTexel/Materials"));output.tooltip_text = "Native material and original maps; separate asset and actual-resolution folders.";output.size_flags_horizontal = Control.SIZE_EXPAND_FILL;settings.add_child(output)
 	button("Open folder",func(): OS.shell_open(ProjectSettings.globalize_path(output.text)),settings)
-	var terrain_row := HBoxContainer.new();add_child(terrain_row)
+	var terrain_row := HFlowContainer.new();content.add_child(terrain_row)
 	handoff = CheckBox.new();handoff.text = "Also send to Terrain imports";handoff.button_pressed = false;terrain_row.add_child(handoff)
-	inbox = LineEdit.new();inbox.text = str(ProjectSettings.get_setting("3dtexel/terrain_inbox","res://assets/terrain/inbox"));inbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL;terrain_row.add_child(inbox)
-	var hint := Label.new();hint.text = "Download resolution ≠ Terrain imports output resolution. Terrain handoff uses that plugin’s current packing size.";hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART;add_child(hint)
-	var body := HSplitContainer.new();body.size_flags_vertical = Control.SIZE_EXPAND_FILL;add_child(body)
-	var scroll := ScrollContainer.new();scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL;scroll.custom_minimum_size.x = 540;body.add_child(scroll)
-	grid = GridContainer.new();grid.columns = 3;grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL;grid.add_theme_constant_override("h_separation",12);grid.add_theme_constant_override("v_separation",12);scroll.add_child(grid)
-	var side := VBoxContainer.new();side.custom_minimum_size.x = 310;side.size_flags_horizontal = Control.SIZE_EXPAND_FILL;body.add_child(side)
-	preview = TextureRect.new();preview.custom_minimum_size = Vector2(280,220);preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE;preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED;side.add_child(preview)
-	detail = RichTextLabel.new();detail.size_flags_vertical = Control.SIZE_EXPAND_FILL;detail.text = "Search the library, then select a material.\n\nOriginal source maps and provenance are preserved. Godot materials use mipmapped BC3 textures and anisotropic filtering.\n\nFree downloads only in this version; paid assets can be opened on the website.";side.add_child(detail)
+	inbox = LineEdit.new();inbox.custom_minimum_size.x = 180;inbox.text = str(ProjectSettings.get_setting("3dtexel/terrain_inbox","res://assets/terrain/inbox"));inbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL;terrain_row.add_child(inbox)
+	var hint := Label.new();hint.text = "Download resolution ≠ Terrain imports output resolution. Terrain handoff uses that plugin’s current packing size.";hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART;content.add_child(hint)
+	body = SplitContainer.new();body.size_flags_horizontal = Control.SIZE_EXPAND_FILL;body.size_flags_vertical = Control.SIZE_EXPAND_FILL;content.add_child(body)
+	results_scroll = ScrollContainer.new();results_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL;results_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL;results_scroll.custom_minimum_size = Vector2(175,160);results_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED;body.add_child(results_scroll)
+	grid = GridContainer.new();grid.columns = 3;grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL;grid.add_theme_constant_override("h_separation",12);grid.add_theme_constant_override("v_separation",12);results_scroll.add_child(grid)
+	side = VBoxContainer.new();side.custom_minimum_size.x = 240;side.size_flags_horizontal = Control.SIZE_EXPAND_FILL;body.add_child(side)
+	preview = TextureRect.new();preview.custom_minimum_size = Vector2(180,180);preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE;preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED;side.add_child(preview)
+	detail = RichTextLabel.new();detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART;detail.custom_minimum_size.y = 100;detail.size_flags_vertical = Control.SIZE_EXPAND_FILL;detail.text = "Search the library, then select a material.\n\nOriginal source maps and provenance are preserved. Godot materials use mipmapped BC3 textures and anisotropic filtering.\n\nFree downloads only in this version; paid assets can be opened on the website.";side.add_child(detail)
 	download = button("Download and prepare",download_selected,side);download.disabled = true
 	button("Open selected on website",func():
 		if not selected.is_empty(): OS.shell_open(str(selected.get("url","https://3dtexel.com"))),side)
-	var pages := HBoxContainer.new();add_child(pages)
+	var pages := HBoxContainer.new();content.add_child(pages)
 	previous = button("← Previous",func(): page=maxi(1,page-1); run_search(),pages)
-	page_label = Label.new();page_label.size_flags_horizontal=Control.SIZE_EXPAND_FILL;pages.add_child(page_label)
+	page_label = Label.new();page_label.clip_text = true;page_label.size_flags_horizontal=Control.SIZE_EXPAND_FILL;pages.add_child(page_label)
 	next = button("Next →",func(): page+=1; run_search(),pages)
 	previous.disabled=true;next.disabled=true
-	status = Label.new();status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;status.text="Ready. No downloads or changes occur until you choose a material.";add_child(status)
+	status = Label.new();status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;status.text="Ready. No downloads or changes occur until you choose a material.";content.add_child(status)
+	resized.connect(update_layout)
+	results_scroll.resized.connect(update_columns)
+	call_deferred("update_layout")
+func update_layout() -> void:
+	if not is_instance_valid(body): return
+	var stacked := size.x < 720
+	body.vertical = stacked
+	side.custom_minimum_size = Vector2(240,240 if stacked else 0)
+	preview.custom_minimum_size.y = 90 if stacked else 180
+	body.split_offset = roundi(body.size.y * 0.55) if stacked else maxi(175,roundi(size.x-clampf(size.x*.36,240,360)))
+	update_columns()
+func update_columns() -> void:
+	if not is_instance_valid(results_scroll): return
+	var maximum := size.x if body.vertical else maxf(175,size.x-side.custom_minimum_size.x-12)
+	var available := minf(results_scroll.size.x,maximum)-results_scroll.get_v_scroll_bar().size.x
+	grid.columns = clampi(floori((available+12.0)/177.0),1,8)
 func start_search() -> void:
 	if busy: return
 	page = 1

@@ -24,6 +24,9 @@ first release: the importer sends `max_credits: 0` and does not provide paid dow
 or generation. Source pages remain available through **Open selected on website**.
 Some assets are website-only; API errors are shown without exposing credentials.
 
+The browser fills the editor panel, adapts its grid column count to the available
+width, wraps toolbar controls and stacks details beneath results in narrow windows.
+
 ## Authentication
 
 Search works without a key. Downloads require a 3DTexel account and an API key with

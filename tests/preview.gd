@@ -2,7 +2,9 @@ extends SceneTree
 const Browser = preload("res://addons/3dtexel/browser.gd")
 func _initialize():call_deferred("run")
 func run():
-	root.size=Vector2i(1280,900)
+	var args := OS.get_cmdline_user_args()
+	root.size=Vector2i(int(args[0]),int(args[1])) if args.size()>=2 else Vector2i(1280,900)
+	var destination := args[2] if args.size()>=3 else "res://docs/browser.png"
 	var background := ColorRect.new();background.color=Color("25282e");background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);root.add_child(background)
 	var margin := MarginContainer.new();margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["margin_left","margin_right","margin_top","margin_bottom"]:margin.add_theme_constant_override(side,16)
@@ -20,6 +22,6 @@ func run():
 	await create_timer(2).timeout
 	await RenderingServer.frame_post_draw
 	var image := root.get_texture().get_image()
-	image.save_png("res://docs/browser.png")
-	print("Saved docs/browser.png")
+	image.save_png(destination)
+	print("Saved ",destination)
 	quit()
