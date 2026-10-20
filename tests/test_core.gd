@@ -18,8 +18,8 @@ func run():
 	var albedo := Image.create(16,16,false,Image.FORMAT_RGBA8);albedo.fill(Color(.4,.3,.2,1));albedo.save_png(folder.path_join("albedo.png"))
 	var normal := Image.create(16,16,false,Image.FORMAT_RGBA8);normal.fill(Color(.5,.2,1,1));normal.save_png(folder.path_join("normal.png"))
 	var result := Importer.make_material(folder,{"albedo":"albedo.png","normal":"normal.png"},"directx")
-	check(not result.has("error"),"Native material creation")
-	if not result.has("error"):
+	check(result.has("material"),"Native material creation")
+	if result.has("material"):
 		var material := ResourceLoader.load(result.material,"",ResourceLoader.CACHE_MODE_IGNORE) as StandardMaterial3D
 		check(material!=null,"Saved material reload")
 		check(material.normal_enabled,"Normal enabled")

@@ -41,13 +41,12 @@ python3 tools/launch_editor.py /path/to/your/project
 
 The optional launcher normalizes digit-leading `3DTEXEL_API_KEY` into conventional
 `TEXEL_API_KEY` for shells that discard unusual names. It reads inherited environment
-variables only; it does not read a secrets file. The addon never saves a key, sends
-it to a CDN, or exports runtime credential code. Use **Check connection** to verify.
+variables only; it does not read a secrets file. The addon never saves a key or sends it to a CDN. Use **Check connection** to verify.
 
 ## What gets prepared
 
 - Original downloaded maps in `_source/`, ignored by Godot's resource importer.
-- Mipmapped BC3/S3TC `.dds` maps and a native `StandardMaterial3D` in `material.res`.
+- Mipmapped BC3/S3TC `*_texture.res` resources and a native `StandardMaterial3D` in `material.res`.
 - OpenGL normal maps, automatically converted from DirectX when declared by the API.
 - Anisotropic material filtering. Height is retained but displacement is off by default.
 - Independent material AO; AO is not baked into the base color.

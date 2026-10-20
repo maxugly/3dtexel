@@ -43,9 +43,10 @@ static func make_material(folder: String, maps: Dictionary, normal_format: Strin
 	for role in maps:
 		var image := pack_image(folder.path_join(maps[role]), role == "normal" and normal_format.to_lower() == "directx")
 		if not image: return {"error":"Cannot decode/compress the %s map." % role}
-		var dds_path := folder.path_join(role+".dds")
-		if image.save_dds(ProjectSettings.globalize_path(dds_path)) != OK: return {"error":"Cannot save %s.dds." % role}
 		var texture := ImageTexture.create_from_image(image)
+		var texture_path := folder.path_join(role+"_texture.res")
+		if ResourceSaver.save(texture,texture_path,ResourceSaver.FLAG_COMPRESS) != OK: return {"error":"Cannot save the compressed %s texture." % role}
+		texture.take_over_path(texture_path)
 		sizes[role] = [image.get_width(),image.get_height()]
 		match role:
 			"albedo": material.albedo_texture = texture
