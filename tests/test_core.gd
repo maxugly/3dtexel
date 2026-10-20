@@ -1,0 +1,45 @@
+extends SceneTree
+const Importer = preload("res://addons/3dtexel/importer.gd")
+const Client = preload("res://addons/3dtexel/client.gd")
+const Browser = preload("res://addons/3dtexel/browser.gd")
+var failures := 0
+func check(condition: bool, message: String) -> void:
+	if not condition: failures+=1;push_error(message)
+func _initialize():call_deferred("run")
+func run():
+	check(Importer.slug("Green Grass / ../ Sample") == "green_grass_sample","Safe slug")
+	check(Importer.extension("https://cdn.example/map.tga?signature=hidden")=="tga","Signed extension")
+	check(Importer.file_url({"url":"https://example.test"})=="https://example.test","Structured map URL")
+	check(Importer.free_asset({"price":{"free":true,"credits":0}}),"Free asset")
+	check(not Importer.free_asset({"price":{"free":true,"credits":10}}),"Reject contradictory price")
+	check(not Importer.free_asset({}),"Missing price is not free")
+	var folder := "res://3DTexel/test_material"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(folder))
+	var albedo := Image.create(16,16,false,Image.FORMAT_RGBA8);albedo.fill(Color(.4,.3,.2,1));albedo.save_png(folder.path_join("albedo.png"))
+	var normal := Image.create(16,16,false,Image.FORMAT_RGBA8);normal.fill(Color(.5,.2,1,1));normal.save_png(folder.path_join("normal.png"))
+	var result := Importer.make_material(folder,{"albedo":"albedo.png","normal":"normal.png"},"directx")
+	check(not result.has("error"),"Native material creation")
+	if not result.has("error"):
+		var material := ResourceLoader.load(result.material,"",ResourceLoader.CACHE_MODE_IGNORE) as StandardMaterial3D
+		check(material!=null,"Saved material reload")
+		check(material.normal_enabled,"Normal enabled")
+		var image := material.normal_texture.get_image()
+		check(image.is_compressed() and image.has_mipmaps(),"Saved BC compression and mipmaps")
+		image.decompress();check(image.get_pixel(0,0).g>.7,"DirectX green inverted to OpenGL")
+		check(material.texture_filter==BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC,"Anisotropic material filtering")
+	var terrain := Importer.terrain_handoff(folder,{"albedo":"albedo.png","normal":"normal.png"},{"id":123,"title":"Test material","url":"https://3dtexel.com/example"},"directx","res://3DTexel/inbox")
+	check(not terrain.has("error"),"Terrain handoff")
+	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(terrain.manifest))
+	check(manifest.normal_format=="directx" and manifest.maps.albedo=="_source/albedo.png","Terrain explicit source manifest")
+	check(FileAccess.file_exists(str(terrain.manifest).get_base_dir().path_join(manifest.maps.albedo)),"Terrain copied source exists")
+	check(Importer.terrain_handoff(folder,{}, {"id":1},"opengl","/tmp/outside").has("error"),"Reject external terrain root")
+	var client := Client.new();root.add_child(client)
+	var blocked: Dictionary = await client.get_bytes("http://example.test/file.png")
+	check(blocked.has("error"),"Reject plaintext download URL")
+	client.queue_free()
+	var browser := Browser.new();root.add_child(browser)
+	await process_frame
+	check(browser.grid.columns==3 and browser.download.disabled,"Browser builds with safe initial state")
+	browser.queue_free()
+	print("Core tests complete; failures=",failures)
+	quit(1 if failures else 0)

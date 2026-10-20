@@ -1,0 +1,17 @@
+name: Godot addon checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot 4.4.1
+        run: |
+          curl --fail --location --output godot.zip https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+          unzip -q godot.zip -d /tmp/godot
+          sudo install /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 /usr/local/bin/godot
+          rm godot.zip
+      - name: Offline tests
+        run: godot --headless --path . -s tests/test_core.gd

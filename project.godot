@@ -1,0 +1,8 @@
+config_version=5
+[application]
+config/name="3D Texel Import — development"
+config/features=PackedStringArray("4.4")
+[rendering]
+renderer/rendering_method="gl_compatibility"
+[editor_plugins]
+enabled=PackedStringArray("res://addons/3dtexel/plugin.cfg")

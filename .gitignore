@@ -1,0 +1,7 @@
+.godot/
+.env
+.env.*
+secrets*
+3DTexel/
+assets/
+*.pending

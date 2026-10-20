@@ -1,0 +1,25 @@
+extends SceneTree
+const Browser = preload("res://addons/3dtexel/browser.gd")
+func _initialize():call_deferred("run")
+func run():
+	root.size=Vector2i(1280,900)
+	var background := ColorRect.new();background.color=Color("25282e");background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);root.add_child(background)
+	var margin := MarginContainer.new();margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for side in ["margin_left","margin_right","margin_top","margin_bottom"]:margin.add_theme_constant_override(side,16)
+	root.add_child(margin)
+	var browser := Browser.new();margin.add_child(browser)
+	await process_frame
+	browser.output.text="res://3DTexel/Materials"
+	browser.inbox.text="res://assets/terrain/inbox"
+	browser.search.text="grass"
+	await browser.run_search()
+	var asset: Dictionary = await browser.client.json_request("/assets/24509")
+	if not asset.has("error"):
+		var thumbnail: Texture2D = await browser.client.thumbnail(str(asset.get("thumbnail","")))
+		await browser.select_asset(asset,thumbnail)
+	await create_timer(2).timeout
+	await RenderingServer.frame_post_draw
+	var image := root.get_texture().get_image()
+	image.save_png("res://docs/browser.png")
+	print("Saved docs/browser.png")
+	quit()
