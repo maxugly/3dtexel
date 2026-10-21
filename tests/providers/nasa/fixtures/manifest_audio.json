@@ -1,0 +1,17 @@
+{
+  "collection": {
+    "version": "1.0",
+    "href": "https://images-api.nasa.gov/asset/apollo11_eagle",
+    "items": [
+      {
+        "href": "https://images-assets.nasa.gov/audio/apollo11_eagle/apollo11_eagle~orig.wav"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/audio/apollo11_eagle/apollo11_eagle~128k.mp3"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/audio/apollo11_eagle/apollo11_eagle~thumb.png"
+      }
+    ]
+  }
+}

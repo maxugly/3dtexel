@@ -1,0 +1,38 @@
+[
+  {
+    "id": "noaa_coral_reef_01",
+    "title": "Healthy Coral Reef Ecosystem (Hawaiian Archipelago)",
+    "type": "image",
+    "description": "Underwater high-resolution photograph of branching coral reef and tropical fish in Papahānaumokuākea Marine National Monument.",
+    "thumbnail": "https://oceanservice.noaa.gov/gallery/images/coral_reef_thumb.jpg",
+    "url": "https://oceanservice.noaa.gov/gallery/coral-reef-hawaii.html",
+    "author": "NOAA National Ocean Service",
+    "license": "public-domain",
+    "tags": ["ocean", "coral", "reef", "underwater", "marine", "fish", "nature"],
+    "files": [
+      {
+        "filename": "coral_reef_hawaii_hires.jpg",
+        "format": "jpg",
+        "url": "https://oceanservice.noaa.gov/gallery/images/coral_reef_hawaii_hires.jpg"
+      }
+    ]
+  },
+  {
+    "id": "noaa_outer_banks_lidar",
+    "title": "Outer Banks Coastal Lidar Elevation Mesh",
+    "type": "model",
+    "description": "High-density coastal lidar elevation model of barrier island dunes from NOAA Digital Coast.",
+    "thumbnail": "https://coast.noaa.gov/digitalcoast/data/images/outer_banks_thumb.jpg",
+    "url": "https://coast.noaa.gov/digitalcoast/data/outer-banks.html",
+    "author": "NOAA Office for Coastal Management",
+    "license": "public-domain",
+    "tags": ["coastal", "elevation", "lidar", "dunes", "outer banks", "topography", "3d"],
+    "files": [
+      {
+        "filename": "outer_banks_dunes.glb",
+        "format": "glb",
+        "url": "https://coast.noaa.gov/digitalcoast/data/outer_banks_dunes.glb"
+      }
+    ]
+  }
+]

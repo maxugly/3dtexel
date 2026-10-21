@@ -1,0 +1,35 @@
+{
+  "created": 1600000000,
+  "d1": "ia600000.us.archive.org",
+  "d2": "ia800000.us.archive.org",
+  "dir": "/12/items/flickr-commons-steam-locomotive-1905",
+  "files": [
+    {
+      "name": "steam_locomotive_401_orig.jpg",
+      "source": "original",
+      "format": "JPEG",
+      "size": "8540000",
+      "md5": "locomotivemd5orig",
+      "crc32": "12345678",
+      "sha1": "abcdef1234567890"
+    },
+    {
+      "name": "steam_locomotive_401_thumb.jpg",
+      "source": "derivative",
+      "format": "JPEG Thumb",
+      "size": "45000",
+      "md5": "locomotivemd5thumb"
+    }
+  ],
+  "metadata": {
+    "identifier": "flickr-commons-steam-locomotive-1905",
+    "title": "Steam Locomotive No. 401 at Central Station (1905)",
+    "creator": "Library of Congress",
+    "description": "Historical black and white photograph of Baldwin steam locomotive at terminal platform.",
+    "date": "1905-06-12",
+    "mediatype": "image",
+    "licenseurl": "https://creativecommons.org/publicdomain/mark/1.0/",
+    "collection": ["flickrcommons", "library_of_congress"]
+  },
+  "server": "ia800000.us.archive.org"
+}

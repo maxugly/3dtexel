@@ -1,0 +1,29 @@
+{
+  "gltf": {
+    "1k": {
+      "gltf": {
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/cannon_01/cannon_01.gltf",
+        "size": 2500000,
+        "md5": "modelmd5gltf"
+      }
+    }
+  },
+  "blend": {
+    "1k": {
+      "blend": {
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/blend/1k/cannon_01/cannon_01.blend",
+        "size": 5200000,
+        "md5": "modelmd5blend"
+      }
+    }
+  },
+  "fbx": {
+    "1k": {
+      "fbx": {
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/fbx/1k/cannon_01/cannon_01.fbx",
+        "size": 3100000,
+        "md5": "modelmd5fbx"
+      }
+    }
+  }
+}

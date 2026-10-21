@@ -1,0 +1,51 @@
+{
+  "total": 35000,
+  "page": 1,
+  "results": [
+    {
+      "id": "obi_dore_paradise_lost_01",
+      "title": "Satan Exalted upon His Throne",
+      "artist": "Gustave Doré",
+      "illustrator": "Gustave Doré",
+      "book_title": "Paradise Lost by John Milton",
+      "technique": "Wood engraving",
+      "period": "Victorian",
+      "description": "Dramatic wood engraving by Gustave Doré for Milton's Paradise Lost, Book II.",
+      "url": "https://www.oldbookillustrations.com/illustrations/satan-exalted/",
+      "thumbnail": "https://www.oldbookillustrations.com/wp-content/uploads/dore-satan-thumb.jpg",
+      "image_url": "https://www.oldbookillustrations.com/wp-content/uploads/dore-satan-orig.jpg",
+      "files": [
+        {
+          "filename": "dore_satan_original.jpg",
+          "resolution": "orig",
+          "url": "https://www.oldbookillustrations.com/wp-content/uploads/dore-satan-orig.jpg"
+        },
+        {
+          "filename": "dore_satan_2048.jpg",
+          "resolution": "2048",
+          "url": "https://www.oldbookillustrations.com/wp-content/uploads/dore-satan-2048.jpg"
+        }
+      ]
+    },
+    {
+      "id": "obi_tenniel_alice_cheshire",
+      "title": "The Cheshire Cat Grinning",
+      "artist": "John Tenniel",
+      "illustrator": "John Tenniel",
+      "book_title": "Alice's Adventures in Wonderland",
+      "technique": "Wood engraving",
+      "period": "Victorian",
+      "description": "Original line illustration of the Cheshire Cat perched upon a bough.",
+      "url": "https://www.oldbookillustrations.com/illustrations/cheshire-cat/",
+      "thumbnail": "https://www.oldbookillustrations.com/wp-content/uploads/tenniel-cheshire-thumb.jpg",
+      "image_url": "https://www.oldbookillustrations.com/wp-content/uploads/tenniel-cheshire-orig.jpg",
+      "files": [
+        {
+          "filename": "tenniel_cheshire_original.jpg",
+          "resolution": "orig",
+          "url": "https://www.oldbookillustrations.com/wp-content/uploads/tenniel-cheshire-orig.jpg"
+        }
+      ]
+    }
+  ]
+}

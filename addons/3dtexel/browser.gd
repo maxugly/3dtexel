@@ -47,6 +47,13 @@ var serial := 0
 var thumbnail_queue: Array[Dictionary]=[]
 var thumbnails_active := 0
 var thumbnail_tick := 0.0
+var audit_scope: OptionButton
+var audit_lic_cc0: CheckBox
+var audit_lic_attr: CheckBox
+var audit_lic_copyleft: CheckBox
+var audit_lic_custom: CheckBox
+var audit_status_label: Label
+var last_audit_data := {}
 func button(text: String,action: Callable,parent: Node) -> Button:
 	var item := Button.new();item.text=text;item.pressed.connect(action);parent.add_child(item);return item
 func label(text: String,parent: Node) -> Label:
@@ -112,6 +119,7 @@ func build_settings() -> void:
 	var auto := CheckBox.new();auto.text="Credits on scene save";auto.button_pressed=bool(ProjectSettings.get_setting("asset_browser/automatic_scene_credits",ProjectSettings.get_setting("3dtexel/automatic_scene_credits",true)));credits.add_child(auto)
 	auto.toggled.connect(func(value):ProjectSettings.set_setting("asset_browser/automatic_scene_credits",value);ProjectSettings.save())
 	button("Write scene credits",write_scene_credits,credits);button("Check connections",check_connection,credits)
+	build_credits_audit_ui()
 	account=label("API keys can come from the environment or be entered for this editor session.",settings_panel);account.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	for id in client.providers:
 		var provider: Node=client.providers[id];var info: Dictionary=provider.descriptor()
@@ -349,3 +357,98 @@ func check_connection() -> void:
 	for id in client.active_ids():
 		var provider: Node=client.providers[id];var result: Dictionary=await provider.check_connection();messages.append(str(provider.descriptor().name)+": "+str(result.get("error","Connected")))
 	client.network_allowed=false;busy=false;account.text="; ".join(messages);status.text=account.text;update_actions()
+
+func build_credits_audit_ui() -> void:
+	var box := VBoxContainer.new()
+	settings_panel.add_child(box)
+
+	var title_lbl := label("Credits Export & Compliance Audit", box)
+	title_lbl.add_theme_font_size_override("font_size", 14)
+
+	var scope_row := HFlowContainer.new()
+	box.add_child(scope_row)
+	label("Scope:", scope_row)
+	audit_scope = OptionButton.new()
+	audit_scope.add_item("Full Project (res://)", 0)
+	audit_scope.add_item("Full Game (Main Scene)", 1)
+	audit_scope.add_item("Active Scene", 2)
+	scope_row.add_child(audit_scope)
+
+	button("Run Audit", run_credits_audit, scope_row)
+
+	var lic_row := HFlowContainer.new()
+	box.add_child(lic_row)
+	label("Include in CREDITS.md:", lic_row)
+	audit_lic_cc0 = CheckBox.new(); audit_lic_cc0.text = "CC0/Public Domain"; audit_lic_cc0.button_pressed = true; lic_row.add_child(audit_lic_cc0)
+	audit_lic_attr = CheckBox.new(); audit_lic_attr.text = "Attribution (CC-BY/OGA-BY)"; audit_lic_attr.button_pressed = true; lic_row.add_child(audit_lic_attr)
+	audit_lic_copyleft = CheckBox.new(); audit_lic_copyleft.text = "Share-Alike"; audit_lic_copyleft.button_pressed = true; lic_row.add_child(audit_lic_copyleft)
+	audit_lic_custom = CheckBox.new(); audit_lic_custom.text = "Custom/Other"; audit_lic_custom.button_pressed = true; lic_row.add_child(audit_lic_custom)
+
+	button("Export CREDITS.md", export_project_credits, lic_row)
+
+	audit_status_label = label("Audit: not run yet. Click 'Run Audit' to inspect project assets.", box)
+	audit_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+func run_credits_audit() -> Dictionary:
+	var idx := audit_scope.selected if is_instance_valid(audit_scope) else 0
+	var data: Dictionary = {}
+	match idx:
+		0:
+			data = Credits.collect_project("res://")
+		1:
+			data = Credits.collect_game()
+			if data.has("error"):
+				status.text = str(data.error)
+				audit_status_label.text = str(data.error)
+				return data
+		2:
+			if not Engine.is_editor_hint():
+				status.text = "Active scene audit is available in the editor."
+				audit_status_label.text = status.text
+				return {"error": status.text}
+			var root_node := EditorInterface.get_edited_scene_root()
+			if not root_node or root_node.scene_file_path.is_empty():
+				status.text = "Save the active scene first."
+				audit_status_label.text = status.text
+				return {"error": status.text}
+			data = Credits.collect_scene(root_node.scene_file_path)
+
+	last_audit_data = data
+	var summary: Dictionary = data.get("summary", {})
+	var cleared_cnt: int = int(summary.get("cleared_count", 0))
+	var review_cnt: int = int(summary.get("review_count", 0))
+	var blocked_cnt: int = int(summary.get("blocked_count", 0))
+	var untracked_cnt: int = int(summary.get("untracked_count", 0))
+	var total_cnt: int = int(summary.get("total_assets", 0))
+
+	var msg := "Audit: 🟢 %d cleared | 🟡 %d review | 🔴 %d blocked | ❓ %d untracked (Total: %d assets)" % [
+		cleared_cnt, review_cnt, blocked_cnt, untracked_cnt, total_cnt
+	]
+	audit_status_label.text = msg
+	status.text = msg
+	return data
+
+func export_project_credits() -> void:
+	var data := last_audit_data
+	if data.is_empty():
+		data = run_credits_audit()
+	if data.has("error") or data.is_empty():
+		return
+
+	var opts := {
+		"include_cc0": audit_lic_cc0.button_pressed if is_instance_valid(audit_lic_cc0) else true,
+		"include_attribution": audit_lic_attr.button_pressed if is_instance_valid(audit_lic_attr) else true,
+		"include_copyleft": audit_lic_copyleft.button_pressed if is_instance_valid(audit_lic_copyleft) else true,
+		"include_proprietary": audit_lic_custom.button_pressed if is_instance_valid(audit_lic_custom) else true,
+		"include_untracked": true
+	}
+
+	var res := Credits.export_credits(data, "res://CREDITS.md", opts)
+	if res.has("error"):
+		status.text = str(res.error)
+		audit_status_label.text = str(res.error)
+	else:
+		var export_msg := "Exported res://CREDITS.md and res://CREDITS.credits.json (%d assets included)." % int(res.get("assets_count", 0))
+		status.text = export_msg
+		audit_status_label.text = export_msg
+

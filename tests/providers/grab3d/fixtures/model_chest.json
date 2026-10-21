@@ -1,0 +1,35 @@
+{
+  "slug": "treasure-chest",
+  "name": {
+    "en": "Treasure Chest"
+  },
+  "summary": "Stylized wooden treasure chest with iron reinforcements and brass lock.",
+  "category": "props",
+  "tags": ["chest", "treasure", "stylized", "wood", "gold"],
+  "specs": {
+    "triangleCount": 12400,
+    "texturePx": 2048,
+    "dimensions": [1.2, 0.8, 0.9]
+  },
+  "media": {
+    "thumbnail": "https://grab3d.com/media/thumbs/treasure-chest.webp",
+    "previewGlb": "https://grab3d.com/media/preview/treasure-chest.glb"
+  },
+  "files": [
+    {
+      "format": "glb",
+      "size": 2400000,
+      "url": "https://grab3d.com/dl/treasure-chest.glb"
+    },
+    {
+      "format": "fbx",
+      "size": 3100000,
+      "url": "https://grab3d.com/dl/treasure-chest.fbx"
+    },
+    {
+      "format": "blend",
+      "size": 5200000,
+      "url": "https://grab3d.com/dl/treasure-chest.blend"
+    }
+  ]
+}

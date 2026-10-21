@@ -1,0 +1,38 @@
+[
+  {
+    "id": "fws_bald_eagle_flight",
+    "title": "Bald Eagle in Flight (Haliaeetus leucocephalus)",
+    "type": "image",
+    "description": "Adult bald eagle soaring over the waters of Kenai National Wildlife Refuge, Alaska.",
+    "thumbnail": "https://digitalmedia.fws.gov/digital/api/singleitem/image/natdiglib/1234/default.png",
+    "url": "https://digitalmedia.fws.gov/digital/collection/natdiglib/id/1234",
+    "author": "Gary Kramer / USFWS",
+    "license": "public-domain",
+    "tags": ["eagle", "bird", "raptor", "wildlife", "alaska", "nature"],
+    "files": [
+      {
+        "filename": "bald_eagle_flight_orig.jpg",
+        "format": "jpg",
+        "url": "https://digitalmedia.fws.gov/digital/download/collection/natdiglib/id/1234/size/large"
+      }
+    ]
+  },
+  {
+    "id": "fws_grizzly_bear_salmon",
+    "title": "Coastal Brown Bear at Brooks Falls",
+    "type": "image",
+    "description": "Grizzly bear waiting for sockeye salmon leaping at the lip of Brooks Falls in Katmai National Park.",
+    "thumbnail": "https://digitalmedia.fws.gov/digital/api/singleitem/image/natdiglib/5678/default.png",
+    "url": "https://digitalmedia.fws.gov/digital/collection/natdiglib/id/5678",
+    "author": "Roy Wood / USFWS",
+    "license": "public-domain",
+    "tags": ["bear", "grizzly", "salmon", "wildlife", "river", "nature"],
+    "files": [
+      {
+        "filename": "brown_bear_brooks_falls_orig.jpg",
+        "format": "jpg",
+        "url": "https://digitalmedia.fws.gov/digital/download/collection/natdiglib/id/5678/size/large"
+      }
+    ]
+  }
+]

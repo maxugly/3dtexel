@@ -1,0 +1,49 @@
+[
+  {
+    "id": "1992-56-1",
+    "title": "The Japanese Footbridge",
+    "artist": "Claude Monet",
+    "artist_lifespan": "French, 1840 - 1926",
+    "date": "1899",
+    "medium": "oil on canvas",
+    "description": "Oil painting depicting Monet's water garden and wooden footbridge at Giverny.",
+    "thumbnail": "https://media.nga.gov/iiif/7c6395b8-5183-48ec-b1fb-4279ea44510b/full/!300,300/0/default.jpg",
+    "url": "https://www.nga.gov/collection/art-object-page.74796.html",
+    "download_url": "https://media.nga.gov/iiif/7c6395b8-5183-48ec-b1fb-4279ea44510b/full/!2048,2048/0/default.jpg",
+    "open_access": true,
+    "tags": ["landscape", "impressionism", "bridge", "water lilies", "nature", "garden"],
+    "files": [
+      {
+        "filename": "monet_japanese_footbridge_2k.jpg",
+        "resolution": "2k",
+        "url": "https://media.nga.gov/iiif/7c6395b8-5183-48ec-b1fb-4279ea44510b/full/!2048,2048/0/default.jpg"
+      },
+      {
+        "filename": "monet_japanese_footbridge_1k.jpg",
+        "resolution": "1k",
+        "url": "https://media.nga.gov/iiif/7c6395b8-5183-48ec-b1fb-4279ea44510b/full/!1024,1024/0/default.jpg"
+      }
+    ]
+  },
+  {
+    "id": "1942-9-97",
+    "title": "Woman Holding a Balance",
+    "artist": "Johannes Vermeer",
+    "artist_lifespan": "Dutch, 1632 - 1675",
+    "date": "c. 1664",
+    "medium": "oil on canvas",
+    "description": "Dutch Golden Age masterpiece depicting a young woman holding an empty balance in quiet contemplation.",
+    "thumbnail": "https://media.nga.gov/iiif/12345678-abcd-ef01-2345-6789abcdef01/full/!300,300/0/default.jpg",
+    "url": "https://www.nga.gov/collection/art-object-page.1236.html",
+    "download_url": "https://media.nga.gov/iiif/12345678-abcd-ef01-2345-6789abcdef01/full/!2048,2048/0/default.jpg",
+    "open_access": true,
+    "tags": ["portrait", "interior", "balance", "baroque", "dutch golden age"],
+    "files": [
+      {
+        "filename": "vermeer_woman_holding_balance_2k.jpg",
+        "resolution": "2k",
+        "url": "https://media.nga.gov/iiif/12345678-abcd-ef01-2345-6789abcdef01/full/!2048,2048/0/default.jpg"
+      }
+    ]
+  }
+]

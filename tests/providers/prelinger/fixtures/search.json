@@ -1,0 +1,49 @@
+{
+  "response": {
+    "numFound": 2,
+    "start": 0,
+    "docs": [
+      {
+        "identifier": "DuckandC1951",
+        "title": "Duck and Cover",
+        "description": "Historical civil defense educational film featuring Bert the Turtle.",
+        "creator": "Archer Productions / Federal Civil Defense Administration",
+        "mediatype": "movies",
+        "licenseurl": "https://creativecommons.org/publicdomain/mark/1.0/",
+        "year": "1951",
+        "publicdate": "2002-04-10T12:00:00Z",
+        "downloads": 450000,
+        "files": [
+          {
+            "name": "DuckandC1951.mp4",
+            "format": "512Kb MPEG4",
+            "url": "https://archive.org/download/DuckandC1951/DuckandC1951.mp4"
+          },
+          {
+            "name": "DuckandC1951.mp3",
+            "format": "VBR MP3",
+            "url": "https://archive.org/download/DuckandC1951/DuckandC1951.mp3"
+          }
+        ]
+      },
+      {
+        "identifier": "CenturyofProgress1933",
+        "title": "A Century of Progress",
+        "description": "Footage and architectural marvels of the 1933 Chicago World's Fair.",
+        "creator": "Prelinger Archives",
+        "mediatype": "movies",
+        "licenseurl": "https://creativecommons.org/publicdomain/mark/1.0/",
+        "year": "1933",
+        "publicdate": "2003-01-15T12:00:00Z",
+        "downloads": 120000,
+        "files": [
+          {
+            "name": "CenturyofProgress1933.mp4",
+            "format": "512Kb MPEG4",
+            "url": "https://archive.org/download/CenturyofProgress1933/CenturyofProgress1933.mp4"
+          }
+        ]
+      }
+    ]
+  }
+}

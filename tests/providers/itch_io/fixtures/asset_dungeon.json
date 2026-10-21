@@ -1,0 +1,27 @@
+{
+  "id": "kay-kit-dungeon-remastered",
+  "title": "Modular Dungeon 3D Pack",
+  "url": "https://kaylousberg.itch.io/kay-kit-dungeon-remastered",
+  "author": "Kay Lousberg",
+  "author_url": "https://kaylousberg.itch.io",
+  "type": "model",
+  "thumbnail": "https://img.itch.zone/aW1nLzE0NzU1MjM0LnBuZw==/315x250%23c/dungeon_cover.png",
+  "description": "A complete modular dungeon asset pack featuring low-poly characters, props, rooms, and weapons.",
+  "price": {
+    "free": true,
+    "credits": 0
+  },
+  "license": {
+    "id": "cc0",
+    "name": "CC0 1.0 Universal",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution_required": false
+  },
+  "files": [
+    {
+      "filename": "kaykit_dungeon_remastered.zip",
+      "format": "zip",
+      "url": "https://kaylousberg.itch.io/kay-kit-dungeon-remastered/download"
+    }
+  ]
+}

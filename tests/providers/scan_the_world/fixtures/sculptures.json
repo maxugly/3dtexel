@@ -1,0 +1,60 @@
+{
+  "total": 10000,
+  "page": 1,
+  "items": [
+    {
+      "id": "104820",
+      "name": "Winged Victory of Samothrace",
+      "artist": "Scan The World / The Louvre",
+      "origin_museum": "Musée du Louvre, Paris",
+      "description": "3D scan of the Hellenistic sculpture of Nike (Winged Victory) of Samothrace, created in 2nd century BC.",
+      "url": "https://www.myminifactory.com/object/3d-print-winged-victory-of-samothrace-104820",
+      "images": [
+        {
+          "original": {
+            "url": "https://image.myminifactory.com/objects/104820/winged_victory_preview.jpg"
+          },
+          "thumbnail": {
+            "url": "https://image.myminifactory.com/objects/104820/winged_victory_thumb.jpg"
+          }
+        }
+      ],
+      "license": "CC0",
+      "files": [
+        {
+          "filename": "winged_victory_of_samothrace.glb",
+          "format": "glb",
+          "url": "https://cdn.myminifactory.com/objects/104820/files/winged_victory_of_samothrace.glb"
+        },
+        {
+          "filename": "winged_victory_of_samothrace.obj",
+          "format": "obj",
+          "url": "https://cdn.myminifactory.com/objects/104820/files/winged_victory_of_samothrace.obj"
+        }
+      ]
+    },
+    {
+      "id": "109845",
+      "name": "Venus de Milo",
+      "artist": "Alexandros of Antioch / The Louvre",
+      "origin_museum": "Musée du Louvre, Paris",
+      "description": "Ancient Greek statue of Aphrodite, discovered on the island of Milos.",
+      "url": "https://www.myminifactory.com/object/3d-print-venus-de-milo-109845",
+      "images": [
+        {
+          "thumbnail": {
+            "url": "https://image.myminifactory.com/objects/109845/venus_thumb.jpg"
+          }
+        }
+      ],
+      "license": "CC0",
+      "files": [
+        {
+          "filename": "venus_de_milo.glb",
+          "format": "glb",
+          "url": "https://cdn.myminifactory.com/objects/109845/files/venus_de_milo.glb"
+        }
+      ]
+    }
+  ]
+}

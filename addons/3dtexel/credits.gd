@@ -112,3 +112,16 @@ static func write_scene(scene_path: String) -> Dictionary:
 	var file := FileAccess.open(scene_path+".credits.md",FileAccess.WRITE)
 	if file:file.store_string(text);file.close()
 	return {"path":path,"asset_count":result.assets.size(),"missing_count":result.missing_sidecars.size()}
+
+static func collect_game(main_scene_path := "") -> Dictionary:
+	return preload("res://addons/3dtexel/core/credits_collector.gd").collect_game(main_scene_path)
+
+static func collect_project(res_root := "res://", ignore_dirs := []) -> Dictionary:
+	return preload("res://addons/3dtexel/core/credits_collector.gd").collect_project(res_root, ignore_dirs)
+
+static func format_markdown(collected: Dictionary, options := {}) -> String:
+	return preload("res://addons/3dtexel/core/credits_collector.gd").format_markdown(collected, options)
+
+static func export_credits(collected: Dictionary, target_path := "res://CREDITS.md", options := {}) -> Dictionary:
+	return preload("res://addons/3dtexel/core/credits_collector.gd").export_credits(collected, target_path, options)
+

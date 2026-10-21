@@ -1,0 +1,43 @@
+{
+  "total": 2,
+  "page": 1,
+  "limit": 24,
+  "data": [
+    {
+      "id": "lacma_treachery_of_images",
+      "nid": "185348",
+      "title": "The Treachery of Images (This is Not a Pipe)",
+      "artist": "René Magritte",
+      "maker": "René Magritte (Belgium, 1898 - 1967)",
+      "date": "1929",
+      "medium": "Oil on canvas",
+      "department": "Modern Art",
+      "culture": "Belgian",
+      "classification": "Paintings",
+      "url": "https://collections.lacma.org/node/185348",
+      "thumbnail": "https://collections.lacma.org/sites/default/files/styles/thumbnail/pipe.jpg",
+      "primary_image": "https://collections.lacma.org/sites/default/files/remote_images/pipe_max.jpg",
+      "high_res_url": "https://collections.lacma.org/sites/default/files/remote_images/pipe_orig.jpg",
+      "medium_res_url": "https://collections.lacma.org/sites/default/files/remote_images/pipe_2048.jpg",
+      "low_res_url": "https://collections.lacma.org/sites/default/files/remote_images/pipe_1024.jpg"
+    },
+    {
+      "id": "lacma_japanese_screen",
+      "nid": "192031",
+      "title": "Cranes and Pine Trees",
+      "artist": "Suzuki Kiitsu",
+      "maker": "Suzuki Kiitsu (Japan, 1796 - 1858)",
+      "date": "early 19th century",
+      "medium": "Pair of six-panel folding screens; ink, color, and gold leaf on paper",
+      "department": "Japanese Art",
+      "culture": "Japanese",
+      "classification": "Screens",
+      "url": "https://collections.lacma.org/node/192031",
+      "thumbnail": "https://collections.lacma.org/sites/default/files/styles/thumbnail/cranes.jpg",
+      "primary_image": "https://collections.lacma.org/sites/default/files/remote_images/cranes_max.jpg",
+      "high_res_url": "https://collections.lacma.org/sites/default/files/remote_images/cranes_orig.jpg",
+      "medium_res_url": "https://collections.lacma.org/sites/default/files/remote_images/cranes_2048.jpg",
+      "low_res_url": "https://collections.lacma.org/sites/default/files/remote_images/cranes_1024.jpg"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "blaster-kit",
+    "title": "Blaster Kit 3D",
+    "category": "3d",
+    "type": "model",
+    "description": "Over 50 modular sci-fi blaster weapons and attachments with glTF and FBX models.",
+    "thumbnail": "https://kenney.nl/media/pages/assets/blaster-kit/thumbnail.png",
+    "url": "https://kenney.nl/assets/blaster-kit",
+    "tags": ["weapons", "sci-fi", "blaster", "guns", "modular"],
+    "download_url": "https://kenney.nl/media/pages/assets/blaster-kit/download/blaster-kit.zip",
+    "files": [
+      {
+        "filename": "blaster-kit.zip",
+        "format": "zip",
+        "url": "https://kenney.nl/media/pages/assets/blaster-kit/download/blaster-kit.zip"
+      }
+    ]
+  },
+  {
+    "id": "interface-sounds",
+    "title": "Interface Sounds",
+    "category": "audio",
+    "type": "audio",
+    "description": "Over 100 high-quality interface and UI sound effects in WAV and OGG format.",
+    "thumbnail": "https://kenney.nl/media/pages/assets/interface-sounds/thumbnail.png",
+    "url": "https://kenney.nl/assets/interface-sounds",
+    "tags": ["audio", "ui", "interface", "sfx", "clicks"],
+    "download_url": "https://kenney.nl/media/pages/assets/interface-sounds/download/interface-sounds.zip",
+    "files": [
+      {
+        "filename": "interface-sounds.zip",
+        "format": "zip",
+        "url": "https://kenney.nl/media/pages/assets/interface-sounds/download/interface-sounds.zip"
+      }
+    ]
+  },
+  {
+    "id": "prototype-textures",
+    "title": "Prototype Textures",
+    "category": "2d",
+    "type": "material",
+    "description": "Grid, chequerboard, and measurement textures for greyboxing and prototyping in Godot.",
+    "thumbnail": "https://kenney.nl/media/pages/assets/prototype-textures/thumbnail.png",
+    "url": "https://kenney.nl/assets/prototype-textures",
+    "tags": ["textures", "prototype", "grid", "checkerboard", "dev"],
+    "download_url": "https://kenney.nl/media/pages/assets/prototype-textures/download/prototype-textures.zip",
+    "files": [
+      {
+        "filename": "prototype-textures.zip",
+        "format": "zip",
+        "url": "https://kenney.nl/media/pages/assets/prototype-textures/download/prototype-textures.zip"
+      }
+    ]
+  }
+]

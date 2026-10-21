@@ -1,0 +1,43 @@
+[
+  {
+    "id": "marble-tiles-01",
+    "name": "Marble Tiles 01",
+    "category": "tiles",
+    "tags": ["marble", "tiles", "floor", "white", "polished", "luxury"],
+    "description": "Polished white carrara marble floor tiles with dark grey veining.",
+    "thumbnail": "https://www.texturecan.com/textures/marble-tiles-01/thumb.jpg",
+    "url": "https://www.texturecan.com/post/marble-tiles-01/",
+    "files": {
+      "1k": {
+        "color": "https://www.texturecan.com/textures/marble-tiles-01/1k/color.jpg",
+        "normal": "https://www.texturecan.com/textures/marble-tiles-01/1k/normal.jpg",
+        "roughness": "https://www.texturecan.com/textures/marble-tiles-01/1k/roughness.jpg",
+        "height": "https://www.texturecan.com/textures/marble-tiles-01/1k/height.png",
+        "ao": "https://www.texturecan.com/textures/marble-tiles-01/1k/ao.jpg"
+      },
+      "2k": {
+        "color": "https://www.texturecan.com/textures/marble-tiles-01/2k/color.jpg",
+        "normal": "https://www.texturecan.com/textures/marble-tiles-01/2k/normal.jpg",
+        "roughness": "https://www.texturecan.com/textures/marble-tiles-01/2k/roughness.jpg",
+        "height": "https://www.texturecan.com/textures/marble-tiles-01/2k/height.png",
+        "ao": "https://www.texturecan.com/textures/marble-tiles-01/2k/ao.jpg"
+      }
+    }
+  },
+  {
+    "id": "denim-fabric-01",
+    "name": "Denim Fabric 01",
+    "category": "fabric",
+    "tags": ["denim", "fabric", "jeans", "blue", "cloth"],
+    "description": "Classic blue denim twill fabric texture with visible diagonal weave.",
+    "thumbnail": "https://www.texturecan.com/textures/denim-fabric-01/thumb.jpg",
+    "url": "https://www.texturecan.com/post/denim-fabric-01/",
+    "files": {
+      "1k": {
+        "color": "https://www.texturecan.com/textures/denim-fabric-01/1k/color.jpg",
+        "normal": "https://www.texturecan.com/textures/denim-fabric-01/1k/normal.jpg",
+        "roughness": "https://www.texturecan.com/textures/denim-fabric-01/1k/roughness.jpg"
+      }
+    }
+  }
+]

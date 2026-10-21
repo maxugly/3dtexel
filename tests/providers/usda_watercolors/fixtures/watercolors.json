@@ -1,0 +1,32 @@
+{
+  "total": 7497,
+  "page": 1,
+  "results": [
+    {
+      "id": "POM00001048",
+      "title": "Malus sylvestris (Apple): Baldwin",
+      "scientific_name": "Malus sylvestris",
+      "common_name": "Baldwin Apple",
+      "artist": "Deborah Griscom Passmore",
+      "date": "1905",
+      "geographic_origin": "Geneva, Ontario County, New York, United States",
+      "image_url": "https://usdawatercolors.nal.usda.gov/pom/images/full/POM00001048.jpg",
+      "thumbnail_url": "https://usdawatercolors.nal.usda.gov/pom/images/thumbs/POM00001048.jpg",
+      "iiif_base": "https://usdawatercolors.nal.usda.gov/iiif/POM00001048",
+      "specimen_notes": "Specimen received from New York Agricultural Experiment Station"
+    },
+    {
+      "id": "POM00004210",
+      "title": "Prunus persica (Peach): Elberta",
+      "scientific_name": "Prunus persica",
+      "common_name": "Elberta Peach",
+      "artist": "Amanda Almira Newton",
+      "date": "1912",
+      "geographic_origin": "Fort Valley, Houston County, Georgia, United States",
+      "image_url": "https://usdawatercolors.nal.usda.gov/pom/images/full/POM00004210.jpg",
+      "thumbnail_url": "https://usdawatercolors.nal.usda.gov/pom/images/thumbs/POM00004210.jpg",
+      "iiif_base": "https://usdawatercolors.nal.usda.gov/iiif/POM00004210",
+      "specimen_notes": "Specimen received from Georgia State Horticultural Society"
+    }
+  ]
+}

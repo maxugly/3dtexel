@@ -1,0 +1,51 @@
+{
+  "Status": "ok",
+  "Result": [
+    {
+      "PublicationID": 10425,
+      "Title": "Curtis's Botanical Magazine",
+      "Authors": "Curtis, William",
+      "Date": "1793",
+      "BHLURL": "https://www.biodiversitylibrary.org/bibliography/10425",
+      "thumbnail": "https://www.biodiversitylibrary.org/pagethumb/49502,400,400",
+      "image_url": "https://www.biodiversitylibrary.org/pageimage/49502",
+      "description": "Hand-coloured copper plate engravings of ornamental and exotic plants.",
+      "tags": ["botany", "botanical plate", "curtis", "engraving", "flora"],
+      "files": [
+        {
+          "filename": "curtis_botanical_orig.jpg",
+          "resolution": "orig",
+          "url": "https://www.biodiversitylibrary.org/pageimage/49502"
+        },
+        {
+          "filename": "curtis_botanical_2048.jpg",
+          "resolution": "2048",
+          "url": "https://www.biodiversitylibrary.org/pagethumb/49502,2048,2048"
+        },
+        {
+          "filename": "curtis_botanical_1024.jpg",
+          "resolution": "1024",
+          "url": "https://www.biodiversitylibrary.org/pagethumb/49502,1024,1024"
+        }
+      ]
+    },
+    {
+      "PublicationID": 33891,
+      "Title": "The Birds of America",
+      "Authors": "Audubon, John James",
+      "Date": "1827-1838",
+      "BHLURL": "https://www.biodiversitylibrary.org/bibliography/33891",
+      "thumbnail": "https://www.biodiversitylibrary.org/pagethumb/120481,400,400",
+      "image_url": "https://www.biodiversitylibrary.org/pageimage/120481",
+      "description": "Double elephant folio aquatint engravings depicting birds of North America.",
+      "tags": ["ornithology", "audubon", "birds of america", "aquatint"],
+      "files": [
+        {
+          "filename": "audubon_birds_orig.jpg",
+          "resolution": "orig",
+          "url": "https://www.biodiversitylibrary.org/pageimage/120481"
+        }
+      ]
+    }
+  ]
+}

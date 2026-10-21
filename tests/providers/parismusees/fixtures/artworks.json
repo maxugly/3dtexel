@@ -1,0 +1,47 @@
+[
+  {
+    "id": "PPP4567",
+    "title": "Soleil couchant sur la Seine à Lavacourt",
+    "author": "Claude Monet",
+    "museum": "Petit Palais, musée des Beaux-arts de la Ville de Paris",
+    "date": "1880",
+    "description": "Paysage impressionniste représentant les reflets du soleil couchant sur la Seine gelée.",
+    "thumbnail": "https://apicollections.parismusees.paris.fr/iiif/3/12345/full/!300,300/0/default.jpg",
+    "url": "https://parismuseescollections.paris.fr/fr/petit-palais/oeuvres/soleil-couchant-sur-la-seine-a-lavacourt",
+    "download_url": "https://apicollections.parismusees.paris.fr/iiif/3/12345/full/max/0/default.jpg",
+    "license": "CC0",
+    "tags": ["impressionnisme", "seine", "fleuve", "hiver", "peinture", "paysage"],
+    "files": [
+      {
+        "filename": "monet_soleil_lavacourt_full.jpg",
+        "resolution": "full",
+        "url": "https://apicollections.parismusees.paris.fr/iiif/3/12345/full/max/0/default.jpg"
+      },
+      {
+        "filename": "monet_soleil_lavacourt_web.jpg",
+        "resolution": "web",
+        "url": "https://apicollections.parismusees.paris.fr/iiif/3/12345/full/!1200,1200/0/default.jpg"
+      }
+    ]
+  },
+  {
+    "id": "MVHP1234",
+    "title": "Le Burg à la croix",
+    "author": "Victor Hugo",
+    "museum": "Maison de Victor Hugo - Hauteville House",
+    "date": "1850",
+    "description": "Lavis d'encre brune, plume et fusain représentant un château romantique en ruine.",
+    "thumbnail": "https://apicollections.parismusees.paris.fr/iiif/3/67890/full/!300,300/0/default.jpg",
+    "url": "https://parismuseescollections.paris.fr/fr/maison-de-victor-hugo/oeuvres/le-burg-a-la-croix",
+    "download_url": "https://apicollections.parismusees.paris.fr/iiif/3/67890/full/max/0/default.jpg",
+    "license": "CC0",
+    "tags": ["romantisme", "chateau", "ruine", "dessin", "victor hugo"],
+    "files": [
+      {
+        "filename": "hugo_burg_croix_full.jpg",
+        "resolution": "full",
+        "url": "https://apicollections.parismusees.paris.fr/iiif/3/67890/full/max/0/default.jpg"
+      }
+    ]
+  }
+]

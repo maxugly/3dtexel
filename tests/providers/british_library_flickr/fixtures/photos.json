@@ -1,0 +1,59 @@
+{
+  "photos": {
+    "page": 1,
+    "pages": 42000,
+    "perpage": 2,
+    "total": 1000000,
+    "photo": [
+      {
+        "id": "11299945376",
+        "owner": "12403504@N03",
+        "secret": "9a7e0a5d21",
+        "server": "7458",
+        "farm": 8,
+        "title": "Image taken from page 157 of 'The British Barbarians. A hill-top novel'",
+        "ispublic": 1,
+        "license": "7",
+        "description": {
+          "_content": "Title: The British Barbarians. Author: Grant Allen. Publisher: John Lane, London, 1895. Page 157."
+        },
+        "ownername": "The British Library",
+        "tags": "britishlibrary historical engraving illustration Victorian",
+        "url_m": "https://live.staticflickr.com/7458/11299945376_9a7e0a5d21_m.jpg",
+        "height_m": 240,
+        "width_m": 180,
+        "url_b": "https://live.staticflickr.com/7458/11299945376_9a7e0a5d21_b.jpg",
+        "height_b": 1024,
+        "width_b": 768,
+        "url_o": "https://live.staticflickr.com/7458/11299945376_9a7e0a5d21_o.jpg",
+        "height_o": 2048,
+        "width_o": 1536
+      },
+      {
+        "id": "11162384725",
+        "owner": "12403504@N03",
+        "secret": "8b2d1c9a40",
+        "server": "7312",
+        "farm": 8,
+        "title": "Map from page 42 of 'Travels in the Central Parts of Indo-China'",
+        "ispublic": 1,
+        "license": "7",
+        "description": {
+          "_content": "Title: Travels in the Central Parts of Indo-China. Author: Henri Mouhot. London, 1864."
+        },
+        "ownername": "The British Library",
+        "tags": "britishlibrary cartography vintage map Asia",
+        "url_m": "https://live.staticflickr.com/7312/11162384725_8b2d1c9a40_m.jpg",
+        "height_m": 240,
+        "width_m": 200,
+        "url_b": "https://live.staticflickr.com/7312/11162384725_8b2d1c9a40_b.jpg",
+        "height_b": 1024,
+        "width_b": 850,
+        "url_o": "https://live.staticflickr.com/7312/11162384725_8b2d1c9a40_o.jpg",
+        "height_o": 2048,
+        "width_o": 1700
+      }
+    ]
+  },
+  "stat": "ok"
+}

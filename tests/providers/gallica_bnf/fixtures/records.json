@@ -1,0 +1,49 @@
+{
+  "total": 2,
+  "items": [
+    {
+      "ark": "btv1b55006497c",
+      "title": "Plan de Paris et ses environs",
+      "creator": "Turgot, Michel-Étienne",
+      "date": "1739",
+      "description": "Plan monumental de Paris en perspective cavalière levé par Louis Bretez.",
+      "url": "https://gallica.bnf.fr/ark:/12148/btv1b55006497c",
+      "thumbnail": "https://gallica.bnf.fr/iiif/ark:/12148/btv1b55006497c/full/512,/0/native.jpg",
+      "tags": ["cartography", "paris", "turgot map", "18th century"],
+      "files": [
+        {
+          "filename": "turgot_plan_paris_orig.jpg",
+          "resolution": "orig",
+          "url": "https://gallica.bnf.fr/iiif/ark:/12148/btv1b55006497c/full/max/0/native.jpg"
+        },
+        {
+          "filename": "turgot_plan_paris_2048.jpg",
+          "resolution": "2048",
+          "url": "https://gallica.bnf.fr/iiif/ark:/12148/btv1b55006497c/full/2048,/0/native.jpg"
+        },
+        {
+          "filename": "turgot_plan_paris_512.jpg",
+          "resolution": "512",
+          "url": "https://gallica.bnf.fr/iiif/ark:/12148/btv1b55006497c/full/512,/0/native.jpg"
+        }
+      ]
+    },
+    {
+      "ark": "btv1b84511048",
+      "title": "Grandes Heures d'Anne de Bretagne",
+      "creator": "Jean Bourdichon",
+      "date": "1503-1508",
+      "description": "Livre d'heures enluminé de miniatures et de planches botaniques d'une grande précision.",
+      "url": "https://gallica.bnf.fr/ark:/12148/btv1b84511048",
+      "thumbnail": "https://gallica.bnf.fr/iiif/ark:/12148/btv1b84511048/full/512,/0/native.jpg",
+      "tags": ["illumination", "manuscript", "botany", "renaissance"],
+      "files": [
+        {
+          "filename": "anne_bretagne_heures_orig.jpg",
+          "resolution": "orig",
+          "url": "https://gallica.bnf.fr/iiif/ark:/12148/btv1b84511048/full/max/0/native.jpg"
+        }
+      ]
+    }
+  ]
+}

@@ -5,7 +5,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - name: Install Godot 4.4.1
@@ -28,4 +28,67 @@ jobs:
           timeout 45s godot --headless --path . -s tests/test_download_inventory.gd
           timeout 45s godot --headless --path . -s tests/test_search_session.gd
           timeout 45s godot --headless --path . -s tests/test_batch_cards.gd
+          timeout 45s godot --headless --path . -s tests/test_credits_collector.gd
           timeout 45s godot --headless --path . -s tests/providers/opengameart/test_opengameart.gd
+          timeout 45s godot --headless --path . -s tests/providers/nasa/test_nasa.gd
+          timeout 45s godot --headless --path . -s tests/providers/polyhaven/test_polyhaven.gd
+          timeout 45s godot --headless --path . -s tests/providers/ambientcg/test_ambientcg.gd
+          timeout 45s godot --headless --path . -s tests/providers/grab3d/test_grab3d.gd
+          timeout 45s godot --headless --path . -s tests/providers/archive_org/test_archive_org.gd
+          timeout 45s godot --headless --path . -s tests/providers/cgtrader/test_cgtrader.gd
+          timeout 45s godot --headless --path . -s tests/providers/itch_io/test_itch_io.gd
+          timeout 45s godot --headless --path . -s tests/providers/kenney/test_kenney.gd
+          timeout 45s godot --headless --path . -s tests/providers/textures3d/test_textures3d.gd
+          timeout 45s godot --headless --path . -s tests/providers/sharetextures/test_sharetextures.gd
+          timeout 45s godot --headless --path . -s tests/providers/cgbookcase/test_cgbookcase.gd
+          timeout 45s godot --headless --path . -s tests/providers/texturecan/test_texturecan.gd
+          timeout 45s godot --headless --path . -s tests/providers/quaternius/test_quaternius.gd
+          timeout 45s godot --headless --path . -s tests/providers/kaykit/test_kaykit.gd
+          timeout 45s godot --headless --path . -s tests/providers/polypizza/test_polypizza.gd
+          timeout 45s godot --headless --path . -s tests/providers/smithsonian/test_smithsonian.gd
+          timeout 45s godot --headless --path . -s tests/providers/nih_3d/test_nih_3d.gd
+          timeout 45s godot --headless --path . -s tests/providers/nga/test_nga.gd
+          timeout 45s godot --headless --path . -s tests/providers/rijksmuseum/test_rijksmuseum.gd
+          timeout 45s godot --headless --path . -s tests/providers/parismusees/test_parismusees.gd
+          timeout 45s godot --headless --path . -s tests/providers/prelinger/test_prelinger.gd
+          timeout 45s godot --headless --path . -s tests/providers/usgs/test_usgs.gd
+          timeout 45s godot --headless --path . -s tests/providers/smk/test_smk.gd
+          timeout 45s godot --headless --path . -s tests/providers/bioart/test_bioart.gd
+          timeout 45s godot --headless --path . -s tests/providers/nypl/test_nypl.gd
+          timeout 45s godot --headless --path . -s tests/providers/noaa/test_noaa.gd
+          timeout 45s godot --headless --path . -s tests/providers/usfws/test_usfws.gd
+          timeout 45s godot --headless --path . -s tests/providers/nationalmuseum_se/test_nationalmuseum_se.gd
+          timeout 45s godot --headless --path . -s tests/providers/nasjonalmuseet/test_nasjonalmuseet.gd
+          timeout 45s godot --headless --path . -s tests/providers/kansallisgalleria/test_kansallisgalleria.gd
+          timeout 45s godot --headless --path . -s tests/providers/digitaltmuseum/test_digitaltmuseum.gd
+          timeout 45s godot --headless --path . -s tests/providers/tepapa/test_tepapa.gd
+          timeout 45s godot --headless --path . -s tests/providers/trove/test_trove.gd
+          timeout 45s godot --headless --path . -s tests/providers/ndl_imagebank/test_ndl_imagebank.gd
+          timeout 45s godot --headless --path . -s tests/providers/npm_taiwan/test_npm_taiwan.gd
+          timeout 45s godot --headless --path . -s tests/providers/met_museum/test_met_museum.gd
+          timeout 45s godot --headless --path . -s tests/providers/aic/test_aic.gd
+          timeout 45s godot --headless --path . -s tests/providers/gallica_bnf/test_gallica_bnf.gd
+          timeout 45s godot --headless --path . -s tests/providers/library_of_congress/test_library_of_congress.gd
+          timeout 45s godot --headless --path . -s tests/providers/wikimedia/test_wikimedia.gd
+          timeout 45s godot --headless --path . -s tests/providers/europeana/test_europeana.gd
+          timeout 45s godot --headless --path . -s tests/providers/brazil_bn/test_brazil_bn.gd
+          timeout 45s godot --headless --path . -s tests/providers/mexico_inah/test_mexico_inah.gd
+          timeout 45s godot --headless --path . -s tests/providers/bhl/test_bhl.gd
+          timeout 45s godot --headless --path . -s tests/providers/british_library_flickr/test_british_library_flickr.gd
+          timeout 45s godot --headless --path . -s tests/providers/wellcome_collection/test_wellcome_collection.gd
+          timeout 45s godot --headless --path . -s tests/providers/usda_watercolors/test_usda_watercolors.gd
+          timeout 45s godot --headless --path . -s tests/providers/david_rumsey/test_david_rumsey.gd
+          timeout 45s godot --headless --path . -s tests/providers/usgs_astrogeology/test_usgs_astrogeology.gd
+          timeout 45s godot --headless --path . -s tests/providers/nasa_visible_earth/test_nasa_visible_earth.gd
+          timeout 45s godot --headless --path . -s tests/providers/morphosource/test_morphosource.gd
+          timeout 45s godot --headless --path . -s tests/providers/scan_the_world/test_scan_the_world.gd
+          timeout 45s godot --headless --path . -s tests/providers/rawpixel/test_rawpixel.gd
+          timeout 45s godot --headless --path . -s tests/providers/oldbookillustrations/test_oldbookillustrations.gd
+          timeout 45s godot --headless --path . -s tests/providers/tuckdb_postcards/test_tuckdb_postcards.gd
+          timeout 45s godot --headless --path . -s tests/providers/heritagetype/test_heritagetype.gd
+          timeout 45s godot --headless --path . -s tests/providers/artvee/test_artvee.gd
+          timeout 45s godot --headless --path . -s tests/providers/getty/test_getty.gd
+          timeout 45s godot --headless --path . -s tests/providers/lacma/test_lacma.gd
+          timeout 45s godot --headless --path . -s tests/providers/yale_british_art/test_yale_british_art.gd
+          timeout 45s godot --headless --path . -s tests/providers/artsmia/test_artsmia.gd
+          timeout 45s godot --headless --path . -s tests/providers/mkg_hamburg/test_mkg_hamburg.gd

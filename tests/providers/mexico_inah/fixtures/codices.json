@@ -1,0 +1,51 @@
+{
+  "total": 2,
+  "items": [
+    {
+      "identifier": "inah-codex-001",
+      "title": "Códice Boturini (Tira de la Peregrinación)",
+      "culture": "Mexica / Aztec",
+      "date": "Siglo XVI (ca. 1540)",
+      "description": "Códice mexica en papel amate que narra la peregrinación desde Aztlán hasta la fundación de Tenochtitlan.",
+      "url": "https://mediateca.inah.gob.mx/islandora_74/islandora/object/codice:001",
+      "thumbnail": "https://mediateca.inah.gob.mx/media/codice_boturini_thumb.jpg",
+      "image_url": "https://mediateca.inah.gob.mx/media/codice_boturini_orig.jpg",
+      "tags": ["codice", "azteca", "mexica", "aztlan", "papel amate"],
+      "files": [
+        {
+          "filename": "codice_boturini_orig.jpg",
+          "resolution": "orig",
+          "url": "https://mediateca.inah.gob.mx/media/codice_boturini_orig.jpg"
+        },
+        {
+          "filename": "codice_boturini_2048.jpg",
+          "resolution": "2048",
+          "url": "https://mediateca.inah.gob.mx/media/codice_boturini_2048.jpg"
+        },
+        {
+          "filename": "codice_boturini_1024.jpg",
+          "resolution": "1024",
+          "url": "https://mediateca.inah.gob.mx/media/codice_boturini_1024.jpg"
+        }
+      ]
+    },
+    {
+      "identifier": "inah-mask-002",
+      "title": "Máscara Funeraria de Pakal el Grande",
+      "culture": "Maya (Palenque)",
+      "date": "ca. 683 d.C.",
+      "description": "Máscara de mosaico de jadeíta, concha y obsidiana hallada en la tumba del Templo de las Inscripciones.",
+      "url": "https://mediateca.inah.gob.mx/islandora_74/islandora/object/artefacto:002",
+      "thumbnail": "https://mediateca.inah.gob.mx/media/mascara_pakal_thumb.jpg",
+      "image_url": "https://mediateca.inah.gob.mx/media/mascara_pakal_orig.jpg",
+      "tags": ["maya", "palenque", "pakal", "jade", "arqueologia"],
+      "files": [
+        {
+          "filename": "mascara_pakal_orig.jpg",
+          "resolution": "orig",
+          "url": "https://mediateca.inah.gob.mx/media/mascara_pakal_orig.jpg"
+        }
+      ]
+    }
+  ]
+}

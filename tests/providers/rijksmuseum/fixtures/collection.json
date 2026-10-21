@@ -1,0 +1,55 @@
+{
+  "count": 2,
+  "artObjects": [
+    {
+      "id": "nl-SK-C-5",
+      "objectNumber": "SK-C-5",
+      "title": "Militia Company of District II under the Command of Captain Frans Banninck Cocq, Known as the ‘Night Watch’",
+      "hasImage": true,
+      "principalOrFirstMaker": "Rembrandt van Rijn",
+      "longTitle": "The Night Watch, Rembrandt van Rijn, 1642",
+      "webImage": {
+        "guid": "aa08df9c-0af9-4195-b380-f2f478a4054d",
+        "offsetPercentageX": 0,
+        "offsetPercentageY": 1,
+        "width": 5656,
+        "height": 4704,
+        "url": "https://lh3.googleusercontent.com/J-mxAE7CPu-mQOaXStxWlvR_ooG1IKeghLBgssKssXgahZ9OHcmVYZXqmGAoMaiugBRqpEQSuI9NoPh-hZnAfKEA=s0"
+      },
+      "headerImage": {
+        "url": "https://lh3.googleusercontent.com/J-mxAE7CPu-mQOaXStxWlvR_ooG1IKeghLBgssKssXgahZ9OHcmVYZXqmGAoMaiugBRqpEQSuI9NoPh-hZnAfKEA=s400"
+      },
+      "productionPlaces": [
+        "Amsterdam"
+      ],
+      "links": {
+        "web": "https://www.rijksmuseum.nl/en/collection/SK-C-5"
+      }
+    },
+    {
+      "id": "nl-SK-A-2344",
+      "objectNumber": "SK-A-2344",
+      "title": "The Milkmaid",
+      "hasImage": true,
+      "principalOrFirstMaker": "Johannes Vermeer",
+      "longTitle": "The Milkmaid, Johannes Vermeer, c. 1660",
+      "webImage": {
+        "guid": "89b53f09-b68c-443b-8269-e7401c34a2e2",
+        "offsetPercentageX": 0,
+        "offsetPercentageY": 0,
+        "width": 2048,
+        "height": 2300,
+        "url": "https://lh3.googleusercontent.com/cRtF3pm4XYjBLnwYTOdoGgahUy1zufJaqIPqgazku0hWUMnnE97ocNOYkJJflvyQL5lv=s0"
+      },
+      "headerImage": {
+        "url": "https://lh3.googleusercontent.com/cRtF3pm4XYjBLnwYTOdoGgahUy1zufJaqIPqgazku0hWUMnnE97ocNOYkJJflvyQL5lv=s400"
+      },
+      "productionPlaces": [
+        "Delft"
+      ],
+      "links": {
+        "web": "https://www.rijksmuseum.nl/en/collection/SK-A-2344"
+      }
+    }
+  ]
+}

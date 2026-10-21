@@ -1,0 +1,53 @@
+{
+  "total": 2,
+  "offset": 0,
+  "limit": 24,
+  "items": [
+    {
+      "id": "ndl-ukiyo-001",
+      "title": "The Great Wave off Kanagawa",
+      "artist": "Katsushika Hokusai",
+      "period": "Edo Period (ca. 1831)",
+      "url": "https://www.ndl.go.jp/imagebank/item/ndl-ukiyo-001",
+      "thumbnail": "https://www.ndl.go.jp/imagebank/media/hokusai_wave_thumb.jpg",
+      "image_url": "https://www.ndl.go.jp/imagebank/media/hokusai_wave_orig.jpg",
+      "description": "Woodblock print from Thirty-Six Views of Mount Fuji showing towering cresting wave.",
+      "tags": ["ukiyo-e", "hokusai", "great wave", "mount fuji", "japanese art"],
+      "files": [
+        {
+          "filename": "hokusai_wave_orig.jpg",
+          "resolution": "orig",
+          "url": "https://www.ndl.go.jp/imagebank/media/hokusai_wave_orig.jpg"
+        },
+        {
+          "filename": "hokusai_wave_2048.jpg",
+          "resolution": "2048",
+          "url": "https://www.ndl.go.jp/imagebank/media/hokusai_wave_2048.jpg"
+        },
+        {
+          "filename": "hokusai_wave_1024.jpg",
+          "resolution": "1024",
+          "url": "https://www.ndl.go.jp/imagebank/media/hokusai_wave_1024.jpg"
+        }
+      ]
+    },
+    {
+      "id": "ndl-ukiyo-002",
+      "title": "Sudden Shower over Shin-Ohashi Bridge and Atake",
+      "artist": "Utagawa Hiroshige",
+      "period": "Edo Period (1857)",
+      "url": "https://www.ndl.go.jp/imagebank/item/ndl-ukiyo-002",
+      "thumbnail": "https://www.ndl.go.jp/imagebank/media/hiroshige_rain_thumb.jpg",
+      "image_url": "https://www.ndl.go.jp/imagebank/media/hiroshige_rain_orig.jpg",
+      "description": "Woodblock print from One Hundred Famous Views of Edo showing torrential rain on wooden bridge.",
+      "tags": ["ukiyo-e", "hiroshige", "edo", "rain", "landscape"],
+      "files": [
+        {
+          "filename": "hiroshige_rain_orig.jpg",
+          "resolution": "orig",
+          "url": "https://www.ndl.go.jp/imagebank/media/hiroshige_rain_orig.jpg"
+        }
+      ]
+    }
+  ]
+}

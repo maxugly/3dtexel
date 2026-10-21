@@ -1,0 +1,52 @@
+{
+  "total": 2,
+  "offset": 0,
+  "limit": 24,
+  "items": [
+    {
+      "id": "021016499312",
+      "title": "Viking Sword from Hedmark",
+      "owner": "Historical Museum Oslo",
+      "dating": "ca. 900",
+      "has_3d": true,
+      "media_type": "3d",
+      "url": "https://digitaltmuseum.no/021016499312",
+      "thumbnail": "https://media.digitaltmuseum.org/viking_sword_thumb.jpg",
+      "media_url": "https://media.digitaltmuseum.org/viking_sword.glb",
+      "description": "Iron Viking sword with decorated pommel found in Hedmark, Norway.",
+      "tags": ["viking", "sword", "weapon", "norway", "archaeology", "3d"],
+      "files": [
+        {
+          "filename": "viking_sword.glb",
+          "resolution": "glb",
+          "url": "https://media.digitaltmuseum.org/viking_sword.glb"
+        }
+      ]
+    },
+    {
+      "id": "011014298114",
+      "title": "Dala Horse from Mora",
+      "owner": "Nordiska museet",
+      "dating": "1920",
+      "has_3d": false,
+      "media_type": "image",
+      "url": "https://digitaltmuseum.se/011014298114",
+      "thumbnail": "https://media.digitaltmuseum.org/dala_horse_thumb.jpg",
+      "media_url": "https://media.digitaltmuseum.org/dala_horse_orig.jpg",
+      "description": "Traditional carved and painted wooden Dala horse from Dalarna, Sweden.",
+      "tags": ["folk art", "sweden", "woodcraft", "dala horse"],
+      "files": [
+        {
+          "filename": "dala_horse_orig.jpg",
+          "resolution": "orig",
+          "url": "https://media.digitaltmuseum.org/dala_horse_orig.jpg"
+        },
+        {
+          "filename": "dala_horse_1200.jpg",
+          "resolution": "1200",
+          "url": "https://media.digitaltmuseum.org/dala_horse_1200.jpg"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "total": 2,
+  "page": 1,
+  "limit": 24,
+  "items": [
+    {
+      "id": "mkg_hamburg_art_nouveau_poster",
+      "inventory_number": "EP2012.1",
+      "title": "Salon des Cent Exhibition Poster",
+      "artist": "Alfons Mucha",
+      "creator": "Alfons Mucha (1860 - 1939)",
+      "date": "1897",
+      "medium": "Color lithograph on paper",
+      "collection": "Poster and Graphic Design",
+      "culture": "Czech/French",
+      "classification": "Posters",
+      "url": "https://sammlungonline.mkg-hamburg.de/de/object/EP2012.1",
+      "thumbnail": "https://opendata.mkg-hamburg.de/iiif/image/EP2012.1/full/!250,250/0/default.jpg",
+      "primary_image": "https://opendata.mkg-hamburg.de/iiif/image/EP2012.1/full/max/0/default.jpg",
+      "high_res_url": "https://opendata.mkg-hamburg.de/iiif/image/EP2012.1/full/max/0/default.jpg",
+      "medium_res_url": "https://opendata.mkg-hamburg.de/iiif/image/EP2012.1/full/2048,/0/default.jpg",
+      "low_res_url": "https://opendata.mkg-hamburg.de/iiif/image/EP2012.1/full/1024,/0/default.jpg"
+    },
+    {
+      "id": "mkg_hamburg_japanese_woodcut",
+      "inventory_number": "O1909.52",
+      "title": "Fuji in Clear Weather (Red Fuji)",
+      "artist": "Katsushika Hokusai",
+      "creator": "Katsushika Hokusai (1760 - 1849)",
+      "date": "ca. 1830 - 1832",
+      "medium": "Color woodblock print",
+      "collection": "East Asian Art",
+      "culture": "Japanese",
+      "classification": "Woodcuts",
+      "url": "https://sammlungonline.mkg-hamburg.de/de/object/O1909.52",
+      "thumbnail": "https://opendata.mkg-hamburg.de/iiif/image/O1909.52/full/!250,250/0/default.jpg",
+      "primary_image": "https://opendata.mkg-hamburg.de/iiif/image/O1909.52/full/max/0/default.jpg",
+      "high_res_url": "https://opendata.mkg-hamburg.de/iiif/image/O1909.52/full/max/0/default.jpg",
+      "medium_res_url": "https://opendata.mkg-hamburg.de/iiif/image/O1909.52/full/2048,/0/default.jpg",
+      "low_res_url": "https://opendata.mkg-hamburg.de/iiif/image/O1909.52/full/1024,/0/default.jpg"
+    }
+  ]
+}

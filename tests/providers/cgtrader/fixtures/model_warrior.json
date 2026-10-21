@@ -1,0 +1,38 @@
+{
+  "id": "cgt-99120",
+  "title": "Stylized Fantasy Warrior Girl",
+  "slug": "stylized-fantasy-warrior-girl",
+  "category": "character-people",
+  "user": {
+    "username": "PolygonHero",
+    "profile_url": "https://www.cgtrader.com/polygonhero"
+  },
+  "price": 0.0,
+  "free": true,
+  "polygons": 18450,
+  "vertices": 19200,
+  "description": "Game-ready stylized fantasy warrior character with sword and shield.",
+  "tags": ["character", "warrior", "fantasy", "girl", "stylized", "game-ready"],
+  "thumbnail": "https://img-new.cgtrader.com/items/99120/warrior_preview.jpg",
+  "license": {
+    "type": "royalty_free",
+    "name": "CGTrader Royalty Free",
+    "url": "https://www.cgtrader.com/pages/terms-and-conditions#royalty-free-license"
+  },
+  "files": [
+    {
+      "id": "file-1",
+      "format": "fbx",
+      "filename": "warrior_girl.fbx",
+      "size": 4200000,
+      "download_url": "https://api.cgtrader.com/v1/models/cgt-99120/files/file-1/download"
+    },
+    {
+      "id": "file-2",
+      "format": "blend",
+      "filename": "warrior_girl.blend",
+      "size": 6800000,
+      "download_url": "https://api.cgtrader.com/v1/models/cgt-99120/files/file-2/download"
+    }
+  ]
+}

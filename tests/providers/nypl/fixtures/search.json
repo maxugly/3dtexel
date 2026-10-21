@@ -1,0 +1,35 @@
+{
+  "nyplAPI": {
+    "response": {
+      "numResults": 2,
+      "result": [
+        {
+          "imageID": "1234567",
+          "title": "Map of the City of New York and Island of Manhattan, 1811",
+          "creator": "Bridges, William (Surveyor)",
+          "date": "1811",
+          "typeOfResource": "cartographic",
+          "publicDomain": "yes",
+          "rightsStatementURI": "http://rightsstatements.org/vocab/NoC-US/1.0/",
+          "digitalUUID": "510d47e4-1234-a3d9-e040-e00a18064a99",
+          "url": "https://digitalcollections.nypl.org/items/510d47e4-1234-a3d9-e040-e00a18064a99",
+          "thumbnail": "https://images.nypl.org/index.php?id=1234567&t=b",
+          "highResLink": "https://images.nypl.org/index.php?id=1234567&t=w"
+        },
+        {
+          "imageID": "7654321",
+          "title": "Botanical Illustration of Passiflora Caerulea",
+          "creator": "Redouté, Pierre-Joseph",
+          "date": "1802",
+          "typeOfResource": "still image",
+          "publicDomain": "yes",
+          "rightsStatementURI": "http://rightsstatements.org/vocab/NoC-US/1.0/",
+          "digitalUUID": "510d47e4-5678-a3d9-e040-e00a18064a99",
+          "url": "https://digitalcollections.nypl.org/items/510d47e4-5678-a3d9-e040-e00a18064a99",
+          "thumbnail": "https://images.nypl.org/index.php?id=7654321&t=b",
+          "highResLink": "https://images.nypl.org/index.php?id=7654321&t=w"
+        }
+      ]
+    }
+  }
+}

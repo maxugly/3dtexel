@@ -1,0 +1,55 @@
+{
+  "total": 1200,
+  "page": 1,
+  "results": [
+    {
+      "id": "mars_viking_mdim21_global",
+      "title": "Mars Viking MDIM2.1 Colorized Global Mosaic",
+      "target": "Mars",
+      "mission": "Viking",
+      "resolution_m_per_pixel": 232,
+      "description": "Global colorized mosaic of Mars produced by USGS Astrogeology from Viking Orbiter images.",
+      "url": "https://astrogeology.usgs.gov/search/map/Mars/Global/Mars_Viking_MDIM21_colorized",
+      "thumbnail": "https://planetarymaps.usgs.gov/mosaic/Mars/thumbs/Mars_Viking_MDIM21_thumb.jpg",
+      "files": [
+        {
+          "filename": "Mars_Viking_MDIM21_8k.jpg",
+          "resolution": "8k",
+          "url": "https://planetarymaps.usgs.gov/mosaic/Mars/Mars_Viking_MDIM21_8k.jpg"
+        },
+        {
+          "filename": "Mars_Viking_MDIM21_4k.jpg",
+          "resolution": "4k",
+          "url": "https://planetarymaps.usgs.gov/mosaic/Mars/Mars_Viking_MDIM21_4k.jpg"
+        },
+        {
+          "filename": "Mars_Viking_MDIM21_2k.jpg",
+          "resolution": "2k",
+          "url": "https://planetarymaps.usgs.gov/mosaic/Mars/Mars_Viking_MDIM21_2k.jpg"
+        }
+      ]
+    },
+    {
+      "id": "moon_lro_wac_global_mosaic",
+      "title": "Moon LRO WAC Global Morphology Mosaic",
+      "target": "Moon",
+      "mission": "Lunar Reconnaissance Orbiter",
+      "resolution_m_per_pixel": 100,
+      "description": "Global basemap of the Moon acquired by the Lunar Reconnaissance Orbiter Camera Wide Angle Camera.",
+      "url": "https://astrogeology.usgs.gov/search/map/Moon/Global/Moon_LRO_WAC_mosaic",
+      "thumbnail": "https://planetarymaps.usgs.gov/mosaic/Moon/thumbs/Moon_LRO_WAC_thumb.jpg",
+      "files": [
+        {
+          "filename": "Moon_LRO_WAC_8k.jpg",
+          "resolution": "8k",
+          "url": "https://planetarymaps.usgs.gov/mosaic/Moon/Moon_LRO_WAC_8k.jpg"
+        },
+        {
+          "filename": "Moon_LRO_WAC_4k.jpg",
+          "resolution": "4k",
+          "url": "https://planetarymaps.usgs.gov/mosaic/Moon/Moon_LRO_WAC_4k.jpg"
+        }
+      ]
+    }
+  ]
+}

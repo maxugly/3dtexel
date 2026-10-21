@@ -1,0 +1,30 @@
+{
+  "responseHeader": {
+    "status": 0,
+    "QTime": 42
+  },
+  "response": {
+    "numFound": 2,
+    "start": 0,
+    "docs": [
+      {
+        "identifier": "flickr-commons-steam-locomotive-1905",
+        "title": "Steam Locomotive No. 401 at Central Station (1905)",
+        "creator": "Library of Congress",
+        "description": "Historical black and white photograph of Baldwin steam locomotive at terminal platform.",
+        "date": "1905-06-12",
+        "mediatype": "image",
+        "licenseurl": "https://creativecommons.org/publicdomain/mark/1.0/"
+      },
+      {
+        "identifier": "flickr-commons-botanical-garden-kyoto",
+        "title": "Kyoto Botanical Garden Pavilion",
+        "creator": "National Diet Library",
+        "description": "Architectural survey photograph of wooden pavilion and stone lantern.",
+        "date": "1922-10-04",
+        "mediatype": "image",
+        "licenseurl": "https://creativecommons.org/publicdomain/mark/1.0/"
+      }
+    ]
+  }
+}

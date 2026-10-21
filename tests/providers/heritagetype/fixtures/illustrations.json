@@ -1,0 +1,47 @@
+{
+  "total": 2500,
+  "page": 1,
+  "results": [
+    {
+      "id": "ht_victorian_floral_banner",
+      "title": "Victorian Floral Flourish Banner",
+      "category": "Ornaments",
+      "style": "Victorian",
+      "period": "1890s",
+      "description": "High-contrast decorative line art banner with acanthus leaves and floral scrolls.",
+      "url": "https://www.heritagetype.com/illustrations/floral-banner",
+      "thumbnail": "https://cdn.heritagetype.com/free/thumbs/floral_banner_thumb.png",
+      "image_url": "https://cdn.heritagetype.com/free/floral_banner_orig.png",
+      "files": [
+        {
+          "filename": "victorian_floral_banner_orig.png",
+          "resolution": "orig",
+          "url": "https://cdn.heritagetype.com/free/floral_banner_orig.png"
+        },
+        {
+          "filename": "victorian_floral_banner_2048.png",
+          "resolution": "2048",
+          "url": "https://cdn.heritagetype.com/free/floral_banner_2048.png"
+        }
+      ]
+    },
+    {
+      "id": "ht_heraldic_lion_crest",
+      "title": "Heraldic Lion Rampant Crest",
+      "category": "Heraldry",
+      "style": "Engraving",
+      "period": "1880s",
+      "description": "Detailed antique heraldic lion rampant woodcut ornament for crests and bookplates.",
+      "url": "https://www.heritagetype.com/illustrations/heraldic-lion",
+      "thumbnail": "https://cdn.heritagetype.com/free/thumbs/heraldic_lion_thumb.png",
+      "image_url": "https://cdn.heritagetype.com/free/heraldic_lion_orig.png",
+      "files": [
+        {
+          "filename": "heraldic_lion_orig.png",
+          "resolution": "orig",
+          "url": "https://cdn.heritagetype.com/free/heraldic_lion_orig.png"
+        }
+      ]
+    }
+  ]
+}

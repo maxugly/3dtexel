@@ -1,0 +1,55 @@
+{
+  "total": 2,
+  "offset": 0,
+  "limit": 24,
+  "items": [
+    {
+      "id": "ng-m-00939",
+      "title": "The Scream",
+      "artist": "Edvard Munch",
+      "dating": "1893",
+      "classification": "Painting",
+      "url": "https://www.nasjonalmuseet.no/en/collection/object/NG.M.00939",
+      "thumbnail": "https://media.nasjonalmuseet.no/thumbnail/NG.M.00939.jpg",
+      "image_url": "https://media.nasjonalmuseet.no/orig/NG.M.00939.jpg",
+      "description": "Oil, tempera and pastel on cardboard, depicting a figure against an agonized orange sky.",
+      "tags": ["expressionism", "munch", "norwegian art", "modern art"],
+      "files": [
+        {
+          "filename": "munch_the_scream_orig.jpg",
+          "resolution": "orig",
+          "url": "https://media.nasjonalmuseet.no/orig/NG.M.00939.jpg"
+        },
+        {
+          "filename": "munch_the_scream_2048.jpg",
+          "resolution": "2048",
+          "url": "https://media.nasjonalmuseet.no/2048/NG.M.00939.jpg"
+        },
+        {
+          "filename": "munch_the_scream_1024.jpg",
+          "resolution": "1024",
+          "url": "https://media.nasjonalmuseet.no/1024/NG.M.00939.jpg"
+        }
+      ]
+    },
+    {
+      "id": "ng-m-01185",
+      "title": "Winter Night in the Mountains",
+      "artist": "Harald Sohlberg",
+      "dating": "1914",
+      "classification": "Painting",
+      "url": "https://www.nasjonalmuseet.no/en/collection/object/NG.M.01185",
+      "thumbnail": "https://media.nasjonalmuseet.no/thumbnail/NG.M.01185.jpg",
+      "image_url": "https://media.nasjonalmuseet.no/orig/NG.M.01185.jpg",
+      "description": "Nocturnal landscape over the Rondane mountain range in blue tones.",
+      "tags": ["landscape", "norwegian art", "rondane", "neo-romanticism"],
+      "files": [
+        {
+          "filename": "sohlberg_winter_night_orig.jpg",
+          "resolution": "orig",
+          "url": "https://media.nasjonalmuseet.no/orig/NG.M.01185.jpg"
+        }
+      ]
+    }
+  ]
+}

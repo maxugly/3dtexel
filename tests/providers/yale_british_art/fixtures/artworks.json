@@ -1,0 +1,46 @@
+{
+  "response": {
+    "numFound": 2,
+    "start": 0,
+    "docs": [
+      {
+        "id": "ycba_dort_packet_boat_turner",
+        "tms_id": "5005",
+        "title": "Dort or Dordrecht: The Packet-Boat from Rotterdam Becalmed",
+        "artist": "Joseph Mallord William Turner",
+        "creator": "Joseph Mallord William Turner (1775 - 1851)",
+        "date": "1818",
+        "medium": "Oil on canvas",
+        "department": "Paintings and Sculpture",
+        "culture": "British",
+        "genre": "Seascape",
+        "period": "Romanticism",
+        "url": "https://collections.britishart.yale.edu/catalog/tms:5005",
+        "thumbnail": "https://images.britishart.yale.edu/iiif/2/5005/full/!250,250/0/default.jpg",
+        "primary_image": "https://images.britishart.yale.edu/iiif/2/5005/full/max/0/default.jpg",
+        "high_res_url": "https://images.britishart.yale.edu/iiif/2/5005/full/max/0/default.jpg",
+        "medium_res_url": "https://images.britishart.yale.edu/iiif/2/5005/full/2048,/0/default.jpg",
+        "low_res_url": "https://images.britishart.yale.edu/iiif/2/5005/full/1024,/0/default.jpg"
+      },
+      {
+        "id": "ycba_stratford_mill_constable",
+        "tms_id": "1204",
+        "title": "Stratford Mill",
+        "artist": "John Constable",
+        "creator": "John Constable (1776 - 1837)",
+        "date": "1820",
+        "medium": "Oil on canvas",
+        "department": "Paintings and Sculpture",
+        "culture": "British",
+        "genre": "Landscape",
+        "period": "Romanticism",
+        "url": "https://collections.britishart.yale.edu/catalog/tms:1204",
+        "thumbnail": "https://images.britishart.yale.edu/iiif/2/1204/full/!250,250/0/default.jpg",
+        "primary_image": "https://images.britishart.yale.edu/iiif/2/1204/full/max/0/default.jpg",
+        "high_res_url": "https://images.britishart.yale.edu/iiif/2/1204/full/max/0/default.jpg",
+        "medium_res_url": "https://images.britishart.yale.edu/iiif/2/1204/full/2048,/0/default.jpg",
+        "low_res_url": "https://images.britishart.yale.edu/iiif/2/1204/full/1024,/0/default.jpg"
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "total": 20000,
+  "page": 1,
+  "results": [
+    {
+      "id": "MS00042891",
+      "title": "Panthera leo (Lion) Cranium 3D Scan",
+      "taxonomy": "Panthera leo",
+      "element": "Cranium",
+      "specimen_number": "AMNH-M-83652",
+      "institution": "American Museum of Natural History",
+      "description": "High-resolution optical surface 3D mesh scan of an adult lion cranium.",
+      "url": "https://www.morphosource.org/concern/media/00042891",
+      "thumbnail": "https://images.morphosource.org/media/00042891/thumb.jpg",
+      "license": "CC0",
+      "files": [
+        {
+          "filename": "panthera_leo_cranium_mesh.glb",
+          "format": "glb",
+          "resolution": "standard",
+          "url": "https://media.morphosource.org/files/00042891/panthera_leo_cranium.glb"
+        },
+        {
+          "filename": "panthera_leo_cranium_mesh.obj",
+          "format": "obj",
+          "resolution": "source",
+          "url": "https://media.morphosource.org/files/00042891/panthera_leo_cranium.obj"
+        }
+      ]
+    },
+    {
+      "id": "MS00018420",
+      "title": "Tyrannosaurus rex Tooth Cast 3D Scan",
+      "taxonomy": "Tyrannosaurus rex",
+      "element": "Tooth",
+      "specimen_number": "FMNH-PR-2081",
+      "institution": "Field Museum of Natural History",
+      "description": "3D surface scan of Tyrannosaurus rex maxillary tooth.",
+      "url": "https://www.morphosource.org/concern/media/00018420",
+      "thumbnail": "https://images.morphosource.org/media/00018420/thumb.jpg",
+      "license": "CC0",
+      "files": [
+        {
+          "filename": "trex_tooth.glb",
+          "format": "glb",
+          "resolution": "standard",
+          "url": "https://media.morphosource.org/files/00018420/trex_tooth.glb"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "type": "ResultList",
+  "pageSize": 2,
+  "totalPages": 50000,
+  "totalResults": 100000,
+  "results": [
+    {
+      "id": "c8y2r64a",
+      "title": "Anatomical study of the muscular system",
+      "alternativeTitles": [],
+      "description": "<p>Copperplate engraving showing anterior view of musculature.</p>",
+      "thumbnail": {
+        "type": "DigitalLocation",
+        "locationType": {
+          "id": "thumbnail-image",
+          "label": "Thumbnail image"
+        },
+        "url": "https://iiif.wellcomecollection.org/image/V0008543.jpg/full/300,/0/default.jpg"
+      },
+      "contributors": [
+        {
+          "agent": {
+            "type": "Person",
+            "label": "Genga, Bernardino, 1620-1690"
+          }
+        }
+      ],
+      "items": [
+        {
+          "locations": [
+            {
+              "locationType": {
+                "id": "iiif-image",
+                "label": "IIIF Image"
+              },
+              "url": "https://iiif.wellcomecollection.org/image/V0008543.jpg/info.json",
+              "license": {
+                "id": "cc-by",
+                "label": "Attribution 4.0 International (CC BY 4.0)",
+                "url": "http://creativecommons.org/licenses/by/4.0/"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b9x3q75b",
+      "title": "Botanical illustration of Atropa belladonna (Deadly Nightshade)",
+      "alternativeTitles": [],
+      "description": "<p>Hand-coloured engraving depicting leaves, flowers, and berries.</p>",
+      "thumbnail": {
+        "type": "DigitalLocation",
+        "locationType": {
+          "id": "thumbnail-image",
+          "label": "Thumbnail image"
+        },
+        "url": "https://iiif.wellcomecollection.org/image/V0042189.jpg/full/300,/0/default.jpg"
+      },
+      "contributors": [
+        {
+          "agent": {
+            "type": "Person",
+            "label": "Woodville, William, 1752-1805"
+          }
+        }
+      ],
+      "items": [
+        {
+          "locations": [
+            {
+              "locationType": {
+                "id": "iiif-image",
+                "label": "IIIF Image"
+              },
+              "url": "https://iiif.wellcomecollection.org/image/V0042189.jpg/info.json",
+              "license": {
+                "id": "cc-by",
+                "label": "Attribution 4.0 International (CC BY 4.0)",
+                "url": "http://creativecommons.org/licenses/by/4.0/"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

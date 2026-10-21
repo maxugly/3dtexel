@@ -1,0 +1,52 @@
+{
+  "totalResults": 2,
+  "itemsCount": 2,
+  "items": [
+    {
+      "id": "/9200579/item_12345",
+      "title": ["View of Delft"],
+      "dcCreator": ["Johannes Vermeer"],
+      "dataProvider": ["Mauritshuis"],
+      "guid": "https://www.europeana.eu/item/9200579/item_12345",
+      "edmPreview": ["https://api.europeana.eu/thumbnail/v2/get.json?uri=view_of_delft.jpg"],
+      "edmIsShownBy": ["https://collection.mauritshuis.nl/media/delft_highres.jpg"],
+      "rights": ["http://creativecommons.org/publicdomain/zero/1.0/"],
+      "tags": ["dutch painting", "cityscape", "delft", "vermeer"],
+      "files": [
+        {
+          "filename": "view_of_delft_orig.jpg",
+          "resolution": "orig",
+          "url": "https://collection.mauritshuis.nl/media/delft_highres.jpg"
+        },
+        {
+          "filename": "view_of_delft_2048.jpg",
+          "resolution": "2048",
+          "url": "https://collection.mauritshuis.nl/media/delft_2048.jpg"
+        },
+        {
+          "filename": "view_of_delft_1024.jpg",
+          "resolution": "1024",
+          "url": "https://collection.mauritshuis.nl/media/delft_1024.jpg"
+        }
+      ]
+    },
+    {
+      "id": "/9200579/item_67890",
+      "title": ["The Milkmaid"],
+      "dcCreator": ["Johannes Vermeer"],
+      "dataProvider": ["Rijksmuseum"],
+      "guid": "https://www.europeana.eu/item/9200579/item_67890",
+      "edmPreview": ["https://api.europeana.eu/thumbnail/v2/get.json?uri=milkmaid.jpg"],
+      "edmIsShownBy": ["https://lh3.googleusercontent.com/milkmaid_highres.jpg"],
+      "rights": ["http://creativecommons.org/publicdomain/zero/1.0/"],
+      "tags": ["genre painting", "milkmaid", "vermeer"],
+      "files": [
+        {
+          "filename": "milkmaid_orig.jpg",
+          "resolution": "orig",
+          "url": "https://lh3.googleusercontent.com/milkmaid_highres.jpg"
+        }
+      ]
+    }
+  ]
+}

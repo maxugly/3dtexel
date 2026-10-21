@@ -1,0 +1,55 @@
+{
+  "total": 2,
+  "from": 0,
+  "size": 24,
+  "items": [
+    {
+      "id": "123456",
+      "title": "Hei Tiki (Pendant)",
+      "production": "Māori",
+      "dating": "18th century",
+      "license": "CC0",
+      "url": "https://collections.tepapa.govt.nz/object/123456",
+      "thumbnail": "https://collections.tepapa.govt.nz/media/123456_thumb.jpg",
+      "image_url": "https://collections.tepapa.govt.nz/media/123456_orig.jpg",
+      "description": "Greenstone pounamu hei tiki carved with red sealing wax eyes.",
+      "tags": ["taonga maori", "pounamu", "hei tiki", "pendant"],
+      "files": [
+        {
+          "filename": "hei_tiki_orig.jpg",
+          "resolution": "orig",
+          "url": "https://collections.tepapa.govt.nz/media/123456_orig.jpg"
+        },
+        {
+          "filename": "hei_tiki_2048.jpg",
+          "resolution": "2048",
+          "url": "https://collections.tepapa.govt.nz/media/123456_2048.jpg"
+        },
+        {
+          "filename": "hei_tiki_1024.jpg",
+          "resolution": "1024",
+          "url": "https://collections.tepapa.govt.nz/media/123456_1024.jpg"
+        }
+      ]
+    },
+    {
+      "id": "789012",
+      "title": "A Huia Bird (Heteralocha acutirostris)",
+      "production": "John Gerrard Keulemans",
+      "dating": "1888",
+      "license": "CC0",
+      "url": "https://collections.tepapa.govt.nz/object/789012",
+      "thumbnail": "https://collections.tepapa.govt.nz/media/789012_thumb.jpg",
+      "image_url": "https://collections.tepapa.govt.nz/media/789012_orig.jpg",
+      "description": "Hand-coloured lithograph from Buller's Birds of New Zealand depicting pair of extinct huia.",
+      "tags": ["ornithology", "lithograph", "extinct birds", "huia", "new zealand"],
+      "files": [
+        {
+          "filename": "huia_orig.jpg",
+          "resolution": "orig",
+          "url": "https://collections.tepapa.govt.nz/media/789012_orig.jpg"
+        }
+      ]
+    }
+  ]
+}

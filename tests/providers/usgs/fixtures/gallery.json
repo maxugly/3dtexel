@@ -1,0 +1,43 @@
+[
+  {
+    "id": "usgs_grand_canyon_3dep",
+    "title": "Grand Canyon 3DEP 3D Elevation Terrain",
+    "type": "model",
+    "description": "High resolution 3D elevation model of the Grand Canyon South Rim from the 3D Elevation Program.",
+    "thumbnail": "https://www.usgs.gov/media/images/grand_canyon_3d_thumb.jpg",
+    "url": "https://www.usgs.gov/3d-elevation-program/grand-canyon",
+    "author": "U.S. Geological Survey (USGS)",
+    "license": "public-domain",
+    "tags": ["elevation", "terrain", "3dep", "grand canyon", "topography", "heightmap", "geology"],
+    "files": [
+      {
+        "filename": "grand_canyon_mesh.glb",
+        "format": "glb",
+        "url": "https://www.usgs.gov/3d/grand_canyon_mesh.glb"
+      },
+      {
+        "filename": "grand_canyon_dem.tif",
+        "format": "tif",
+        "url": "https://www.usgs.gov/3d/grand_canyon_dem.tif"
+      }
+    ]
+  },
+  {
+    "id": "usgs_mount_st_helens_crater",
+    "title": "Mount St. Helens Crater and Lava Dome",
+    "type": "image",
+    "description": "Geological aerial photograph showing the lava dome and crater glacier inside Mount St. Helens.",
+    "thumbnail": "https://www.usgs.gov/media/images/msh_crater_thumb.jpg",
+    "url": "https://www.usgs.gov/media/images/mount-st-helens-crater",
+    "author": "USGS Cascades Volcano Observatory",
+    "license": "public-domain",
+    "tags": ["volcano", "geology", "mount st helens", "aerial", "rock", "texture"],
+    "files": [
+      {
+        "filename": "msh_crater_orig.jpg",
+        "format": "jpg",
+        "url": "https://www.usgs.gov/media/images/msh_crater_orig.jpg"
+      }
+    ]
+  }
+]

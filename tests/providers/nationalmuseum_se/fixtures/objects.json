@@ -1,0 +1,55 @@
+{
+  "total": 2,
+  "offset": 0,
+  "limit": 24,
+  "items": [
+    {
+      "id": "nmh-1234",
+      "title": "Lady with the Veil",
+      "artist": "Alexander Roslin",
+      "dating": "1768",
+      "classification": "Painting",
+      "url": "https://collection.nationalmuseum.se/sv/collection/item/nmh-1234",
+      "thumbnail": "https://collection.nationalmuseum.se/media/nmh-1234_thumb.jpg",
+      "image_url": "https://collection.nationalmuseum.se/media/nmh-1234_orig.jpg",
+      "description": "Oil on canvas portrait of Marie Suzanne Giroust, Lady with the Veil.",
+      "tags": ["portrait", "oil on canvas", "swedish art", "rococo"],
+      "files": [
+        {
+          "filename": "nmh_1234_orig.jpg",
+          "resolution": "orig",
+          "url": "https://collection.nationalmuseum.se/media/nmh-1234_orig.jpg"
+        },
+        {
+          "filename": "nmh_1234_2048.jpg",
+          "resolution": "2048",
+          "url": "https://collection.nationalmuseum.se/media/nmh-1234_2048.jpg"
+        },
+        {
+          "filename": "nmh_1234_1024.jpg",
+          "resolution": "1024",
+          "url": "https://collection.nationalmuseum.se/media/nmh-1234_1024.jpg"
+        }
+      ]
+    },
+    {
+      "id": "nmh-5678",
+      "title": "Midvinterblot",
+      "artist": "Carl Larsson",
+      "dating": "1915",
+      "classification": "Painting",
+      "url": "https://collection.nationalmuseum.se/sv/collection/item/nmh-5678",
+      "thumbnail": "https://collection.nationalmuseum.se/media/nmh-5678_thumb.jpg",
+      "image_url": "https://collection.nationalmuseum.se/media/nmh-5678_orig.jpg",
+      "description": "Monumental oil painting depicting King Domalde sacrificing himself for his people.",
+      "tags": ["mythology", "swedish art", "history painting"],
+      "files": [
+        {
+          "filename": "nmh_5678_orig.jpg",
+          "resolution": "orig",
+          "url": "https://collection.nationalmuseum.se/media/nmh-5678_orig.jpg"
+        }
+      ]
+    }
+  ]
+}

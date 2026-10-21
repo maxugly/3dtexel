@@ -1,0 +1,43 @@
+[
+  {
+    "id": "wood-planks-01",
+    "title": "Wood Planks 01",
+    "category": "wood",
+    "tags": ["wood", "planks", "flooring", "brown", "timber"],
+    "description": "Natural rustic wood plank flooring material with fine grain details.",
+    "thumbnail": "https://www.cgbookcase.com/textures/wood-planks-01/thumbnail.jpg",
+    "url": "https://www.cgbookcase.com/textures/wood-planks-01",
+    "files": {
+      "1k": {
+        "base_color": "https://www.cgbookcase.com/textures/wood-planks-01/1k/base_color.jpg",
+        "normal": "https://www.cgbookcase.com/textures/wood-planks-01/1k/normal.jpg",
+        "roughness": "https://www.cgbookcase.com/textures/wood-planks-01/1k/roughness.jpg",
+        "height": "https://www.cgbookcase.com/textures/wood-planks-01/1k/height.png",
+        "ao": "https://www.cgbookcase.com/textures/wood-planks-01/1k/ao.jpg"
+      },
+      "2k": {
+        "base_color": "https://www.cgbookcase.com/textures/wood-planks-01/2k/base_color.jpg",
+        "normal": "https://www.cgbookcase.com/textures/wood-planks-01/2k/normal.jpg",
+        "roughness": "https://www.cgbookcase.com/textures/wood-planks-01/2k/roughness.jpg",
+        "height": "https://www.cgbookcase.com/textures/wood-planks-01/2k/height.png",
+        "ao": "https://www.cgbookcase.com/textures/wood-planks-01/2k/ao.jpg"
+      }
+    }
+  },
+  {
+    "id": "fabric-pattern-02",
+    "title": "Fabric Pattern 02",
+    "category": "fabric",
+    "tags": ["fabric", "cloth", "pattern", "textile", "wool"],
+    "description": "Woven cloth texture with geometric herringbone pattern.",
+    "thumbnail": "https://www.cgbookcase.com/textures/fabric-pattern-02/thumbnail.jpg",
+    "url": "https://www.cgbookcase.com/textures/fabric-pattern-02",
+    "files": {
+      "1k": {
+        "base_color": "https://www.cgbookcase.com/textures/fabric-pattern-02/1k/base_color.jpg",
+        "normal": "https://www.cgbookcase.com/textures/fabric-pattern-02/1k/normal.jpg",
+        "roughness": "https://www.cgbookcase.com/textures/fabric-pattern-02/1k/roughness.jpg"
+      }
+    }
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "total": 2,
+  "page": 1,
+  "per_page": 24,
+  "hits": [
+    {
+      "id": "mia_lucretia_rembrandt",
+      "object_id": "1218",
+      "title": "Lucretia",
+      "artist": "Rembrandt Harmensz. van Rijn",
+      "maker": "Rembrandt Harmensz. van Rijn (Dutch, 1606 - 1669)",
+      "dated": "1666",
+      "medium": "Oil on canvas",
+      "department": "European Art",
+      "culture": "Dutch",
+      "classification": "Paintings",
+      "url": "https://collections.artsmia.org/art/1218",
+      "thumbnail": "https://api.artsmia.org/images/1218/small.jpg",
+      "primary_image": "https://api.artsmia.org/images/1218/large.jpg",
+      "high_res_url": "https://api.artsmia.org/images/1218/orig.jpg",
+      "medium_res_url": "https://api.artsmia.org/images/1218/2048.jpg",
+      "low_res_url": "https://api.artsmia.org/images/1218/1024.jpg"
+    },
+    {
+      "id": "mia_fan_with_birds",
+      "object_id": "5820",
+      "title": "Fan with Birds and Flowers",
+      "artist": "Sakai Hōitsu",
+      "maker": "Sakai Hōitsu (Japanese, 1761 - 1828)",
+      "dated": "early 19th century",
+      "medium": "Folding fan; ink and color on paper",
+      "department": "Japanese and Korean Art",
+      "culture": "Japanese",
+      "classification": "Fans",
+      "url": "https://collections.artsmia.org/art/5820",
+      "thumbnail": "https://api.artsmia.org/images/5820/small.jpg",
+      "primary_image": "https://api.artsmia.org/images/5820/large.jpg",
+      "high_res_url": "https://api.artsmia.org/images/5820/orig.jpg",
+      "medium_res_url": "https://api.artsmia.org/images/5820/2048.jpg",
+      "low_res_url": "https://api.artsmia.org/images/5820/1024.jpg"
+    }
+  ]
+}

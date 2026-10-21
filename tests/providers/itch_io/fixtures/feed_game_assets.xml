@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Free Game Assets on itch.io</title>
+    <link>https://itch.io/game-assets/free</link>
+    <description>New and popular free game assets on itch.io</description>
+    <item>
+      <title>Modular Dungeon 3D Pack by Kay Lousberg</title>
+      <link>https://kaylousberg.itch.io/kay-kit-dungeon-remastered</link>
+      <guid>https://kaylousberg.itch.io/kay-kit-dungeon-remastered</guid>
+      <dc:creator>Kay Lousberg</dc:creator>
+      <description>A complete modular dungeon asset pack featuring low-poly characters, props, rooms, and weapons.</description>
+      <pubDate>Mon, 15 Jan 2024 14:00:00 +0000</pubDate>
+      <media:thumbnail url="https://img.itch.zone/aW1nLzE0NzU1MjM0LnBuZw==/315x250%23c/dungeon_cover.png" />
+      <enclosure url="https://kaylousberg.itch.io/kay-kit-dungeon-remastered/download" type="application/zip" length="15400000" />
+    </item>
+    <item>
+      <title>Retro Sci-Fi Sound Effects Pack</title>
+      <link>https://subspaceaudio.itch.io/retro-sci-fi-sfx</link>
+      <guid>https://subspaceaudio.itch.io/retro-sci-fi-sfx</guid>
+      <dc:creator>SubSpaceAudio</dc:creator>
+      <description>Over 50 retro arcade and sci-fi laser, UI, and explosion sound effects in WAV and OGG format.</description>
+      <pubDate>Tue, 20 Feb 2024 18:30:00 +0000</pubDate>
+      <media:thumbnail url="https://img.itch.zone/aW1nLzE1MDAyMzQ1LnBuZw==/315x250%23c/scifi_sfx_cover.png" />
+      <enclosure url="https://subspaceaudio.itch.io/retro-sci-fi-sfx/download" type="application/zip" length="8200000" />
+    </item>
+  </channel>
+</rss>

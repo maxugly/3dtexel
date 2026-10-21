@@ -1,0 +1,28 @@
+[
+  {
+    "id": 10452,
+    "slug": "lava-001",
+    "title": {
+      "rendered": "Lava 001"
+    },
+    "link": "https://3dtextures.me/2021/04/10/lava-001/",
+    "content": {
+      "rendered": "<p>Seamless PBR texture of glowing cracked volcanic lava.</p><p><a href=\"https://3dtextures.me/textures/Lava_001_basecolor.jpg\">Color Map</a><br/><a href=\"https://3dtextures.me/textures/Lava_001_normal.jpg\">Normal Map</a><br/><a href=\"https://3dtextures.me/textures/Lava_001_roughness.jpg\">Roughness Map</a><br/><a href=\"https://3dtextures.me/textures/Lava_001_height.png\">Height Map</a><br/><a href=\"https://3dtextures.me/textures/Lava_001_ambientOcclusion.jpg\">AO Map</a></p><p><a href=\"https://3dtextures.me/textures/Lava_001_2K-JPG.zip\">Download 2K ZIP</a></p>"
+    },
+    "jetpack_featured_media_url": "https://3dtextures.me/textures/Lava_001_preview.jpg",
+    "date_gmt": "2021-04-10T12:00:00"
+  },
+  {
+    "id": 10453,
+    "slug": "stylized-wood-floor-001",
+    "title": {
+      "rendered": "Stylized Wood Floor 001"
+    },
+    "link": "https://3dtextures.me/2021/04/15/stylized-wood-floor-001/",
+    "content": {
+      "rendered": "<p>Stylized wooden plank floor texture.</p><p><a href=\"https://3dtextures.me/textures/Wood_Floor_001_basecolor.jpg\">Color</a><a href=\"https://3dtextures.me/textures/Wood_Floor_001_normal.jpg\">Normal</a></p><p><a href=\"https://3dtextures.me/textures/Wood_Floor_001_2K-JPG.zip\">Download 2K ZIP</a></p>"
+    },
+    "jetpack_featured_media_url": "https://3dtextures.me/textures/Wood_Floor_001_preview.jpg",
+    "date_gmt": "2021-04-15T14:30:00"
+  }
+]

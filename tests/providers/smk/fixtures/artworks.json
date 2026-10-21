@@ -1,0 +1,67 @@
+{
+  "offset": 0,
+  "rows": 2,
+  "found": 2,
+  "items": [
+    {
+      "id": "KMS3111",
+      "titles": [
+        {
+          "title": "Interior with a Young Woman Seen from the Back"
+        }
+      ],
+      "production": [
+        {
+          "creator": "Vilhelm Hammershøi",
+          "creator_date_of_birth": "1864",
+          "creator_date_of_death": "1916"
+        }
+      ],
+      "production_date": [
+        {
+          "period": "1903-1904"
+        }
+      ],
+      "public_domain": true,
+      "image_thumbnail": "https://iip.smk.dk/iiif/jp2/KMS3111.tif.jp2/full/!300,300/0/default.jpg",
+      "image_iiif_id": "https://iip.smk.dk/iiif/jp2/KMS3111.tif.jp2",
+      "frontend_url": "https://open.smk.dk/art/?id=KMS3111",
+      "files": [
+        {
+          "filename": "hammershoi_interior_2k.jpg",
+          "resolution": "2k",
+          "url": "https://iip.smk.dk/iiif/jp2/KMS3111.tif.jp2/full/!2048,2048/0/default.jpg"
+        },
+        {
+          "filename": "hammershoi_interior_1k.jpg",
+          "resolution": "1k",
+          "url": "https://iip.smk.dk/iiif/jp2/KMS3111.tif.jp2/full/!1024,1024/0/default.jpg"
+        }
+      ]
+    },
+    {
+      "id": "KMS1",
+      "titles": [
+        {
+          "title": "Christ the Gardener"
+        }
+      ],
+      "production": [
+        {
+          "creator": "Lucas Cranach the Elder"
+        }
+      ],
+      "public_domain": true,
+      "image_thumbnail": "https://iip.smk.dk/iiif/jp2/KMS1.tif.jp2/full/!300,300/0/default.jpg",
+      "image_iiif_id": "https://iip.smk.dk/iiif/jp2/KMS1.tif.jp2",
+      "frontend_url": "https://open.smk.dk/art/?id=KMS1",
+      "files": [
+        {
+          "filename": "cranach_christ_gardener_2k.jpg",
+          "resolution": "2k",
+          "url": "https://iip.smk.dk/iiif/jp2/KMS1.tif.jp2/full/!2048,2048/0/default.jpg"
+        }
+      ]
+    }
+  ]
+}

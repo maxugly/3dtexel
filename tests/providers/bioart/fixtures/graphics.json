@@ -1,0 +1,38 @@
+[
+  {
+    "id": "BIO-00123",
+    "title": "Coronavirus Virion Structure Illustration",
+    "description": "Scientific vector illustration showing the structural components of a coronavirus virion, including spike glycoprotein, membrane, and envelope.",
+    "type": "image",
+    "author": "NIAID Visual Communications",
+    "thumbnail": "https://bioart.niaid.nih.gov/sites/default/files/styles/card/public/coronavirus_thumb.png",
+    "url": "https://bioart.niaid.nih.gov/bioart/BIO-00123",
+    "license": "public-domain",
+    "tags": ["virus", "coronavirus", "biology", "illustration", "cell", "medical"],
+    "files": [
+      {
+        "filename": "coronavirus_virion_hires.png",
+        "format": "png",
+        "url": "https://bioart.niaid.nih.gov/sites/default/files/graphics/coronavirus_virion_hires.png"
+      }
+    ]
+  },
+  {
+    "id": "BIO-00456",
+    "title": "T Cell Receptor Activation Mechanism",
+    "description": "Illustration of the immunological synapse between an antigen presenting cell and a cytotoxic T lymphocyte.",
+    "type": "image",
+    "author": "NIAID Visual Communications",
+    "thumbnail": "https://bioart.niaid.nih.gov/sites/default/files/styles/card/public/t_cell_thumb.png",
+    "url": "https://bioart.niaid.nih.gov/bioart/BIO-00456",
+    "license": "public-domain",
+    "tags": ["immune", "t cell", "receptor", "antigen", "science", "diagram"],
+    "files": [
+      {
+        "filename": "t_cell_activation.png",
+        "format": "png",
+        "url": "https://bioart.niaid.nih.gov/sites/default/files/graphics/t_cell_activation.png"
+      }
+    ]
+  }
+]

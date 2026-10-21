@@ -1,0 +1,26 @@
+{
+  "brick_wall_001": {
+    "name": "Brick Wall 001",
+    "type": 1,
+    "categories": ["brick", "wall"],
+    "tags": ["brick", "rough", "exterior", "red"],
+    "authors": ["Rob Tuytel"],
+    "download_count": 14200
+  },
+  "cannon_01": {
+    "name": "Cannon 01",
+    "type": 2,
+    "categories": ["props", "weapon"],
+    "tags": ["cannon", "metal", "wood", "historical"],
+    "authors": ["Rico Cilliers"],
+    "download_count": 8900
+  },
+  "sunset_overlook": {
+    "name": "Sunset Overlook",
+    "type": 0,
+    "categories": ["outdoor", "sky"],
+    "tags": ["sunset", "clouds", "evening"],
+    "authors": ["Greg Zaal"],
+    "download_count": 22100
+  }
+}

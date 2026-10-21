@@ -1,0 +1,48 @@
+{
+  "total": 5000,
+  "page": 1,
+  "results": [
+    {
+      "id": "blue_marble_next_generation_july",
+      "title": "Blue Marble: Next Generation (July)",
+      "collection": "Blue Marble",
+      "date": "2004-07",
+      "description": "Global seamless cloud-free true color albedo map of Earth for the month of July, produced by NASA Earth Observatory.",
+      "url": "https://visibleearth.nasa.gov/images/73751/july-blue-marble-next-generation",
+      "thumbnail": "https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73751/world.topo.bathy.200407.3x5400x2700.thumb.jpg",
+      "files": [
+        {
+          "filename": "world.topo.bathy.200407.3x21600x10800.jpg",
+          "resolution": "21600x10800",
+          "url": "https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73751/world.topo.bathy.200407.3x21600x10800.jpg"
+        },
+        {
+          "filename": "world.topo.bathy.200407.3x5400x2700.jpg",
+          "resolution": "5400x2700",
+          "url": "https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73751/world.topo.bathy.200407.3x5400x2700.jpg"
+        },
+        {
+          "filename": "world.topo.bathy.200407.3x2048x1024.jpg",
+          "resolution": "2048x1024",
+          "url": "https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73751/world.topo.bathy.200407.3x2048x1024.jpg"
+        }
+      ]
+    },
+    {
+      "id": "black_marble_2016_night_lights",
+      "title": "Black Marble 2016 - Night Lights",
+      "collection": "Black Marble",
+      "date": "2016",
+      "description": "Global composite map of Earth at night acquired by the Suomi NPP satellite VIIRS day-night band.",
+      "url": "https://visibleearth.nasa.gov/images/144898/night-light-maps-open-up-new-possibilities",
+      "thumbnail": "https://eoimages.gsfc.nasa.gov/images/imagerecords/144000/144898/BlackMarble_2016_thumb.jpg",
+      "files": [
+        {
+          "filename": "BlackMarble_2016_3k.jpg",
+          "resolution": "3k",
+          "url": "https://eoimages.gsfc.nasa.gov/images/imagerecords/144000/144898/BlackMarble_2016_3k.jpg"
+        }
+      ]
+    }
+  ]
+}

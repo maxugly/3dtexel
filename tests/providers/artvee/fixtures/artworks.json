@@ -1,0 +1,43 @@
+{
+  "total": 2,
+  "page": 1,
+  "per_page": 24,
+  "artworks": [
+    {
+      "id": "water-lilies-claude-monet",
+      "title": "Water Lilies (Nymphéas)",
+      "artist": "Claude Monet",
+      "artist_url": "https://artvee.com/artist/claude-monet/",
+      "date": "1916",
+      "medium": "Oil on canvas",
+      "category": "Painting",
+      "license": "Public Domain",
+      "url": "https://artvee.com/dl/water-lilies-2/",
+      "thumbnail": "https://artvee.b-cdn.net/wp-content/uploads/2020/06/water-lilies-thumb.jpg",
+      "image_url": "https://artvee.b-cdn.net/wp-content/uploads/2020/06/water-lilies-max.jpg",
+      "high_res_url": "https://artvee.b-cdn.net/wp-content/uploads/2020/06/water-lilies-orig.jpg",
+      "medium_res_url": "https://artvee.b-cdn.net/wp-content/uploads/2020/06/water-lilies-2048.jpg",
+      "low_res_url": "https://artvee.b-cdn.net/wp-content/uploads/2020/06/water-lilies-1024.jpg",
+      "dimensions": "200 x 200 cm",
+      "institution": "Musée de l'Orangerie"
+    },
+    {
+      "id": "starry-night-vincent-van-gogh",
+      "title": "The Starry Night",
+      "artist": "Vincent van Gogh",
+      "artist_url": "https://artvee.com/artist/vincent-van-gogh/",
+      "date": "1889",
+      "medium": "Oil on canvas",
+      "category": "Painting",
+      "license": "Public Domain",
+      "url": "https://artvee.com/dl/the-starry-night/",
+      "thumbnail": "https://artvee.b-cdn.net/wp-content/uploads/2020/06/starry-night-thumb.jpg",
+      "image_url": "https://artvee.b-cdn.net/wp-content/uploads/2020/06/starry-night-max.jpg",
+      "high_res_url": "https://artvee.b-cdn.net/wp-content/uploads/2020/06/starry-night-orig.jpg",
+      "medium_res_url": "https://artvee.b-cdn.net/wp-content/uploads/2020/06/starry-night-2048.jpg",
+      "low_res_url": "https://artvee.b-cdn.net/wp-content/uploads/2020/06/starry-night-1024.jpg",
+      "dimensions": "73.7 x 92.1 cm",
+      "institution": "Museum of Modern Art"
+    }
+  ]
+}

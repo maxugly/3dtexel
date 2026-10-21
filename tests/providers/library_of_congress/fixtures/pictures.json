@@ -1,0 +1,63 @@
+{
+  "search": {
+    "hits": 2
+  },
+  "results": [
+    {
+      "pk": "2017645123",
+      "title": "Migrant agricultural worker's family, Nipomo, California",
+      "creator": "Lange, Dorothea, photographer",
+      "created": "1936",
+      "summary": "Destitute pea pickers in California. Mother of seven children. Age thirty-two. Nipomo, California.",
+      "image": {
+        "thumb": "https://cdn.loc.gov/service/pnp/fsa/8b29000/8b29800/8b29808_150px.jpg",
+        "alt": "https://cdn.loc.gov/service/pnp/fsa/8b29000/8b29800/8b29808v.jpg",
+        "full": "https://cdn.loc.gov/service/pnp/fsa/8b29000/8b29800/8b29808u.tif"
+      },
+      "links": {
+        "item": "https://www.loc.gov/pictures/item/2017645123/"
+      },
+      "tags": ["great depression", "dorothea lange", "farm security administration", "photography"],
+      "files": [
+        {
+          "filename": "migrant_mother_orig.jpg",
+          "resolution": "orig",
+          "url": "https://cdn.loc.gov/service/pnp/fsa/8b29000/8b29800/8b29808v.jpg"
+        },
+        {
+          "filename": "migrant_mother_2048.jpg",
+          "resolution": "2048",
+          "url": "https://cdn.loc.gov/service/pnp/fsa/8b29000/8b29800/8b29808_2048.jpg"
+        },
+        {
+          "filename": "migrant_mother_1024.jpg",
+          "resolution": "1024",
+          "url": "https://cdn.loc.gov/service/pnp/fsa/8b29000/8b29800/8b29808_1024.jpg"
+        }
+      ]
+    },
+    {
+      "pk": "2007675200",
+      "title": "Abraham Lincoln, photograph by Alexander Gardner",
+      "creator": "Gardner, Alexander, photographer",
+      "created": "1865",
+      "summary": "Head-and-shoulders portrait of Abraham Lincoln, taken on February 5, 1865.",
+      "image": {
+        "thumb": "https://cdn.loc.gov/service/pnp/cph/3a50000/3a53000/3a53200/3a53289_150px.jpg",
+        "alt": "https://cdn.loc.gov/service/pnp/cph/3a50000/3a53000/3a53200/3a53289v.jpg",
+        "full": "https://cdn.loc.gov/service/pnp/cph/3a50000/3a53000/3a53200/3a53289u.tif"
+      },
+      "links": {
+        "item": "https://www.loc.gov/pictures/item/2007675200/"
+      },
+      "tags": ["civil war", "lincoln", "portrait", "alexander gardner"],
+      "files": [
+        {
+          "filename": "lincoln_gardner_orig.jpg",
+          "resolution": "orig",
+          "url": "https://cdn.loc.gov/service/pnp/cph/3a50000/3a53000/3a53200/3a53289v.jpg"
+        }
+      ]
+    }
+  ]
+}

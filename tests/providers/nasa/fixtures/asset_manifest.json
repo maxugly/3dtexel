@@ -1,0 +1,23 @@
+{
+  "collection": {
+    "version": "1.0",
+    "href": "https://images-api.nasa.gov/asset/as17-148-22727",
+    "items": [
+      {
+        "href": "https://images-assets.nasa.gov/image/as17-148-22727/as17-148-22727~orig.jpg"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/image/as17-148-22727/as17-148-22727~large.jpg"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/image/as17-148-22727/as17-148-22727~medium.jpg"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/image/as17-148-22727/as17-148-22727~small.jpg"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/image/as17-148-22727/as17-148-22727~thumb.jpg"
+      }
+    ]
+  }
+}

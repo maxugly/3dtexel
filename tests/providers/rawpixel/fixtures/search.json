@@ -1,0 +1,50 @@
+{
+  "total": 500000,
+  "page": 1,
+  "results": [
+    {
+      "id": "6035914",
+      "image_id": "6035914",
+      "image_title": "Japanese Woodblock Print of Waves and Fuji",
+      "artist": "Katsushika Hokusai",
+      "image_alt": "The Great Wave off Kanagawa by Katsushika Hokusai, digitally restored by Rawpixel.",
+      "url": "https://www.rawpixel.com/image/6035914/japanese-woodblock-print-hokusai-great-wave",
+      "image_uri": "https://img.rawpixel.com/s3fs-private/rawpixel_images/website_content/pd-hokusai-wave-01.jpg",
+      "image_thumbnail": "https://img.rawpixel.com/s3fs-private/rawpixel_images/website_content/pd-hokusai-wave-01-thumb.jpg",
+      "image_opengraph": "https://img.rawpixel.com/s3fs-private/rawpixel_images/website_content/pd-hokusai-wave-01-preview.jpg",
+      "keywords_raw": "vintage, ukiyo-e, japanese art, hokusai, woodblock, public domain",
+      "license": "CC0",
+      "files": [
+        {
+          "filename": "hokusai_wave_original.jpg",
+          "resolution": "orig",
+          "url": "https://img.rawpixel.com/s3fs-private/rawpixel_images/website_content/pd-hokusai-wave-01.jpg"
+        },
+        {
+          "filename": "hokusai_wave_2048.jpg",
+          "resolution": "2048",
+          "url": "https://img.rawpixel.com/s3fs-private/rawpixel_images/website_content/pd-hokusai-wave-01-2048.jpg"
+        }
+      ]
+    },
+    {
+      "id": "5921840",
+      "image_id": "5921840",
+      "image_title": "Vintage Botanical Water Lily Illustration",
+      "artist": "Pierre-Joseph Redouté",
+      "image_alt": "Nymphaea alba botanical study by Pierre-Joseph Redouté, public domain digital restoration.",
+      "url": "https://www.rawpixel.com/image/5921840/vintage-botanical-water-lily-illustration",
+      "image_uri": "https://img.rawpixel.com/s3fs-private/rawpixel_images/website_content/pd-redoute-lily.jpg",
+      "image_thumbnail": "https://img.rawpixel.com/s3fs-private/rawpixel_images/website_content/pd-redoute-lily-thumb.jpg",
+      "keywords_raw": "botanical, vintage, floral, redoute, water lily, cc0",
+      "license": "CC0",
+      "files": [
+        {
+          "filename": "redoute_water_lily.jpg",
+          "resolution": "orig",
+          "url": "https://img.rawpixel.com/s3fs-private/rawpixel_images/website_content/pd-redoute-lily.jpg"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "total": 2,
+  "page": 1,
+  "limit": 24,
+  "objects": [
+    {
+      "id": "getty_irises_van_gogh",
+      "object_number": "90.PA.20",
+      "title": "Irises",
+      "artist": "Vincent van Gogh",
+      "maker": "Vincent van Gogh (Dutch, 1853 - 1890)",
+      "date": "1889",
+      "medium": "Oil on canvas",
+      "department": "Paintings",
+      "culture": "Dutch",
+      "classification": "Paintings",
+      "url": "https://www.getty.edu/art/collection/object/1033KE",
+      "thumbnail": "https://media.getty.edu/iiif/image/thumb/irises.jpg",
+      "primary_image": "https://media.getty.edu/iiif/image/max/irises.jpg",
+      "high_res_url": "https://media.getty.edu/iiif/image/full/orig/irises.jpg",
+      "medium_res_url": "https://media.getty.edu/iiif/image/full/2048,/irises.jpg",
+      "low_res_url": "https://media.getty.edu/iiif/image/full/1024,/irises.jpg"
+    },
+    {
+      "id": "getty_rembrandt_old_man",
+      "object_number": "84.PA.570",
+      "title": "An Old Man in Military Costume",
+      "artist": "Rembrandt Harmensz. van Rijn",
+      "maker": "Rembrandt Harmensz. van Rijn (Dutch, 1606 - 1669)",
+      "date": "about 1630 - 1631",
+      "medium": "Oil on panel",
+      "department": "Paintings",
+      "culture": "Dutch",
+      "classification": "Paintings",
+      "url": "https://www.getty.edu/art/collection/object/1033KF",
+      "thumbnail": "https://media.getty.edu/iiif/image/thumb/rembrandt.jpg",
+      "primary_image": "https://media.getty.edu/iiif/image/max/rembrandt.jpg",
+      "high_res_url": "https://media.getty.edu/iiif/image/full/orig/rembrandt.jpg",
+      "medium_res_url": "https://media.getty.edu/iiif/image/full/2048,/rembrandt.jpg",
+      "low_res_url": "https://media.getty.edu/iiif/image/full/1024,/rembrandt.jpg"
+    }
+  ]
+}

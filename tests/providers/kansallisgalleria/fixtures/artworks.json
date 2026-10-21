@@ -1,0 +1,55 @@
+{
+  "total": 2,
+  "offset": 0,
+  "limit": 24,
+  "items": [
+    {
+      "id": "a-i-123",
+      "title": "The Wounded Angel",
+      "artist": "Hugo Simberg",
+      "dating": "1903",
+      "classification": "Painting",
+      "url": "https://kokoelma.kansallisgalleria.fi/en/object/a-i-123",
+      "thumbnail": "https://kokoelma.kansallisgalleria.fi/media/a-i-123_thumb.jpg",
+      "image_url": "https://kokoelma.kansallisgalleria.fi/media/a-i-123_orig.jpg",
+      "description": "Symbolist painting depicting two boys carrying a winged angel on a stretcher.",
+      "tags": ["symbolism", "finnish art", "ateneum"],
+      "files": [
+        {
+          "filename": "simberg_wounded_angel_orig.jpg",
+          "resolution": "orig",
+          "url": "https://kokoelma.kansallisgalleria.fi/media/a-i-123_orig.jpg"
+        },
+        {
+          "filename": "simberg_wounded_angel_2048.jpg",
+          "resolution": "2048",
+          "url": "https://kokoelma.kansallisgalleria.fi/media/a-i-123_2048.jpg"
+        },
+        {
+          "filename": "simberg_wounded_angel_1024.jpg",
+          "resolution": "1024",
+          "url": "https://kokoelma.kansallisgalleria.fi/media/a-i-123_1024.jpg"
+        }
+      ]
+    },
+    {
+      "id": "a-ii-456",
+      "title": "Lemminkainen's Mother",
+      "artist": "Akseli Gallen-Kallela",
+      "dating": "1897",
+      "classification": "Painting",
+      "url": "https://kokoelma.kansallisgalleria.fi/en/object/a-ii-456",
+      "thumbnail": "https://kokoelma.kansallisgalleria.fi/media/a-ii-456_thumb.jpg",
+      "image_url": "https://kokoelma.kansallisgalleria.fi/media/a-ii-456_orig.jpg",
+      "description": "Tempera painting illustrating a scene from the Finnish national epic Kalevala.",
+      "tags": ["kalevala", "mythology", "finnish art", "romantic nationalism"],
+      "files": [
+        {
+          "filename": "gallen_kallela_lemminkainen_orig.jpg",
+          "resolution": "orig",
+          "url": "https://kokoelma.kansallisgalleria.fi/media/a-ii-456_orig.jpg"
+        }
+      ]
+    }
+  ]
+}

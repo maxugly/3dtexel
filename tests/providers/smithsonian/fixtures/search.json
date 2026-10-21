@@ -1,0 +1,132 @@
+{
+  "response": {
+    "rowCount": 3,
+    "rows": [
+      {
+        "id": "edanmdm:dpo_3d_mammoth",
+        "title": "Mammuthus primigenius (Woolly Mammoth Skeleton 3D)",
+        "unitCode": "NMNHPALEO",
+        "type": "model",
+        "content": {
+          "descriptiveNonRepeating": {
+            "title": {
+              "label": "Title",
+              "content": "Mammuthus primigenius (Woolly Mammoth Skeleton 3D)"
+            },
+            "record_link": "https://3d.si.edu/object/3d/mammuthus-primigenius:3d-mammoth",
+            "online_media": {
+              "mediaCount": 2,
+              "media": [
+                {
+                  "type": "3D Model",
+                  "format": "GLB",
+                  "content": "https://3d-api.si.edu/content/document/3d_package/mammoth_low.glb",
+                  "thumbnail": "https://3d-api.si.edu/content/document/3d_package/mammoth_thumb.png"
+                },
+                {
+                  "type": "3D Model",
+                  "format": "OBJ",
+                  "content": "https://3d-api.si.edu/content/document/3d_package/mammoth_obj.zip"
+                }
+              ]
+            }
+          },
+          "freetext": {
+            "notes": [
+              {
+                "label": "Description",
+                "content": "Complete 3D surface scan of the Woolly Mammoth skeleton on display at the National Museum of Natural History."
+              }
+            ],
+            "dataSource": [
+              {
+                "label": "Data Source",
+                "content": "National Museum of Natural History"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "edanmdm:dpo_3d_apollo11_cm",
+        "title": "Apollo 11 Command Module Columbia",
+        "unitCode": "NASM",
+        "type": "model",
+        "content": {
+          "descriptiveNonRepeating": {
+            "title": {
+              "label": "Title",
+              "content": "Apollo 11 Command Module Columbia"
+            },
+            "record_link": "https://3d.si.edu/object/3d/apollo-11-command-module-columbia",
+            "online_media": {
+              "mediaCount": 1,
+              "media": [
+                {
+                  "type": "3D Model",
+                  "format": "GLB",
+                  "content": "https://3d-api.si.edu/content/document/3d_package/columbia_mesh.glb",
+                  "thumbnail": "https://3d-api.si.edu/content/document/3d_package/columbia_thumb.png"
+                }
+              ]
+            }
+          },
+          "freetext": {
+            "notes": [
+              {
+                "label": "Description",
+                "content": "High-precision 3D scan of the Apollo 11 Command Module Columbia spacecraft that carried Armstrong, Aldrin, and Collins to the Moon."
+              }
+            ],
+            "dataSource": [
+              {
+                "label": "Data Source",
+                "content": "National Air and Space Museum"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "edanmdm:fsg_peacock_room",
+        "title": "Harmony in Blue and Gold: The Peacock Room",
+        "unitCode": "FSG",
+        "type": "image",
+        "content": {
+          "descriptiveNonRepeating": {
+            "title": {
+              "label": "Title",
+              "content": "Harmony in Blue and Gold: The Peacock Room"
+            },
+            "record_link": "https://www.si.edu/object/harmony-blue-and-gold-peacock-room:fsg_peacock",
+            "online_media": {
+              "mediaCount": 1,
+              "media": [
+                {
+                  "type": "Images",
+                  "format": "JPEG",
+                  "content": "https://ids.si.edu/ids/deliveryService?id=FS-7432_01",
+                  "thumbnail": "https://ids.si.edu/ids/deliveryService?id=FS-7432_01&max=300"
+                }
+              ]
+            }
+          },
+          "freetext": {
+            "notes": [
+              {
+                "label": "Description",
+                "content": "Masterpiece of interior decorative art painted by James McNeill Whistler."
+              }
+            ],
+            "dataSource": [
+              {
+                "label": "Data Source",
+                "content": "National Museum of Asian Art"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

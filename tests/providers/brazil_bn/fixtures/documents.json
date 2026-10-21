@@ -1,0 +1,51 @@
+{
+  "total": 2,
+  "items": [
+    {
+      "handle": "bn-carto-001",
+      "title": "Carta do Brasil e terras adjacentes",
+      "author": "Albernas, João Teixeira",
+      "date": "1640",
+      "description": "Carta manuscrita iluminada representando o litoral e capitanias do Brasil.",
+      "url": "https://bndigital.bn.gov.br/acervodigital/item/bn-carto-001",
+      "thumbnail": "https://objdigital.bn.br/acervo_digital/div_cartografia/carto001_thumb.jpg",
+      "image_url": "https://objdigital.bn.br/acervo_digital/div_cartografia/carto001_orig.jpg",
+      "tags": ["cartografia", "brasil colonial", "mapa manuscrito", "seculo xvii"],
+      "files": [
+        {
+          "filename": "mapa_brasil_1640_orig.jpg",
+          "resolution": "orig",
+          "url": "https://objdigital.bn.br/acervo_digital/div_cartografia/carto001_orig.jpg"
+        },
+        {
+          "filename": "mapa_brasil_1640_2048.jpg",
+          "resolution": "2048",
+          "url": "https://objdigital.bn.br/acervo_digital/div_cartografia/carto001_2048.jpg"
+        },
+        {
+          "filename": "mapa_brasil_1640_1024.jpg",
+          "resolution": "1024",
+          "url": "https://objdigital.bn.br/acervo_digital/div_cartografia/carto001_1024.jpg"
+        }
+      ]
+    },
+    {
+      "handle": "bn-icono-002",
+      "title": "Vista do Rio de Janeiro tomada da Ilha das Cobras",
+      "author": "Debret, Jean-Baptiste",
+      "date": "1834",
+      "description": "Litografia aquarelada retratando a Baía de Guanabara e a cidade do Rio de Janeiro.",
+      "url": "https://bndigital.bn.gov.br/acervodigital/item/bn-icono-002",
+      "thumbnail": "https://objdigital.bn.br/acervo_digital/div_iconografia/icono002_thumb.jpg",
+      "image_url": "https://objdigital.bn.br/acervo_digital/div_iconografia/icono002_orig.jpg",
+      "tags": ["iconografia", "rio de janeiro", "debret", "litografia"],
+      "files": [
+        {
+          "filename": "debret_rio_orig.jpg",
+          "resolution": "orig",
+          "url": "https://objdigital.bn.br/acervo_digital/div_iconografia/icono002_orig.jpg"
+        }
+      ]
+    }
+  ]
+}

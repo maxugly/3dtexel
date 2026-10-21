@@ -1,0 +1,41 @@
+[
+  {
+    "id": "cyberpunk-characters",
+    "title": "Cyberpunk Characters",
+    "type": "model",
+    "description": "5 rigged and animated cyberpunk character models ready for game engines.",
+    "thumbnail": "https://quaternius.com/packs/cyberpunk-characters/thumb.png",
+    "url": "https://quaternius.com/packs/cyberpunk-characters.html",
+    "download_url": "https://quaternius.com/packs/cyberpunk-characters/Cyberpunk_Characters.zip",
+    "tags": ["cyberpunk", "character", "rigged", "animated", "scifi", "people"],
+    "files": [
+      {
+        "filename": "Cyberpunk_Characters_GLTF.zip",
+        "format": "gltf",
+        "url": "https://quaternius.com/packs/cyberpunk-characters/Cyberpunk_Characters_GLTF.zip"
+      },
+      {
+        "filename": "Cyberpunk_Characters_FBX.zip",
+        "format": "fbx",
+        "url": "https://quaternius.com/packs/cyberpunk-characters/Cyberpunk_Characters_FBX.zip"
+      }
+    ]
+  },
+  {
+    "id": "modular-medieval-village",
+    "title": "Modular Medieval Village",
+    "type": "model",
+    "description": "Over 60 modular medieval village pieces including houses, roofs, fences, and props.",
+    "thumbnail": "https://quaternius.com/packs/modular-medieval-village/thumb.png",
+    "url": "https://quaternius.com/packs/modular-medieval-village.html",
+    "download_url": "https://quaternius.com/packs/modular-medieval-village/Modular_Medieval_Village.zip",
+    "tags": ["medieval", "modular", "village", "house", "fantasy", "props"],
+    "files": [
+      {
+        "filename": "Modular_Medieval_Village_GLTF.zip",
+        "format": "gltf",
+        "url": "https://quaternius.com/packs/modular-medieval-village/Modular_Medieval_Village_GLTF.zip"
+      }
+    ]
+  }
+]

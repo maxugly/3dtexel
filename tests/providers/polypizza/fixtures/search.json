@@ -1,0 +1,25 @@
+{
+  "total": 2,
+  "results": [
+    {
+      "ID": "tree_oak",
+      "Title": "Low Poly Oak Tree",
+      "Author": "Quaternius",
+      "License": "CC0",
+      "Tri Count": 350,
+      "Thumbnail": "https://poly.pizza/m/tree_oak/thumb.png",
+      "Download": "https://poly.pizza/m/tree_oak/tree_oak.glb",
+      "Url": "https://poly.pizza/m/tree_oak"
+    },
+    {
+      "ID": "drone_scifi",
+      "Title": "Sci-Fi Surveillance Drone",
+      "Author": "PolyModeler",
+      "License": "CC-BY",
+      "Tri Count": 1200,
+      "Thumbnail": "https://poly.pizza/m/drone_scifi/thumb.png",
+      "Download": "https://poly.pizza/m/drone_scifi/drone_scifi.glb",
+      "Url": "https://poly.pizza/m/drone_scifi"
+    }
+  ]
+}

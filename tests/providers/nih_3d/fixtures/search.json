@@ -1,0 +1,43 @@
+[
+  {
+    "id": "3DPX-012345",
+    "title": "Human Heart Anatomical Model",
+    "description": "High resolution 3D model of the human heart created from segmented CT imaging data.",
+    "type": "model",
+    "thumbnail": "https://3d.nih.gov/sites/default/files/styles/model_card/public/models/heart_thumb.png",
+    "url": "https://3d.nih.gov/entries/3DPX-012345",
+    "author": "National Institutes of Health (NIH)",
+    "tags": ["heart", "anatomy", "medical", "biology", "cardiac", "organ"],
+    "license": "CC0",
+    "files": [
+      {
+        "filename": "Human_Heart.glb",
+        "format": "glb",
+        "url": "https://3d.nih.gov/sites/default/files/models/3DPX-012345/Human_Heart.glb"
+      },
+      {
+        "filename": "Human_Heart.stl",
+        "format": "stl",
+        "url": "https://3d.nih.gov/sites/default/files/models/3DPX-012345/Human_Heart.stl"
+      }
+    ]
+  },
+  {
+    "id": "3DPX-067890",
+    "title": "B-DNA Double Helix Molecular Model",
+    "description": "Atomic surface representation of the standard B-form DNA double helix structure.",
+    "type": "model",
+    "thumbnail": "https://3d.nih.gov/sites/default/files/styles/model_card/public/models/dna_thumb.png",
+    "url": "https://3d.nih.gov/entries/3DPX-067890",
+    "author": "NIH / National Library of Medicine",
+    "tags": ["dna", "molecular", "genetics", "science", "biology", "helix"],
+    "license": "CC0",
+    "files": [
+      {
+        "filename": "DNA_Helix.glb",
+        "format": "glb",
+        "url": "https://3d.nih.gov/sites/default/files/models/3DPX-067890/DNA_Helix.glb"
+      }
+    ]
+  }
+]

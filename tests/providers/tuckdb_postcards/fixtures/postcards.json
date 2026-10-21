@@ -1,0 +1,51 @@
+{
+  "total": 150000,
+  "page": 1,
+  "results": [
+    {
+      "id": "tuck_10482_london_bridge",
+      "title": "London Bridge and the River Thames",
+      "series": "Oilette - London Views",
+      "artist": "Charles Flower",
+      "date": "1908",
+      "country": "United Kingdom",
+      "category": "Topographical",
+      "description": "Raphael Tuck & Sons Oilette postcard depicting London Bridge with river barges and tugboats.",
+      "url": "https://tuckdbpostcards.org/items/10482",
+      "thumbnail": "https://tuckdbpostcards.org/images/10482_thumb.jpg",
+      "image_url": "https://tuckdbpostcards.org/images/10482_orig.jpg",
+      "files": [
+        {
+          "filename": "london_bridge_1908_original.jpg",
+          "resolution": "orig",
+          "url": "https://tuckdbpostcards.org/images/10482_orig.jpg"
+        },
+        {
+          "filename": "london_bridge_1908_2048.jpg",
+          "resolution": "2048",
+          "url": "https://tuckdbpostcards.org/images/10482_2048.jpg"
+        }
+      ]
+    },
+    {
+      "id": "tuck_9821_vintage_halloween",
+      "title": "Halloween Night with Jack O'Lantern",
+      "series": "Halloween Series No. 174",
+      "artist": "Anonymous",
+      "date": "1911",
+      "country": "United States",
+      "category": "Holidays",
+      "description": "Embossed antique chromolithograph postcard of a glowing carved pumpkin on Halloween night.",
+      "url": "https://tuckdbpostcards.org/items/9821",
+      "thumbnail": "https://tuckdbpostcards.org/images/9821_thumb.jpg",
+      "image_url": "https://tuckdbpostcards.org/images/9821_orig.jpg",
+      "files": [
+        {
+          "filename": "halloween_pumpkin_1911_original.jpg",
+          "resolution": "orig",
+          "url": "https://tuckdbpostcards.org/images/9821_orig.jpg"
+        }
+      ]
+    }
+  ]
+}

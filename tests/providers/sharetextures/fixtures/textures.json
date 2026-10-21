@@ -1,0 +1,45 @@
+[
+  {
+    "id": "concrete-wall-01",
+    "name": "Concrete Wall 01",
+    "type": "material",
+    "category": "concrete",
+    "tags": ["concrete", "wall", "grey", "industrial", "rough"],
+    "description": "Industrial reinforced concrete wall texture with formwork seams and anchor holes.",
+    "thumbnail": "https://www.sharetextures.com/textures/concrete-wall-01/preview.jpg",
+    "url": "https://www.sharetextures.com/textures/concrete/concrete-wall-01",
+    "files": {
+      "1k": {
+        "diffuse": "https://www.sharetextures.com/textures/concrete-wall-01/1k/diffuse.jpg",
+        "normal": "https://www.sharetextures.com/textures/concrete-wall-01/1k/normal.jpg",
+        "roughness": "https://www.sharetextures.com/textures/concrete-wall-01/1k/roughness.jpg",
+        "displacement": "https://www.sharetextures.com/textures/concrete-wall-01/1k/displacement.jpg",
+        "ao": "https://www.sharetextures.com/textures/concrete-wall-01/1k/ao.jpg"
+      },
+      "2k": {
+        "diffuse": "https://www.sharetextures.com/textures/concrete-wall-01/2k/diffuse.jpg",
+        "normal": "https://www.sharetextures.com/textures/concrete-wall-01/2k/normal.jpg",
+        "roughness": "https://www.sharetextures.com/textures/concrete-wall-01/2k/roughness.jpg",
+        "displacement": "https://www.sharetextures.com/textures/concrete-wall-01/2k/displacement.jpg",
+        "ao": "https://www.sharetextures.com/textures/concrete-wall-01/2k/ao.jpg"
+      }
+    }
+  },
+  {
+    "id": "roof-tiles-04",
+    "name": "Roof Tiles 04",
+    "type": "material",
+    "category": "roof",
+    "tags": ["roof", "tiles", "clay", "orange", "architecture"],
+    "description": "Mediterranean curved terracotta roof tiles with subtle moss staining.",
+    "thumbnail": "https://www.sharetextures.com/textures/roof-tiles-04/preview.jpg",
+    "url": "https://www.sharetextures.com/textures/roof/roof-tiles-04",
+    "files": {
+      "1k": {
+        "diffuse": "https://www.sharetextures.com/textures/roof-tiles-04/1k/diffuse.jpg",
+        "normal": "https://www.sharetextures.com/textures/roof-tiles-04/1k/normal.jpg",
+        "roughness": "https://www.sharetextures.com/textures/roof-tiles-04/1k/roughness.jpg"
+      }
+    }
+  }
+]

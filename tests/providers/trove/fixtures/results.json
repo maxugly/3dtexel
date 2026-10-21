@@ -1,0 +1,53 @@
+{
+  "total": 2,
+  "s": 0,
+  "n": 24,
+  "items": [
+    {
+      "id": "18491204",
+      "heading": "Sydney Harbour from McMahon's Point",
+      "contributor": "Arthur Streeton",
+      "date": "1890",
+      "troveUrl": "https://trove.nla.gov.au/work/18491204",
+      "thumbnail": "https://nla.gov.au/nla.obj-18491204-thumb.jpg",
+      "image_url": "https://nla.gov.au/nla.obj-18491204-orig.jpg",
+      "snippet": "Oil painting depicting Sydney Harbour with ferry boats in soft impressionist sunlight.",
+      "tags": ["heidelberg school", "australian art", "sydney harbour", "impressionism"],
+      "files": [
+        {
+          "filename": "streeton_sydney_orig.jpg",
+          "resolution": "orig",
+          "url": "https://nla.gov.au/nla.obj-18491204-orig.jpg"
+        },
+        {
+          "filename": "streeton_sydney_1600.jpg",
+          "resolution": "1600",
+          "url": "https://nla.gov.au/nla.obj-18491204-1600.jpg"
+        },
+        {
+          "filename": "streeton_sydney_800.jpg",
+          "resolution": "800",
+          "url": "https://nla.gov.au/nla.obj-18491204-800.jpg"
+        }
+      ]
+    },
+    {
+      "id": "22910481",
+      "heading": "Map of the Colony of New South Wales",
+      "contributor": "Surveyor General of New South Wales",
+      "date": "1834",
+      "troveUrl": "https://trove.nla.gov.au/work/22910481",
+      "thumbnail": "https://nla.gov.au/nla.obj-22910481-thumb.jpg",
+      "image_url": "https://nla.gov.au/nla.obj-22910481-orig.jpg",
+      "snippet": "Engraved cartographic map showing the nineteen counties of New South Wales.",
+      "tags": ["cartography", "australian history", "vintage map", "new south wales"],
+      "files": [
+        {
+          "filename": "nsw_map_orig.jpg",
+          "resolution": "orig",
+          "url": "https://nla.gov.au/nla.obj-22910481-orig.jpg"
+        }
+      ]
+    }
+  ]
+}

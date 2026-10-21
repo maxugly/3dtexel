@@ -1,0 +1,33 @@
+{
+  "total": 150000,
+  "offset": 0,
+  "limit": 2,
+  "results": [
+    {
+      "id": "RUMSEY-8-1-303217-90074215",
+      "title": "A Map of the British Empire in America",
+      "author": "Popple, Henry",
+      "date": "1733",
+      "publisher": "Willm. Henry Toms",
+      "description": "Historical key map of North America and the West Indies.",
+      "url": "https://www.davidrumsey.com/luna/servlet/detail/RUMSEY~8~1~303217~90074215",
+      "thumbnail": "https://www.davidrumsey.com/luna/servlet/iiif/RUMSEY~8~1~303217~90074215/full/!250,250/0/default.jpg",
+      "iiif_manifest": "https://www.davidrumsey.com/luna/servlet/iiif/m/RUMSEY~8~1~303217~90074215/manifest",
+      "iiif_image": "https://www.davidrumsey.com/luna/servlet/iiif/RUMSEY~8~1~303217~90074215",
+      "license": "CC0"
+    },
+    {
+      "id": "RUMSEY-8-1-294711-90067123",
+      "title": "Nova Totius Terrarum Orbis Geographica Ac Hydrographica Tabula",
+      "author": "Blaeu, Willem Janszoon, 1571-1638",
+      "date": "1635",
+      "publisher": "Willem Blaeu, Amsterdam",
+      "description": "Classic Dutch Golden Age world map decorated with allegorical figures.",
+      "url": "https://www.davidrumsey.com/luna/servlet/detail/RUMSEY~8~1~294711~90067123",
+      "thumbnail": "https://www.davidrumsey.com/luna/servlet/iiif/RUMSEY~8~1~294711~90067123/full/!250,250/0/default.jpg",
+      "iiif_manifest": "https://www.davidrumsey.com/luna/servlet/iiif/m/RUMSEY~8~1~294711~90067123/manifest",
+      "iiif_image": "https://www.davidrumsey.com/luna/servlet/iiif/RUMSEY~8~1~294711~90067123",
+      "license": "CC0"
+    }
+  ]
+}

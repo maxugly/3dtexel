@@ -1,0 +1,63 @@
+{
+  "pagination": {
+    "total": 2,
+    "limit": 24,
+    "offset": 0,
+    "total_pages": 1,
+    "current_page": 1
+  },
+  "data": [
+    {
+      "id": 27992,
+      "title": "A Sunday on La Grande Jatte — 1884",
+      "artist_display": "Georges Seurat\nFrench, 1859–1891",
+      "date_display": "1884/86",
+      "medium_display": "Oil on canvas",
+      "is_public_domain": true,
+      "image_id": "2d484387-2209-5e12-9c44-4ff9032b334e",
+      "thumbnail": {
+        "lqip": "https://www.artic.edu/iiif/2/2d484387-2209-5e12-9c44-4ff9032b334e/full/400,/0/default.jpg",
+        "alt_text": "Pointillist painting of people relaxing in an island park on the Seine."
+      },
+      "tags": ["pointillism", "post-impressionism", "seurat", "grande jatte"],
+      "files": [
+        {
+          "filename": "seurat_grande_jatte_orig.jpg",
+          "resolution": "orig",
+          "url": "https://lakeimages.artic.edu/iiif/2/2d484387-2209-5e12-9c44-4ff9032b334e/full/max/0/default.jpg"
+        },
+        {
+          "filename": "seurat_grande_jatte_2048.jpg",
+          "resolution": "2048",
+          "url": "https://lakeimages.artic.edu/iiif/2/2d484387-2209-5e12-9c44-4ff9032b334e/full/2048,/0/default.jpg"
+        },
+        {
+          "filename": "seurat_grande_jatte_843.jpg",
+          "resolution": "843",
+          "url": "https://lakeimages.artic.edu/iiif/2/2d484387-2209-5e12-9c44-4ff9032b334e/full/843,/0/default.jpg"
+        }
+      ]
+    },
+    {
+      "id": 6565,
+      "title": "Nighthawks",
+      "artist_display": "Edward Hopper\nAmerican, 1882–1967",
+      "date_display": "1942",
+      "medium_display": "Oil on canvas",
+      "is_public_domain": true,
+      "image_id": "e966799b-97ee-eb42-7013-80251783cfd5",
+      "thumbnail": {
+        "lqip": "https://www.artic.edu/iiif/2/e966799b-97ee-eb42-7013-80251783cfd5/full/400,/0/default.jpg",
+        "alt_text": "Nocturnal urban scene of people sitting in a brightly lit diner late at night."
+      },
+      "tags": ["american realism", "hopper", "nighthawks", "diner"],
+      "files": [
+        {
+          "filename": "hopper_nighthawks_orig.jpg",
+          "resolution": "orig",
+          "url": "https://lakeimages.artic.edu/iiif/2/e966799b-97ee-eb42-7013-80251783cfd5/full/max/0/default.jpg"
+        }
+      ]
+    }
+  ]
+}
