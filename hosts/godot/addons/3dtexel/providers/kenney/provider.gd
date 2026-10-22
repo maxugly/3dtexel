@@ -3,6 +3,7 @@ extends "res://addons/3dtexel/core/provider.gd"
 ## Kenney game assets provider adapter implementing Provider Contract v1.
 
 const Client = preload("res://addons/3dtexel/providers/kenney/client.gd")
+const Scan = preload("res://addons/3dtexel/core/html_scan.gd")
 const Cache = preload("res://addons/3dtexel/providers/kenney/cache.gd")
 const Credits = preload("res://addons/3dtexel/credits.gd")
 const Importer = preload("res://addons/3dtexel/importer.gd")
@@ -125,62 +126,98 @@ func variants(asset: Dictionary) -> Array:
 func refresh_page(query: String, category: String, cursor: String) -> Dictionary:
 	sync_network()
 
-	var resp: Dictionary = await client.fetch_packs()
-	if resp.has("error"):
-		return resp
+	var page := int(cursor) if not cursor.is_empty() else 1
+	var response: Dictionary = await client.fetch_packs(query, page)
+	if response.has("error"):
+		return response
 
-	var all_packs: Array = []
-	if resp.has("items") and resp.items is Array:
-		all_packs = resp.items
-	elif resp.get("data") is Array:
-		all_packs = resp.data
+	var html := str(response.get("raw_text", ""))
+	if html.is_empty():
+		return {"error": "Kenney returned an empty listing."}
 
-	var q := query.strip_edges().to_lower()
-	var matched: Array[Dictionary] = []
+	var packs := parse_listing(html)
+	if packs.is_empty():
+		return {"items": [], "next_cursor": ""}
 
-	for raw in all_packs:
-		if not (raw is Dictionary):
-			continue
-		var raw_dict: Dictionary = raw
-		if not q.is_empty():
-			var title_str := str(raw_dict.get("title", "")).to_lower()
-			var desc_str := str(raw_dict.get("description", "")).to_lower()
-			var id_str := str(raw_dict.get("id", "")).to_lower()
-			var is_match := title_str.contains(q) or desc_str.contains(q) or id_str.contains(q)
-			if not is_match:
-				for t in raw_dict.get("tags", []):
-					if str(t).to_lower().contains(q):
-						is_match = true
-						break
-			if not is_match:
-				continue
+	var wanted := ""
+	match category:
+		"model": wanted = "3D"
+		"material": wanted = "Textures"
+		"audio": wanted = "Audio"
+		"image": wanted = "2D"
 
-		if not category.is_empty() and category != "all":
-			var cat_type := str(raw_dict.get("type", "")).to_lower()
-			if cat_type != category:
-				continue
-
-		matched.append(raw_dict)
-
-	var offset := int(cursor) if not cursor.is_empty() else 0
-	var page_size := 30
 	var items: Array[Dictionary] = []
-
-	var upper := mini(offset + page_size, matched.size())
-	for i in range(offset, upper):
-		var normalized := normalize(matched[i], true)
+	for raw in packs:
+		var categories: Array = raw.get("categories", [])
+		if not wanted.is_empty() and not categories.has(wanted):
+			continue
+		var normalized := normalize(raw, true)
 		client.cache.put_asset(normalized)
 		items.append(normalized)
 
-	var next_cur := str(offset + page_size) if (offset + page_size < matched.size()) else ""
-	return {"items": items, "next_cursor": next_cur}
+	var next_cursor := ""
+	if Scan.match(html, "page:%d\\b" % (page + 1)) != "":
+		next_cursor = str(page + 1)
+	return {"items": items, "next_cursor": next_cursor}
+
+## Reads the pack cards from a Kenney listing page.
+func parse_listing(html: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for block in Scan.blocks(html, "<div class='asset'>"):
+		var url := Scan.match(block, "href='(https://kenney\\.nl/assets/[^']+)'")
+		if url.is_empty():
+			continue
+		var title := Scan.text(Scan.match(block, "<h2>.*?</h2>"))
+		var cover := Scan.match(block, "background-image:url\\(\\\"([^\\\"]+)\\\"\\)")
+		var categories := Scan.matches(block, "category:([^']+)'")
+		var series := Scan.matches(block, "series:([^']+)'")
+		var id := url.get_file().trim_prefix("/assets/")
+		result.append({
+			"id": id,
+			"title": title,
+			"url": url,
+			"thumbnail": cover,
+			"categories": categories,
+			"tags": series,
+			"type": "model" if categories.has("3D") else ("material" if categories.has("Textures") else ("audio" if categories.has("Audio") else "image"))
+		})
+	return result
+
+## Reads the direct download link and license from a pack page.
+func parse_detail(html: String) -> Dictionary:
+	var archive := Scan.match(html, "href='([^']+\\.zip)'")
+	var license_url := Scan.match(html, "creativecommons\\.org/publicdomain/zero/1\\.0")
+	var preview := Scan.match(html, "src='(https://kenney\\.nl/media[^']+preview\\.png)'")
+	var files: Array[Dictionary] = []
+	if not archive.is_empty():
+		files.append({"filename": archive.get_file(), "url": archive})
+	return {
+		"download_url": archive,
+		"files": files,
+		"license_cc0": not license_url.is_empty(),
+		"preview": preview
+	}
 
 func asset_details(asset: Dictionary) -> Dictionary:
 	return await refresh_asset(asset)
 
 func refresh_asset(asset: Dictionary) -> Dictionary:
 	sync_network()
-	return normalize(asset, false)
+	## The pack page is addressed by its own address, not by the normalized id.
+	var page_url := str(asset.get("url", ""))
+	if page_url.is_empty():
+		var id := str(asset.get("id", ""))
+		if id.is_empty():
+			return normalize(asset, false)
+		page_url = "https://kenney.nl/assets/" + id.replace("_", "-")
+	var response: Dictionary = await client.text_request(page_url)
+	if response.has("error"):
+		return response
+	var detail := parse_detail(str(response.get("raw_text", "")))
+	var merged := asset.duplicate(true)
+	merged.merge(detail, true)
+	merged.source_metadata = detail
+	return normalize(merged, false)
 
 func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 	sync_network()
@@ -200,14 +237,14 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 
 	if dl_url.is_empty():
 		dl_url = str(detailed.get("download_url", ""))
+
 	if dl_url.is_empty():
-		var id := str(detailed.id)
-		dl_url = "https://kenney.nl/media/pages/assets/%s/download/%s.zip" % [id, id]
+		return {"error": "Kenney does not publish a direct archive for this pack."}
 
 	if not dl_url.begins_with("https://"):
 		return {"error": "Insecure download URL: %s" % dl_url}
 
-	var filename := "%s.zip" % Importer.slug(str(detailed.id))
+	var filename := dl_url.get_file()
 
 	return {
 		"kind": "files",

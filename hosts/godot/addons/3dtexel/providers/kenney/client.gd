@@ -28,6 +28,37 @@ func pace_request() -> void:
 	last_network_request_ms = Time.get_ticks_msec()
 
 func json_request(path_or_url: String) -> Dictionary:
+	var fetched: Dictionary=await _fetch(path_or_url)
+	if fetched.has("error"):
+		return fetched
+	var body := str(fetched.get("body",""))
+	var parsed: Variant = JSON.parse_string(body)
+	var data := {}
+	if parsed is Dictionary:
+		data = parsed
+	elif parsed is Array:
+		data = {"items": parsed}
+	else:
+		data = {"raw_text": body}
+	var validators := {}
+	for header: String in fetched.get("headers",[]):
+		var lower := header.to_lower()
+		if lower.begins_with("etag:"):
+			validators["etag"] = header.split(":", false, 1)[1].strip_edges()
+		elif lower.begins_with("last-modified:"):
+			validators["last_modified"] = header.split(":", false, 1)[1].strip_edges()
+	cache.put_response(str(fetched.get("url","")), data, validators)
+	return data
+
+## Reads a page as text. Used for the HTML listings this provider is built on.
+func text_request(path_or_url: String) -> Dictionary:
+	var fetched: Dictionary=await _fetch(path_or_url)
+	if fetched.has("error"):
+		return fetched
+	return {"raw_text": str(fetched.get("body",""))}
+
+## Performs the paced request, following safe redirects, and returns the body.
+func _fetch(path_or_url: String) -> Dictionary:
 	var full_url := path_or_url if path_or_url.begins_with("https://") else BASE_URL + path_or_url
 	if not full_url.begins_with("https://"):
 		return {"error": "Only HTTPS requests are permitted."}
@@ -35,7 +66,7 @@ func json_request(path_or_url: String) -> Dictionary:
 	if Cache.cacheable(full_url) and not refreshing:
 		var cached: Dictionary = cache.get_response(full_url)
 		if not cached.is_empty():
-			return cached
+			return {"url":full_url,"headers":[],"body":str(cached.get("raw_text",""))}
 
 	if not network_allowed:
 		return {"error": "Network requests require explicit action."}
@@ -50,7 +81,7 @@ func json_request(path_or_url: String) -> Dictionary:
 	active.append(request)
 
 	var headers := PackedStringArray([
-		"Accept: application/json, text/html",
+		"Accept: text/html, application/json",
 		"User-Agent: 3dtexel-AssetLibrary/1.0 (Godot Engine; https://github.com/3dtexel)"
 	])
 	headers.append_array(cache.conditional_headers(full_url))
@@ -72,7 +103,7 @@ func json_request(path_or_url: String) -> Dictionary:
 	if status_code == 304:
 		var cached: Dictionary = cache.get_response(full_url)
 		if not cached.is_empty():
-			return cached
+			return {"url":full_url,"headers":[],"body":str(cached.get("raw_text",""))}
 		return {"error": "Site reported 304 Not Modified without prior cached data."}
 
 	if status_code in [301, 302, 303, 307, 308]:
@@ -81,34 +112,22 @@ func json_request(path_or_url: String) -> Dictionary:
 				var target: String = header.split(":", false, 1)[1].strip_edges()
 				if not target.begins_with("https://"):
 					return {"error": "Insecure or invalid redirect."}
-				return await json_request(target)
+				return await _fetch(target)
 
 	if status_code != 200:
 		return {"error": "Site returned HTTP %s." % status_code}
 
-	var body: PackedByteArray = response[3]
-	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
-	var data := {}
-	if parsed is Dictionary:
-		data = parsed
-	elif parsed is Array:
-		data = {"items": parsed}
-	else:
-		data = {"raw_text": body.get_string_from_utf8()}
+	return {"url":full_url,"headers":response[2],"body":response[3].get_string_from_utf8()}
 
-	var validators := {}
-	for header: String in response[2]:
-		var lower := header.to_lower()
-		if lower.begins_with("etag:"):
-			validators["etag"] = header.split(":", false, 1)[1].strip_edges()
-		elif lower.begins_with("last-modified:"):
-			validators["last_modified"] = header.split(":", false, 1)[1].strip_edges()
+func fetch_packs(query := "",page := 1) -> Dictionary:
+	var path := "/assets" if page<=1 else "/assets/page:%d" % page
+	if not query.strip_edges().is_empty():
+		path += "?search=" + query.uri_encode()
+	return await text_request(path)
 
-	cache.put_response(full_url, data, validators)
-	return data
-
-func fetch_packs() -> Dictionary:
-	return await json_request("/assets.json")
+## Reads one pack page, used to resolve the direct archive link.
+func fetch_pack_page(id: String) -> Dictionary:
+	return await text_request("/assets/" + id.uri_encode())
 
 func get_bytes(url: String, destination: String, max_bytes: int, redirects_left := 5) -> Dictionary:
 	if not url.begins_with("https://"):
