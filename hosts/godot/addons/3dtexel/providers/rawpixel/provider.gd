@@ -26,6 +26,11 @@ func sync_network() -> void:
 	client.network_allowed = network_allowed
 	client.refreshing = refreshing
 
+## This site cannot be queried from here, so it stays out of the default sweep
+## and says why. A user can still turn it on from the site list.
+func default_enabled() -> bool:return false
+func disabled_reason() -> String:return "The host rejects automated requests from this network (HTTP 403)."
+
 func api_key() -> String:
 	return ""
 

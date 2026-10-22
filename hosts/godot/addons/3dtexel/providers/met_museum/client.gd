@@ -12,6 +12,10 @@ var allowed_thumbnails := {}
 var active: Array[HTTPRequest] = []
 
 const BASE_URL := "https://collectionapi.metmuseum.org"
+## The search endpoint was retired on the v1 path (HTTP 410) and only answers on
+## v1.1, while the object endpoint still answers on v1 and 404s on v1.1.
+const SEARCH_PATH := "/public/collection/v1.1/search"
+const OBJECT_PATH := "/public/collection/v1/objects/"
 
 func cancel_all() -> void:
 	for request in active:
@@ -108,7 +112,7 @@ func json_request(path_or_url: String) -> Dictionary:
 func search(query: String = "", offset: int = 0, limit: int = 24) -> Dictionary:
 	var q := query.strip_edges()
 	var search_term := q if not q.is_empty() else "*"
-	var path := "/public/collection/v1/search?hasImages=true&q=" + search_term.uri_encode()
+	var path := SEARCH_PATH + "?hasImages=true&q=" + search_term.uri_encode()
 	var search_res: Dictionary = await json_request(path)
 	if search_res.has("error"):
 		return search_res
@@ -130,7 +134,7 @@ func search(query: String = "", offset: int = 0, limit: int = 24) -> Dictionary:
 	}
 
 func get_object(object_id: int) -> Dictionary:
-	return await json_request("/public/collection/v1/objects/" + str(object_id))
+	return await json_request(OBJECT_PATH + str(object_id))
 
 func get_bytes(url: String, destination: String, max_bytes: int, redirects_left := 5) -> Dictionary:
 	if not url.begins_with("https://"):

@@ -5,6 +5,9 @@ extends Node
 const Cache = preload("res://addons/3dtexel/providers/bhl/cache.gd")
 
 var cache := Cache.new()
+## The key sent with the request. Empty means the call is not authorized.
+var api_key := ""
+
 var network_allowed := false
 var refreshing := false
 var last_network_request_ms := -1000
@@ -108,6 +111,8 @@ func json_request(path_or_url: String) -> Dictionary:
 func search(query: String = "", offset: int = 0, limit: int = 24) -> Dictionary:
 	var q := query.strip_edges()
 	var path := "/api3?op=PublicationSearch&searchtype=F&searchterm=" + (q if not q.is_empty() else "botanical").uri_encode() + "&format=json"
+	if not api_key.is_empty():
+		path += "&apikey=" + api_key.uri_encode()
 	return await json_request(path)
 
 func get_bytes(url: String, destination: String, max_bytes: int, redirects_left := 5) -> Dictionary:

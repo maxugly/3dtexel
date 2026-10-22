@@ -18,22 +18,42 @@ func descriptor() -> Dictionary:
 		"id": "europeana",
 		"name": "Europeana Collections",
 		"website": "https://www.europeana.eu/",
-		"key_env": [],
+		"key_env": ["EUROPEANA_API_KEY"],
 		"capabilities": ["image", "material", "files", "variants"]
 	}
+
+## The public demo key keeps Europeana usable without an account. It carries a
+## lower rate limit, so a personal key from the environment is preferred.
+const DEMO_KEY := "api2demo"
+
+var session_key := ""
 
 func sync_network() -> void:
 	client.network_allowed = network_allowed
 	client.refreshing = refreshing
+	client.api_key = request_key()
 
 func api_key() -> String:
-	return ""
+	if not session_key.is_empty():
+		return session_key
+	return OS.get_environment("EUROPEANA_API_KEY").strip_edges()
 
-func set_session_key(_value: String) -> void:
-	pass
+## The key actually sent with a request. The demo key is only a fallback and
+## is never shown as a credential.
+func request_key() -> String:
+	var key := api_key()
+	return key if not key.is_empty() else DEMO_KEY
+
+func set_session_key(value: String) -> void:
+	session_key = value.strip_edges()
+	sync_network()
 
 func credential_status() -> String:
-	return "No key required."
+	if not OS.get_environment("EUROPEANA_API_KEY").strip_edges().is_empty():
+		return "Using EUROPEANA_API_KEY from the environment."
+	if not session_key.is_empty():
+		return "Using the session key for this editor session."
+	return "Using the public Europeana demo key (lower rate limit)."
 
 func can_download(asset: Dictionary) -> bool:
 	if not Importer.free_asset(asset):

@@ -58,8 +58,19 @@ var audit_lic_custom: CheckBox
 var audit_status_label: Label
 var last_audit_data := {}
 var seeded := false
+const SEARCH_WORKERS := 6
+## Per-site deadline. A slow provider now loses only its own slot instead of
+## cutting the whole sweep short.
+const PROVIDER_TIMEOUT := 12.0
 var search_generation := 0
-var search_timed_out := false
+var search_completed := 0
+var search_total := 0
+var search_errors := 0
+var search_status_ms := 0
+var search_render_ms := 0
+var searching := false
+var restarting := false
+var visible_signature: Array=[]
 func button(text: String,action: Callable,parent: Node) -> Button:
 	var item := Button.new();item.text=text;item.pressed.connect(action);parent.add_child(item);return item
 func label(text: String,parent: Node) -> Label:
@@ -75,7 +86,7 @@ func _ready() -> void:
 	var toolbar := HFlowContainer.new();content.add_child(toolbar)
 	search=LineEdit.new();search.placeholder_text="Search assets…";search.custom_minimum_size.x=200;search.size_flags_horizontal=Control.SIZE_EXPAND_FILL;toolbar.add_child(search)
 	search.text_submitted.connect(func(_text):start_search())
-	sites=OptionButton.new();toolbar.add_child(sites);rebuild_sites();sites.item_selected.connect(func(index):client.scope=str(sites.get_item_metadata(index));start_search())
+	sites=OptionButton.new();toolbar.add_child(sites);rebuild_sites();sites.item_selected.connect(_on_site_selected)
 	kind=OptionButton.new()
 	for name in ["All assets","Materials","Models","Audio","2D images"]:kind.add_item(name)
 	toolbar.add_child(kind);kind.item_selected.connect(func(_index):start_search())
@@ -140,7 +151,12 @@ func build_settings() -> void:
 		var state := label(provider.credential_status(),site)
 		if not info.get("key_env",[]).is_empty():
 			var key := LineEdit.new();key.secret=true;key.placeholder_text="Session API key";key.custom_minimum_size.x=180;site.add_child(key)
-			var apply := func():provider.set_session_key(key.text);key.clear();state.text=provider.credential_status();run_search()
+			var apply := func():
+				provider.set_session_key(key.text);key.clear();state.text=provider.credential_status()
+				# A site that was waiting for a key can start working once it has one.
+				if not provider.enabled and not provider.api_key().is_empty():
+					client.set_enabled(str(info.id),true);rebuild_sites()
+				run_search()
 			key.text_submitted.connect(func(_value):apply.call());button("Use key",apply,site)
 func update_layout() -> void:
 	if not is_instance_valid(results_scroll):return
@@ -150,43 +166,99 @@ func rebuild_sites() -> void:
 	var scope: String=client.scope
 	sites.clear();sites.add_item("All enabled sites");sites.set_item_metadata(0,"")
 	for id in client.providers:
-		if not client.providers[id].enabled:continue
-		sites.add_item(str(client.providers[id].descriptor().name));sites.set_item_metadata(sites.item_count-1,id)
-		if scope==id:sites.select(sites.item_count-1)
+		var provider: Node=client.providers[id]
+		var label := str(provider.descriptor().name)
+		var disabled: bool = not provider.enabled
+		if disabled:label+=" (off)"
+		sites.add_item(label);sites.set_item_metadata(sites.item_count-1,id)
+		if disabled:
+			var reason := str(provider.disabled_reason()) if provider.has_method("disabled_reason") else "Disabled."
+			sites.set_item_tooltip(sites.item_count-1,reason if not reason.is_empty() else "Disabled.")
+		elif scope==id:sites.select(sites.item_count-1)
 	client.scope=str(sites.get_item_metadata(sites.selected))
+## Picking a site that is switched off turns it on: that is an explicit request
+## for that one source, so its network access is allowed with it.
+func _on_site_selected(index: int) -> void:
+	var id := str(sites.get_item_metadata(index))
+	client.scope=id
+	if not id.is_empty():
+		var provider: Node=client.providers.get(id)
+		if provider and not provider.enabled:
+			client.set_enabled(id,true)
+			rebuild_sites()
+	start_search()
 func ensure_seeded() -> void:
 	if seeded:return
 	seeded=true
 	client.seed(output.text)
-func _search_timeout(token: int) -> void:
-	await get_tree().create_timer(12.0).timeout
-	if token!=search_generation or not busy:return
-	search_timed_out=true;stopping=true;client.cancel_all()
+func _search_worker(generation: int, work: RefCounted) -> void:
+	while not stopping and generation==search_generation:
+		var id: String=work.next_id()
+		if id.is_empty():return
+		var result: Dictionary=await work.fetch_id(id,PROVIDER_TIMEOUT)
+		if generation!=search_generation:return
+		_on_search_batch(result)
+func _on_search_batch(result: Dictionary) -> void:
+	search_completed+=1
+	if not str(result.get("error","")).is_empty():search_errors+=1
+	var now := Time.get_ticks_msec()
+	if not result.get("items",[]).is_empty() and now-search_render_ms>=120:
+		search_render_ms=now
+		run_search(false,false,true,false)
+	if now-search_status_ms>=150 or search_completed>=search_total:
+		search_status_ms=now
+		status.text="Searching · %s/%s sites · %s results%s" % [search_completed,search_total,session.identities.size()," · %s failed" % search_errors if search_errors>0 else ""]
 func start_search() -> void:
-	if busy:return
+	if busy and not searching:return
+	if busy:
+		if restarting:return
+		restarting=true
+		stopping=true;client.cancel_all();search_generation+=1
+		while busy:await get_tree().process_frame
+		restarting=false
 	ensure_seeded()
 	await refresh_search()
 func refresh_search() -> void:
 	if busy:return
-	busy=true;stopping=false;search_timed_out=false;page=1;selection.checked.clear();session.begin(search.text,["all","material","model","audio","image"][kind.selected])
-	search_generation+=1;_search_timeout.call_deferred(search_generation)
-	client.network_allowed=true;client.refreshing=true;update_actions();status.text="Searching…";status.tooltip_text=""
-	var errors := []
-	for _round in 100:
-		if stopping:break
-		var result: Dictionary=await session.fetch_round()
-		if result.has("error"):errors.append(str(result.error));break
-		errors.append_array(result.get("errors",[]))
-		if session.items().size()>=per_page.get_selected_id() or not session.has_more():break
-		status.text="Searching · %s results…" % session.items().size()
+	busy=true;searching=true;stopping=false;page=1;selection.checked.clear()
+	var next_session := Session.new();next_session.registry=client
+	next_session.begin(search.text,["all","material","model","audio","image"][kind.selected]);session=next_session
 	search_generation+=1
-	client.network_allowed=false;client.refreshing=false;busy=false
-	update_filter_choices();run_search();update_actions();update_cache_label()
-	status.tooltip_text="\n".join(errors)
-	var summary := "" if errors.is_empty() else " · %s site%s unavailable" % [errors.size(),"" if errors.size()==1 else "s"]
-	if search_timed_out:status.text="Search timed out; showing loaded results."+summary
-	elif stopping:status.text="Search stopped."+summary
-	else:status.text="%s results loaded." % session.items().size()+summary
+	var generation := search_generation
+	search_completed=0;search_total=session.order.size();search_errors=0;search_status_ms=0;search_render_ms=0
+	client.network_allowed=true;client.refreshing=true;update_actions();status.text="Searching…";status.tooltip_text=""
+	run_search(true,true,false,false)
+	for _worker in mini(SEARCH_WORKERS,search_total):_search_worker.call_deferred(generation,session)
+	while search_completed<search_total and not stopping:
+		await get_tree().process_frame
+	search_generation+=1
+	client.network_allowed=false;client.refreshing=false;searching=false;busy=false
+	session.flush()
+	update_filter_choices();run_search(false,true,false,true);update_actions();update_cache_label()
+	var results := session.identities.size();var result_label := "%s result%s" % [results,"" if results==1 else "s"]
+	var summary := session.outcome_summary()
+	var parts: Array[String]=[]
+	for key in ["ok","empty","failed","timeout"]:
+		var count := int(summary.get(key,0))
+		if count>0:parts.append("%s %s" % [count,{"ok":"ok","empty":"empty","failed":"failed","timeout":"timed out"}[key]])
+	var breakdown := "" if parts.is_empty() else " · "+" · ".join(parts)
+	if stopping:status.text="Search stopped · %s%s." % [result_label,breakdown]
+	else:status.text="Search complete · %s%s." % [result_label,breakdown]
+	status.tooltip_text=search_report()
+## Human readable per-site report: what each site returned or why it failed.
+func search_report() -> String:
+	var lines: Array[String]=[]
+	for id in session.outcomes:
+		var outcome: Dictionary=session.outcomes[id]
+		var detail := str(outcome.get("error",""))
+		if detail.is_empty():
+			detail="%s asset(s) in %s ms" % [int(outcome.get("items",0)),int(outcome.get("ms",0))]
+		lines.append("%s — %s" % [str(outcome.get("name",id)),detail])
+	for entry in client.disabled_providers():
+		var reason := str(entry.get("reason",""))
+		lines.append("%s — not queried (%s)" % [str(entry.get("name",entry.get("id",""))),reason if not reason.is_empty() else "disabled"])
+	if lines.is_empty():return "No site results yet."
+	return "\n".join(lines)
 func filtered_items() -> Array:
 	var result := []
 	var license_name := license_filter.get_item_text(license_filter.selected)
@@ -198,17 +270,21 @@ func filtered_items() -> Array:
 		if not selection.filter_key.is_empty() and selection.options(asset).is_empty():continue
 		result.append(asset)
 	return result
-func run_search() -> void:
-	if busy:return
-	serial+=1;thumbnail_queue.clear()
-	for child in grid.get_children():grid.remove_child(child);child.queue_free()
-	results_scroll.scroll_vertical=0
+func run_search(reset_scroll := true, reset_thumbnails := true, skip_if_same := false, announce := true) -> void:
+	if reset_thumbnails:serial+=1;thumbnail_queue.clear()
 	var items := filtered_items();var count := per_page.get_selected_id();var pages := maxi(1,ceili(float(items.size())/count))
 	page=clampi(page,1,pages);visible_assets=items.slice((page-1)*count,mini(items.size(),page*count))
-	for asset: Dictionary in visible_assets:grid.add_child(make_asset_tile(asset,serial))
+	var signature := []
+	for asset: Dictionary in visible_assets:signature.append(Selection.identity(asset))
+	var same := signature==visible_signature
+	visible_signature=signature
+	if not (skip_if_same and same):
+		for child in grid.get_children():grid.remove_child(child);child.queue_free()
+		for asset: Dictionary in visible_assets:grid.add_child(make_asset_tile(asset,serial))
+		if reset_scroll:results_scroll.scroll_vertical=0
 	page_label.text="Page %s · %s results%s" % [page,items.size()," · more available" if session.has_more() else ""]
 	previous.disabled=page<=1;next.disabled=page>=pages and not session.has_more()
-	status.text="%s assets on this page." % visible_assets.size() if not items.is_empty() else "No matching results."
+	if announce:status.text="%s assets on this page." % visible_assets.size() if not items.is_empty() else "No matching results."
 	update_actions()
 func update_filter_choices() -> void:
 	var selected_license := license_filter.get_item_text(license_filter.selected) if license_filter.selected>=0 else "Any license"
@@ -262,16 +338,16 @@ func clear_cache() -> void:
 	status.text="Cache cleared · %s freed." % Registry.format_size(freed)
 	if is_instance_valid(cache_dialog):cache_dialog.queue_free();cache_dialog=null
 func load_more(wanted: int) -> void:
-	busy=true;stopping=false;search_timed_out=false;search_generation+=1;_search_timeout.call_deferred(search_generation)
+	busy=true;stopping=false;search_generation+=1
 	client.network_allowed=true;client.refreshing=true;update_actions();status.text="Loading more results…"
 	var budget := session.items().size()+per_page.get_selected_id()
 	for _round in 100:
-		var result: Dictionary=await session.fetch_round()
-		if result.has("error") or not result.get("errors",[]).is_empty():break
+		var result: Dictionary=await session.fetch_round(PROVIDER_TIMEOUT)
+		if result.has("error"):break
 		if stopping or not session.has_more() or filtered_items().size()>wanted or session.items().size()>=budget:break
 	search_generation+=1
 	client.network_allowed=false;client.refreshing=false;busy=false;update_filter_choices()
-	if search_timed_out:status.text="Search timed out; showing loaded results."
+	status.tooltip_text=search_report()
 func next_page() -> void:
 	if busy:return
 	var wanted := page*per_page.get_selected_id()
@@ -282,7 +358,8 @@ func update_actions() -> void:
 	if not is_instance_valid(download):return
 	var jobs := selection.jobs(filtered_items()) if is_instance_valid(license_filter) else []
 	download.text="Download selected (%s)" % jobs.size();download.disabled=busy or jobs.is_empty()
-	stop_button.disabled=not busy;search_button.disabled=busy;delay.editable=not busy;search.editable=not busy;cache_button.disabled=busy
+	var can_search := not busy or searching
+	stop_button.disabled=not busy;search_button.disabled=not can_search;delay.editable=not busy;search.editable=can_search;cache_button.disabled=busy
 	for control in [sites,kind,price_filter,license_filter,policy_filter,version_filter,per_page]:control.disabled=busy
 	var eligible := visible_assets.filter(func(asset):return not selection.options(asset).is_empty() and client.can_download(asset))
 	check_all.disabled=busy or eligible.is_empty()

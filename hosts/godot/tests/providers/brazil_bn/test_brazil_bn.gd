@@ -106,6 +106,9 @@ func run() -> void:
 			hub.providers[p_id].enabled = false
 
 	var hub_provider: Provider = hub.providers["brazil_bn"]
+	# The site is off by default here, so the test turns it on like a user would.
+	hub_provider.enabled = true
+	hub_provider.network_allowed = true
 	var hub_mock := MockBrazilBNClient.new()
 	hub_provider.client.queue_free()
 	hub_provider.remove_child(hub_provider.client)

@@ -55,7 +55,8 @@ func run() -> void:
 	check(desc.name == "Europeana Collections", "Descriptor name is Europeana Collections")
 	check(desc.website.contains("europeana.eu"), "Website points to europeana.eu")
 	check(desc.capabilities.has("image") and desc.capabilities.has("material"), "Capabilities include image and material")
-	check(desc.key_env.is_empty(), "Europeana requires no API key")
+	check(desc.key_env == ["EUROPEANA_API_KEY"], "Europeana names the environment variable for its key")
+	check(provider.credential_status().length() > 0, "Europeana reports its credential state")
 
 	# 2. Attach mock transport
 	var mock_client := MockEuropeanaClient.new()
@@ -106,6 +107,9 @@ func run() -> void:
 			hub.providers[p_id].enabled = false
 
 	var hub_provider: Provider = hub.providers["europeana"]
+	# The site is off by default here, so the test turns it on like a user would.
+	hub_provider.enabled = true
+	hub_provider.network_allowed = true
 	var hub_mock := MockEuropeanaClient.new()
 	hub_provider.client.queue_free()
 	hub_provider.remove_child(hub_provider.client)

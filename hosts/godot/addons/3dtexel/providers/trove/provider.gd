@@ -18,22 +18,37 @@ func descriptor() -> Dictionary:
 		"id": "trove",
 		"name": "Trove Australia",
 		"website": "https://trove.nla.gov.au/",
-		"key_env": [],
+		"key_env": ["TROVE_API_KEY"],
 		"capabilities": ["image", "material", "files", "variants"]
 	}
 
 func sync_network() -> void:
 	client.network_allowed = network_allowed
 	client.refreshing = refreshing
+	client.api_key = api_key()
 
+var session_key := ""
+
+## The API only answers requests that carry a key, so the site stays out of
+## the default sweep until a key is present.
+func default_enabled() -> bool:return not api_key().is_empty()
+func disabled_reason() -> String:return "The API needs a key: set TROVE_API_KEY or paste a session key."
+
+## The key is read from the environment or from the session field in the
+## settings panel. It is never written to disk or to the catalogue.
 func api_key() -> String:
-	return ""
+	if not session_key.is_empty():
+		return session_key
+	return OS.get_environment("TROVE_API_KEY").strip_edges()
 
-func set_session_key(_value: String) -> void:
-	pass
+func set_session_key(value: String) -> void:
+	session_key = value.strip_edges()
+	sync_network()
 
 func credential_status() -> String:
-	return "No key required."
+	if not api_key().is_empty():
+		return "Key ready for Trove."
+	return "Needs TROVE_API_KEY in the environment or a session key."
 
 func can_download(asset: Dictionary) -> bool:
 	if not Importer.free_asset(asset):

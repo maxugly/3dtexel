@@ -5,6 +5,11 @@ extends Node
 const Cache = preload("res://addons/3dtexel/providers/europeana/cache.gd")
 
 var cache := Cache.new()
+## Europeana asks every call to carry a key. The environment key is used when
+## present; otherwise the public demo key keeps the site usable at its lower
+## rate limit. No account data is sent.
+var api_key := ""
+
 var network_allowed := false
 var refreshing := false
 var last_network_request_ms := -1000
@@ -109,6 +114,8 @@ func search(query: String = "", offset: int = 0, limit: int = 24) -> Dictionary:
 	var q := query.strip_edges()
 	var search_term := q if not q.is_empty() else "*"
 	var path := "/record/v2/search.json?query=" + search_term.uri_encode() + "&reusability=open&media=true&rows=" + str(limit) + "&start=" + str(offset + 1)
+	if not api_key.is_empty():
+		path += "&wskey=" + api_key.uri_encode()
 	return await json_request(path)
 
 func get_bytes(url: String, destination: String, max_bytes: int, redirects_left := 5) -> Dictionary:

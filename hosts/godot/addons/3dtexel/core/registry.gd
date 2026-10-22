@@ -27,13 +27,23 @@ func register_provider(provider: Node) -> Error:
 	var id := str(provider.descriptor().get("id",""))
 	if id.is_empty() or not id.is_valid_identifier() or providers.has(id):provider.free();return ERR_INVALID_PARAMETER
 	providers[id]=provider;add_child(provider)
-	provider.enabled=bool(ProjectSettings.get_setting("asset_browser/providers/"+id+"/enabled",true))
+	var fallback: bool = provider.default_enabled() if provider.has_method("default_enabled") else true
+	provider.enabled=bool(ProjectSettings.get_setting("asset_browser/providers/"+id+"/enabled",fallback))
 	provider.network_allowed=network_allowed and provider.enabled
 	return OK
 func set_enabled(id: String,value: bool) -> void:
 	var provider: Node=providers[id];provider.enabled=value;provider.network_allowed=network_allowed and value
 	if not value:provider.cancel_all()
 	ProjectSettings.set_setting("asset_browser/providers/"+id+"/enabled",value);ProjectSettings.save()
+## Providers that are switched off by default, with the reason they give.
+func disabled_providers() -> Array:
+	var result: Array=[]
+	for id in providers:
+		var provider: Node=providers[id]
+		if provider.enabled:continue
+		var reason := str(provider.disabled_reason()) if provider.has_method("disabled_reason") else ""
+		result.append({"id":str(id),"name":str(provider.descriptor().get("name",id)),"reason":reason})
+	return result
 func active_ids() -> Array:
 	var result := []
 	for id in providers:
@@ -41,11 +51,11 @@ func active_ids() -> Array:
 	return result
 func provider_for(asset: Dictionary) -> Node:
 	return providers.get(str(asset.get("provider_id","")))
-func index_assets(items: Array) -> void:
+func index_assets(items: Array, save := true) -> void:
 	for asset: Dictionary in items:
 		var policy := Policy.evaluate(asset)
 		asset.license_status=policy.status;asset.license_reason=policy.reason;catalog.upsert(asset)
-	catalog.save()
+	if save:catalog.save()
 func seed(output: String) -> void:
 	inventory.scan(output)
 	# Legacy import discovery is optional and belongs to its adapter.
@@ -70,7 +80,18 @@ func can_download(asset: Dictionary) -> bool:
 func thumbnail(url: String,asset: Dictionary) -> Texture2D:
 	var provider := provider_for(asset)
 	if not provider or not provider.enabled:return null
+	allow_thumbnail(provider,url)
 	return await provider.thumbnail(url)
+## Thumbnails are part of rendering an already authorised search result, so the
+## exact requested URL is allow-listed on the provider client. Without this the
+## per-URL allow list stays empty and every grid tile renders blank once the
+## search that produced it has finished.
+func allow_thumbnail(provider: Node,url: String) -> void:
+	if url.is_empty():return
+	var provider_client: Variant=provider.get("client")
+	if provider_client == null:return
+	if not "allowed_thumbnails" in provider_client:return
+	provider_client.allowed_thumbnails[url]=true
 func cancel_all() -> void:
 	for provider in providers.values():provider.cancel_all()
 func cache_roots() -> Array[String]:

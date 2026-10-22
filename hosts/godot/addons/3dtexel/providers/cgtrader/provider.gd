@@ -28,6 +28,11 @@ func sync_network() -> void:
 	client.refreshing = refreshing
 	client.api_token = api_key()
 
+## The API only answers requests that carry a key, so the site stays out of
+## the default sweep until a key is present.
+func default_enabled() -> bool:return not api_key().is_empty()
+func disabled_reason() -> String:return "The API needs a key: set CGTRADER_API_TOKEN or paste a session key."
+
 func api_key() -> String:
 	if not session_token.is_empty():
 		return session_token

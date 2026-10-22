@@ -5,6 +5,9 @@ extends Node
 const Cache = preload("res://addons/3dtexel/providers/trove/cache.gd")
 
 var cache := Cache.new()
+## The key sent with the request. Empty means the call is not authorized.
+var api_key := ""
+
 var network_allowed := false
 var refreshing := false
 var last_network_request_ms := -1000
@@ -110,6 +113,8 @@ func search(query: String = "", offset: int = 0, limit: int = 24) -> Dictionary:
 	var path := "/v3/result?category=image&l-availability=y&s=" + str(offset) + "&n=" + str(limit)
 	if not q.is_empty():
 		path += "&q=" + q.uri_encode()
+	if not api_key.is_empty():
+		path += "&key=" + api_key.uri_encode()
 	return await json_request(path)
 
 func get_bytes(url: String, destination: String, max_bytes: int, redirects_left := 5) -> Dictionary:

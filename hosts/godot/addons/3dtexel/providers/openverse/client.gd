@@ -28,6 +28,9 @@ func pace_request() -> void:
 
 func search(query := "", category := "image", page := 1, page_size := 24) -> Dictionary:
 	var media_path := "audio" if category == "audio" else "images"
+	# Anonymous requests are capped at twenty records per page; asking for more
+	# is answered with a 401 that only says the page size is too large.
+	page_size = clampi(page_size, 1, 20)
 	var endpoint := "%s/v1/%s/?page=%d&page_size=%d" % [BASE_URL, media_path, page, page_size]
 	var q := query.strip_edges()
 	if not q.is_empty():

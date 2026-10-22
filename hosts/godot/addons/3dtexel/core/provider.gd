@@ -5,6 +5,11 @@ var enabled := true
 var network_allowed := false
 var refreshing := false
 
+## Providers whose host cannot be queried programmatically (WAF blocks, retired
+## services, dead domains) opt out of the default sweep and say why. A user can
+## still enable them by hand from the site list.
+func default_enabled() -> bool:return true
+func disabled_reason() -> String:return ""
 func descriptor() -> Dictionary:
 	return {"id":"","name":"","website":"","key_env":[],"capabilities":[]}
 func api_key() -> String:return ""

@@ -26,6 +26,11 @@ func sync_network() -> void:
 	client.network_allowed = network_allowed
 	client.refreshing = refreshing
 
+## The API only answers requests that carry a key, so the site stays out of
+## the default sweep until a key is present.
+func default_enabled() -> bool:return not api_key().is_empty()
+func disabled_reason() -> String:return "The API needs a key: set FREESOUND_API_KEY or paste a session key."
+
 func api_key() -> String:
 	return client.api_key()
 

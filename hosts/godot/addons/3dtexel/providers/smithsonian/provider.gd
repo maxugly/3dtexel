@@ -28,6 +28,11 @@ func sync_network() -> void:
 	client.refreshing = refreshing
 	client.api_token = api_key()
 
+## This site cannot be queried from here, so it stays out of the default sweep
+## and says why. A user can still turn it on from the site list.
+func default_enabled() -> bool:return false
+func disabled_reason() -> String:return "The host rejects automated requests from this network (HTTP 403)."
+
 func api_key() -> String:
 	if not session_token.is_empty():
 		return session_token

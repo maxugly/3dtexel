@@ -57,6 +57,10 @@ func run() -> void:
 	check(desc.capabilities.has("image") and desc.capabilities.has("material"), "Capabilities include image and material")
 	check(desc.key_env.is_empty(), "Met Museum requires no API key")
 
+	# 1b. Endpoints: search moved to v1.1 (v1 answers 410), objects stay on v1
+	check(Client.SEARCH_PATH.contains("/public/collection/v1.1/search"), "Search endpoint is the live v1.1 path")
+	check(Client.OBJECT_PATH.contains("/public/collection/v1/objects/"), "Object endpoint stays on v1")
+
 	# 2. Attach mock transport
 	var mock_client := MockMetMuseumClient.new()
 	provider.client.queue_free()

@@ -55,7 +55,8 @@ func run() -> void:
 	check(desc.name == "Biodiversity Heritage Library", "Descriptor name is Biodiversity Heritage Library")
 	check(desc.website.contains("biodiversitylibrary.org"), "Website points to biodiversitylibrary.org")
 	check(desc.capabilities.has("image") and desc.capabilities.has("material"), "Capabilities include image and material")
-	check(desc.key_env.is_empty(), "BHL requires no API key")
+	check(desc.key_env == ["BHL_API_KEY"], "BHL names the environment variable for its key")
+	check(provider.default_enabled() == not provider.api_key().is_empty(), "BHL waits for a key before joining a sweep")
 
 	# 2. Attach mock transport
 	var mock_client := MockBHLClient.new()
@@ -106,6 +107,9 @@ func run() -> void:
 			hub.providers[p_id].enabled = false
 
 	var hub_provider: Provider = hub.providers["bhl"]
+	# The site is off by default here, so the test turns it on like a user would.
+	hub_provider.enabled = true
+	hub_provider.network_allowed = true
 	var hub_mock := MockBHLClient.new()
 	hub_provider.client.queue_free()
 	hub_provider.remove_child(hub_provider.client)
