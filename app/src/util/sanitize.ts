@@ -1,5 +1,5 @@
 const SECRET_KEY = /(^|_)(api[_-]?key|apikey|authorization|auth|token|access[_-]?token|refresh[_-]?token|secret|password|passwd|signature|credential|credentials|cookie|session)(_|$)/i;
-const SENSITIVE_QUERY = /^(api[_-]?key|apikey|key|token|access[_-]?token|auth|authorization|signature|sig|expires|expiry|x-amz-|x-goog-|policy|credential|password|secret|session)$/i;
+const SENSITIVE_QUERY = /^(api[_-]?key|apikey|key|token|access[_-]?token|auth|authorization|signature|sig|expires|expiry|x-amz-|x-goog-|policy|credential|password|secret|session|key[_-]?pair[_-]?id)$/i;
 
 export function isSensitiveKey(key: string): boolean {
   return SECRET_KEY.test(key);
@@ -88,7 +88,7 @@ export function sanitizeRecord(value: unknown): Record<string, unknown> {
 export function redactMessage(value: string): string {
   return value
     .replace(/Bearer\s+[A-Za-z0-9._~+/=-]+/gi, "Bearer [redacted]")
-    .replace(/([?&](?:api[_-]?key|token|key|signature|sig|expires)=)[^&\s]+/gi, "$1[redacted]")
+    .replace(/([?&](?:api[_-]?key|token|key|signature|sig|expires|key-pair-id)=)[^&\s]+/gi, "$1[redacted]")
     .replace(/(3DTEXEL_API_KEY|TEXEL_API_KEY|TEXEL|ASSET_LIBRARY_TOKEN)=([^\s]+)/g, "$1=[redacted]")
     .slice(0, 1000);
 }
@@ -97,6 +97,9 @@ export function assertHttpsUrl(value: string): string {
   const parsed = new URL(value);
   if (parsed.protocol !== "https:") {
     throw new Error("Only HTTPS URLs are supported.");
+  }
+  if (parsed.username || parsed.password) {
+    throw new Error("URLs with user information are not supported.");
   }
   return value;
 }

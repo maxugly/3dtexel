@@ -4,6 +4,8 @@ import path from "node:path";
 import test from "node:test";
 import { createLibrary } from "../src/index.js";
 import type { Asset } from "../src/types.js";
+import { ensureAllowedFilename } from "../src/util/fs.js";
+import { assertHttpsUrl } from "../src/util/sanitize.js";
 import {
   FakeHttp,
   fixtureJsonSync,
@@ -110,6 +112,13 @@ test("library search, plan, download, credits, reuse, and policy refusal", async
     await library.close();
     await temporary.cleanup();
   }
+});
+
+test("provider filenames cannot overwrite sidecars and userinfo URLs are refused", () => {
+  assert.throws(() => ensureAllowedFilename("import_receipt.json"), /Reserved sidecar/);
+  assert.throws(() => ensureAllowedFilename("photo.credits.json"), /Reserved sidecar/);
+  assert.throws(() => assertHttpsUrl("https://user:pass@example.com/file.zip"), /user information/);
+  assert.equal(assertHttpsUrl("https://example.com/file.zip?download=1"), "https://example.com/file.zip?download=1");
 });
 
 test("downloadMany reports independent failures and keeps zero-credit policy", async () => {

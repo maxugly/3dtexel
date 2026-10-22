@@ -31,7 +31,7 @@ import {
   slug,
   writeJsonAtomic
 } from "./util/fs.js";
-import { assertHttpsUrl } from "./util/sanitize.js";
+import { assertHttpsUrl, sanitizeUrl } from "./util/sanitize.js";
 
 export interface DownloadServiceOptions {
   config: RuntimeConfig;
@@ -160,9 +160,19 @@ export class DownloadService {
 
     const warnings = this.warningsFor(detailed, variant, plan.variant);
     if (plan.kind === "material") {
-      return this.downloadMaterial(provider, detailed, plan, folder, requestedVariant ?? variant, warnings, signal);
+      try {
+        return await this.downloadMaterial(provider, detailed, plan, folder, requestedVariant ?? variant, warnings, signal);
+      } catch (error) {
+        await removeTree(folder).catch(() => undefined);
+        throw error;
+      }
     }
-    return this.downloadFiles(provider, detailed, plan, folder, requestedVariant ?? variant, warnings, signal);
+    try {
+      return await this.downloadFiles(provider, detailed, plan, folder, requestedVariant ?? variant, warnings, signal);
+    } catch (error) {
+      await removeTree(folder).catch(() => undefined);
+      throw error;
+    }
   }
 
   async downloadMany(jobs: ImportJob[], signal?: AbortSignal): Promise<DownloadManyResult> {
@@ -522,8 +532,21 @@ export class DownloadService {
   private publicPlan(plan: import("./types.js").DownloadPlan): import("./types.js").DownloadPlan {
     const copy = structuredClone(plan);
     copy.asset = publicAsset(copy.asset);
-    if (copy.kind === "files") {
-      copy.files = copy.files.map((file) => ({ ...file }));
+    if (copy.kind === "material") {
+      const maps: Partial<Record<MaterialRole, MaterialSource>> = {};
+      for (const role of MATERIAL_ROLES) {
+        const source = copy.maps[role];
+        const url = source ? sanitizeUrl(source.url) : undefined;
+        if (url) {
+          maps[role] = { ...source, url };
+        }
+      }
+      copy.maps = maps;
+    } else {
+      copy.files = copy.files.flatMap((file) => {
+        const url = sanitizeUrl(file.url);
+        return url ? [{ ...file, url }] : [];
+      });
     }
     return copy;
   }

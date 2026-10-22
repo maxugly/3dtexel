@@ -82,6 +82,15 @@ export function safeFilename(value: string, fallback = "asset.bin"): string {
   return base;
 }
 
+const RESERVED_FILENAMES = new Set([
+  ".gdignore",
+  "asset.credits.json",
+  "files.json",
+  "import_receipt.json",
+  "material.credits.json",
+  "provenance.json"
+]);
+
 const ALLOWED_EXTENSIONS = new Set([
   "7z", "abc", "bin", "blend", "bmp", "csv", "dae", "dds", "exr", "fbx", "flac", "gif",
   "glb", "gltf", "gz", "hdr", "ico", "jpeg", "jpg", "json", "ktx", "ktx2", "m4a", "md",
@@ -105,6 +114,10 @@ export function ensureAllowedFilename(filename: string): string {
   }
   if (!isAllowedExtension(safe)) {
     throw new Error(`Unsupported file extension: ${JSON.stringify(path.extname(safe))}`);
+  }
+  const lowered = safe.toLowerCase();
+  if (RESERVED_FILENAMES.has(lowered) || lowered.endsWith(".credits.json")) {
+    throw new Error(`Reserved sidecar filename from provider: ${JSON.stringify(filename)}`);
   }
   return safe;
 }

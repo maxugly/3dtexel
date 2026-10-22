@@ -1,4 +1,5 @@
 import path from "node:path";
+import { publicAsset } from "./asset.js";
 import { Catalog } from "./catalog.js";
 import type { RuntimeConfig, RuntimeConfigInput } from "./config.js";
 import { resolveConfig } from "./config.js";
@@ -133,7 +134,7 @@ export class AssetLibrary {
       this.catalog.upsert(asset);
       await this.catalog.flush();
     }
-    return { asset, variants: provider.variants(asset) };
+    return { asset: publicAsset(asset), variants: provider.variants(asset) };
   }
 
   async variants(providerId: string, assetId: string, options: { refresh?: boolean; signal?: AbortSignal } = {}): Promise<AssetDetail> {

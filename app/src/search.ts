@@ -7,6 +7,7 @@ import type {
   SearchResponse,
   SearchPage
 } from "./types.js";
+import { publicAsset } from "./asset.js";
 import { qualifiedKey } from "./catalog.js";
 
 interface SearchCacheEntry {
@@ -113,7 +114,7 @@ export class SearchService {
           && (category === "all" || asset.type === category)
           && (!options.free_only || asset.price.free)
           && (!options.license || matchesLicense(asset, options.license))
-        );
+        ).map(publicAsset);
         this.catalog.upsertMany(items);
         return filtered;
       } catch (error) {
