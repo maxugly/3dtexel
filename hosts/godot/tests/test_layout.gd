@@ -11,7 +11,11 @@ func run():
 	var editor_host := VBoxContainer.new();editor_host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);root.add_child(editor_host)
 	var browser := Browser.new();editor_host.add_child(browser)
 	await settle()
-	check(browser.cache_button!=null and browser.cache_button.text.begins_with("Cache "),"Cache size control is visible")
+	check(not browser.seeded,"Import scan is lazy until the first search")
+	check(browser.cache_button!=null and browser.cache_button.text.begins_with("Cache"),"Cache size control is visible")
+	check(browser.cache_button.text=="Cache","Cache size is lazy until the browser is shown")
+	browser.hide();browser.show();await settle()
+	check(browser.cache_button.text.begins_with("Cache "),"Cache size loads when the browser becomes visible")
 	browser.confirm_clear_cache()
 	check(browser.cache_dialog!=null,"Clearing the cache asks for confirmation")
 	browser.cache_dialog.queue_free();browser.cache_dialog=null

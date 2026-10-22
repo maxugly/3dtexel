@@ -57,6 +57,7 @@ var audit_lic_copyleft: CheckBox
 var audit_lic_custom: CheckBox
 var audit_status_label: Label
 var last_audit_data := {}
+var seeded := false
 func button(text: String,action: Callable,parent: Node) -> Button:
 	var item := Button.new();item.text=text;item.pressed.connect(action);parent.add_child(item);return item
 func label(text: String,parent: Node) -> Label:
@@ -106,12 +107,13 @@ func _ready() -> void:
 	per_page.item_selected.connect(change_page_size)
 	page_label=label("",pages);page_label.size_flags_horizontal=Control.SIZE_EXPAND_FILL;page_label.clip_text=true
 	next=button("Next →",next_page,pages)
-	cache_button=Button.new();cache_button.flat=true;cache_button.focus_mode=Control.FOCUS_NONE;cache_button.size_flags_horizontal=Control.SIZE_SHRINK_END;cache_button.add_theme_font_size_override("font_size",11);cache_button.pressed.connect(confirm_clear_cache);pages.add_child(cache_button)
+	cache_button=Button.new();cache_button.text="Cache";cache_button.flat=true;cache_button.focus_mode=Control.FOCUS_NONE;cache_button.size_flags_horizontal=Control.SIZE_SHRINK_END;cache_button.add_theme_font_size_override("font_size",11);cache_button.pressed.connect(confirm_clear_cache);pages.add_child(cache_button)
 	progress=ProgressBar.new();progress.custom_minimum_size.y=6;progress.show_percentage=false;content.add_child(progress)
 	status=label("Search for assets to begin.",content);status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-	client.seed(output.text)
-	update_filter_choices();update_actions();update_cache_label()
-	resized.connect(update_layout);results_scroll.resized.connect(update_layout);call_deferred("update_layout")
+	update_filter_choices();update_actions()
+	resized.connect(update_layout);results_scroll.resized.connect(update_layout);visibility_changed.connect(func():
+		if visible:call_deferred("update_cache_label"))
+	call_deferred("update_layout")
 func build_settings() -> void:
 	var row := HFlowContainer.new();settings_panel.add_child(row)
 	label("Save to:",row);output=LineEdit.new();output.text=str(ProjectSettings.get_setting("asset_browser/output_directory",ProjectSettings.get_setting("3dtexel/output_directory","res://AssetLibrary")));output.custom_minimum_size.x=230;row.add_child(output)
@@ -150,8 +152,13 @@ func rebuild_sites() -> void:
 		sites.add_item(str(client.providers[id].descriptor().name));sites.set_item_metadata(sites.item_count-1,id)
 		if scope==id:sites.select(sites.item_count-1)
 	client.scope=str(sites.get_item_metadata(sites.selected))
+func ensure_seeded() -> void:
+	if seeded:return
+	seeded=true
+	client.seed(output.text)
 func start_search() -> void:
 	if busy:return
+	ensure_seeded()
 	await refresh_search()
 func refresh_search() -> void:
 	if busy:return
