@@ -1,0 +1,47 @@
+{
+  "total": 2,
+  "page": 1,
+  "limit": 24,
+  "results": [
+    {
+      "id": "sonniss_heavy_weapon_reload",
+      "slug": "sonniss_heavy_weapon_reload",
+      "name": "Heavy Weapon Reload Mechanism",
+      "author": "SoundMorph",
+      "designer": "SoundMorph",
+      "category": "Weapons & Mechanical",
+      "collection": "GDC 2020 Audio Bundle",
+      "year": "2020",
+      "description": "Heavy mechanical weapon latch, chamber slide and magazine insertion sound effects.",
+      "url": "https://sonniss.com/gameaudiogdc#heavy_weapon",
+      "thumbnail": "https://cdn.sonniss.com/gdc/previews/weapon_thumb.png",
+      "audio_url": "https://cdn.sonniss.com/gdc/audio/weapon_reload.wav",
+      "files": {
+        "wav": "https://cdn.sonniss.com/gdc/audio/weapon_reload.wav",
+        "ogg": "https://cdn.sonniss.com/gdc/audio/weapon_reload.ogg",
+        "mp3": "https://cdn.sonniss.com/gdc/audio/weapon_reload.mp3"
+      },
+      "tags": ["weapon", "reload", "gun", "mechanical", "foley"]
+    },
+    {
+      "id": "sonniss_dungeon_ambient_loop",
+      "slug": "sonniss_dungeon_ambient_loop",
+      "name": "Subterranean Dungeon Cave Ambience",
+      "author": "Detunized",
+      "designer": "Detunized",
+      "category": "Ambience & Environments",
+      "collection": "GDC 2022 Audio Bundle",
+      "year": "2022",
+      "description": "Dark underground cave drone with distant water droplets and low resonant air rumble.",
+      "url": "https://sonniss.com/gameaudiogdc#dungeon_cave",
+      "thumbnail": "https://cdn.sonniss.com/gdc/previews/dungeon_thumb.png",
+      "audio_url": "https://cdn.sonniss.com/gdc/audio/dungeon_cave.wav",
+      "files": {
+        "wav": "https://cdn.sonniss.com/gdc/audio/dungeon_cave.wav",
+        "ogg": "https://cdn.sonniss.com/gdc/audio/dungeon_cave.ogg",
+        "mp3": "https://cdn.sonniss.com/gdc/audio/dungeon_cave.mp3"
+      },
+      "tags": ["dungeon", "ambience", "cave", "drone", "water"]
+    }
+  ]
+}

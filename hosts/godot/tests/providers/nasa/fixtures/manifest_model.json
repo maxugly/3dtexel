@@ -1,0 +1,17 @@
+{
+  "collection": {
+    "version": "1.0",
+    "href": "https://images-api.nasa.gov/asset/curiosity_rover_3d",
+    "items": [
+      {
+        "href": "https://images-assets.nasa.gov/model/curiosity_rover_3d/curiosity_rover.glb"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/model/curiosity_rover_3d/curiosity_rover_obj.zip"
+      },
+      {
+        "href": "https://images-assets.nasa.gov/model/curiosity_rover_3d/curiosity_rover_3d~thumb.png"
+      }
+    ]
+  }
+}

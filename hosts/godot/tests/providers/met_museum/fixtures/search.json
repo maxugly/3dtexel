@@ -1,0 +1,48 @@
+{
+  "total": 2,
+  "items": [
+    {
+      "objectID": 436535,
+      "title": "Wheat Field with Cypresses",
+      "artistDisplayName": "Vincent van Gogh",
+      "objectDate": "1889",
+      "medium": "Oil on canvas",
+      "isPublicDomain": true,
+      "objectURL": "https://www.metmuseum.org/art/collection/search/436535",
+      "primaryImage": "https://images.metmuseum.org/CRDImages/ep/original/DT1567.jpg",
+      "primaryImageSmall": "https://images.metmuseum.org/CRDImages/ep/web-large/DT1567.jpg",
+      "tags": ["post-impressionism", "cypresses", "landscape", "van gogh"],
+      "files": [
+        {
+          "filename": "van_gogh_wheat_field_orig.jpg",
+          "resolution": "orig",
+          "url": "https://images.metmuseum.org/CRDImages/ep/original/DT1567.jpg"
+        },
+        {
+          "filename": "van_gogh_wheat_field_small.jpg",
+          "resolution": "small",
+          "url": "https://images.metmuseum.org/CRDImages/ep/web-large/DT1567.jpg"
+        }
+      ]
+    },
+    {
+      "objectID": 437372,
+      "title": "Aristotle with a Bust of Homer",
+      "artistDisplayName": "Rembrandt (Rembrandt van Rijn)",
+      "objectDate": "1653",
+      "medium": "Oil on canvas",
+      "isPublicDomain": true,
+      "objectURL": "https://www.metmuseum.org/art/collection/search/437372",
+      "primaryImage": "https://images.metmuseum.org/CRDImages/ep/original/DP145906.jpg",
+      "primaryImageSmall": "https://images.metmuseum.org/CRDImages/ep/web-large/DP145906.jpg",
+      "tags": ["dutch golden age", "rembrandt", "philosophy", "portrait"],
+      "files": [
+        {
+          "filename": "rembrandt_aristotle_orig.jpg",
+          "resolution": "orig",
+          "url": "https://images.metmuseum.org/CRDImages/ep/original/DP145906.jpg"
+        }
+      ]
+    }
+  ]
+}

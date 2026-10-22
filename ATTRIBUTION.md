@@ -335,4 +335,38 @@ are made available via https://www.mkg-hamburg.de/ under Creative Commons CC0 1.
 provider adapter is an independent implementation under the MIT license and is not affiliated with or endorsed
 by Museum für Kunst und Gewerbe Hamburg.
 
+Freesound community sound effects, ambient loops, and audio recordings are made available via
+https://freesound.org/ under Creative Commons Zero (CC0) and Creative Commons Attribution (CC-BY)
+provisions. The Freesound provider adapter is an independent implementation under the MIT license and is
+not affiliated with or endorsed by Universitat Pompeu Fabra or Freesound.
 
+Sonniss GDC royalty-free sound effects archives and game audio releases are made available via
+https://sonniss.com/gameaudiogdc/ under the Sonniss GDC Royalty-Free Game Audio License. The Sonniss
+provider adapter is an independent implementation under the MIT license and is not affiliated with or
+endorsed by Sonniss.
+
+LibriVox public domain audiobook recordings, poetry readings, and spoken literature are made available
+via https://librivox.org/ under Public Domain Mark 1.0 provisions. The LibriVox provider adapter is an
+independent implementation under the MIT license and is not affiliated with or endorsed by LibriVox.
+
+Mixkit royalty-free sound effects and game UI audio are made available via https://mixkit.co/ under
+the Mixkit Free License. The Mixkit provider adapter is an independent implementation under the MIT license
+and is not affiliated with or endorsed by Mixkit or Envato.
+
+Openverse open-access search engine indexing CC-licensed and public domain media is provided by the
+WordPress Foundation via https://openverse.org/ under Creative Commons and Public Domain provisions.
+The Openverse provider adapter is an independent implementation under the MIT license and is not affiliated
+with or endorsed by the WordPress Foundation or Openverse.
+
+Public Work public domain visual search engine media is made available via https://public.work/ under
+Public Domain Mark 1.0 provisions. The Public Work provider adapter is an independent implementation under
+the MIT license and is not affiliated with or endorsed by Public Work or Cosmos.
+
+Public Domain Image Archive (PDIA) hand-curated cultural heritage artworks and historic plates are made
+available via https://pdimagearchive.org/ under Public Domain Mark 1.0 provisions. The PDIA provider adapter
+is an independent implementation under the MIT license and is not affiliated with or endorsed by PDIA.
+
+Picryl public domain historical photographs, military records, patents, and archives are made available
+via https://picryl.com/ by GetArchive LLC under Public Domain Mark 1.0 / CC0 provisions. The Picryl provider
+adapter is an independent implementation under the MIT license and is not affiliated with or endorsed by
+GetArchive LLC.

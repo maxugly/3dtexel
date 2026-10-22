@@ -1,0 +1,46 @@
+{
+  "result_count": 2,
+  "page_count": 1,
+  "page_size": 24,
+  "results": [
+    {
+      "id": "e302ba7c-54a8-4c07-b359-9da8c92a2a0e",
+      "title": "Ancient Olive Tree Grove",
+      "creator": "Flickr Commons Contributor",
+      "creator_url": "https://www.flickr.com/photos/olivegrove",
+      "tags": [
+        {"name": "tree"},
+        {"name": "nature"},
+        {"name": "landscape"}
+      ],
+      "url": "https://live.staticflickr.com/65535/51234567890_max.jpg",
+      "thumbnail": "https://live.staticflickr.com/65535/51234567890_thumb.jpg",
+      "foreign_landing_url": "https://www.flickr.com/photos/olivegrove/51234567890",
+      "license": "cc0",
+      "license_version": "1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "provider": "flickr",
+      "source": "flickr"
+    },
+    {
+      "id": "a904bc12-11a2-4d08-c123-1ea8c92b3b1f",
+      "title": "Canyon River Echo Ambience",
+      "creator": "field_recordist",
+      "creator_url": "https://freesound.org/people/field_recordist",
+      "tags": [
+        {"name": "river"},
+        {"name": "water"},
+        {"name": "echo"}
+      ],
+      "url": "https://cdn.freesound.org/previews/100/100123_hq.mp3",
+      "thumbnail": "https://cdn.freesound.org/displays/100/100123_wave.png",
+      "foreign_landing_url": "https://freesound.org/s/100123/",
+      "license": "by",
+      "license_version": "4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "provider": "freesound",
+      "source": "freesound",
+      "media_type": "audio"
+    }
+  ]
+}

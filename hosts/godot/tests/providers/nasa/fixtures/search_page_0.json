@@ -1,0 +1,106 @@
+{
+  "collection": {
+    "version": "1.0",
+    "href": "https://images-api.nasa.gov/search?q=earth&media_type=image,audio,3d&page=1",
+    "metadata": {
+      "total_hits": 150
+    },
+    "items": [
+      {
+        "href": "https://images-api.nasa.gov/asset/as17-148-22727",
+        "data": [
+          {
+            "center": "JSC",
+            "title": "The Blue Marble (Apollo 17)",
+            "nasa_id": "as17-148-22727",
+            "date_created": "1972-12-07T00:00:00Z",
+            "keywords": ["Earth", "Blue Marble", "Apollo 17"],
+            "media_type": "image",
+            "description": "View of the Earth as seen by the Apollo 17 crew traveling toward the Moon.",
+            "photographer": "Eugene Cernan, Ronald Evans, Harrison Schmitt"
+          }
+        ],
+        "links": [
+          {
+            "href": "https://images-assets.nasa.gov/image/as17-148-22727/as17-148-22727~thumb.jpg",
+            "rel": "preview",
+            "render": "image"
+          }
+        ]
+      },
+      {
+        "href": "https://images-api.nasa.gov/asset/PIA12345",
+        "data": [
+          {
+            "center": "JPL",
+            "title": "Mars Global Surface Texture",
+            "nasa_id": "PIA12345",
+            "date_created": "2020-05-10T00:00:00Z",
+            "keywords": ["Mars", "Texture", "Surface"],
+            "media_type": "image",
+            "description": "Global mosaic texture map of Mars.",
+            "secondary_creator": "NASA/JPL-Caltech"
+          }
+        ],
+        "links": [
+          {
+            "href": "https://images-assets.nasa.gov/image/PIA12345/PIA12345~thumb.jpg",
+            "rel": "preview",
+            "render": "image"
+          }
+        ]
+      },
+      {
+        "href": "https://images-api.nasa.gov/asset/apollo11_eagle",
+        "data": [
+          {
+            "center": "HQ",
+            "title": "Apollo 11: The Eagle Has Landed",
+            "nasa_id": "apollo11_eagle",
+            "date_created": "1969-07-20T20:17:40Z",
+            "keywords": ["Apollo 11", "Moon", "Audio", "Eagle", "Mission Control"],
+            "media_type": "audio",
+            "description": "Historic transmission: Houston, Tranquility Base here. The Eagle has landed.",
+            "photographer": "Neil Armstrong"
+          }
+        ],
+        "links": [
+          {
+            "href": "https://images-assets.nasa.gov/audio/apollo11_eagle/apollo11_eagle~thumb.png",
+            "rel": "preview",
+            "render": "image"
+          }
+        ]
+      },
+      {
+        "href": "https://images-api.nasa.gov/asset/curiosity_rover_3d",
+        "data": [
+          {
+            "center": "JPL",
+            "title": "Curiosity Mars Rover 3D Model",
+            "nasa_id": "curiosity_rover_3d",
+            "date_created": "2012-08-06T00:00:00Z",
+            "keywords": ["Curiosity", "Mars", "Rover", "3D", "Model"],
+            "media_type": "3d",
+            "description": "Full scale 3D model of the Mars Science Laboratory Curiosity Rover.",
+            "secondary_creator": "NASA/JPL-Caltech"
+          }
+        ],
+        "links": [
+          {
+            "href": "https://images-assets.nasa.gov/model/curiosity_rover_3d/curiosity_rover_3d~thumb.png",
+            "rel": "preview",
+            "render": "image"
+          }
+        ]
+      }
+    ],
+    "links": [
+      {
+        "rel": "next",
+        "prompt": "Next",
+        "href": "https://images-api.nasa.gov/search?q=earth&media_type=image,audio,3d&page=2"
+      }
+    ]
+  }
+}

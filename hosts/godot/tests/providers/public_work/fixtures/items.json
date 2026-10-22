@@ -1,0 +1,37 @@
+{
+  "total": 2,
+  "items": [
+    {
+      "id": "pw_botanical_fern_study",
+      "title": "Fern Fronds Botanical Plate",
+      "artist": "Anna Atkins",
+      "creator": "Anna Atkins (British, 1799 - 1871)",
+      "institution": "British Library",
+      "medium": "Cyanotype photograph",
+      "period": "Victorian",
+      "url": "https://public.work/item/anna-atkins-ferns",
+      "thumbnail": "https://cdn.public.work/thumb/anna_atkins_ferns.jpg",
+      "image_url": "https://cdn.public.work/images/anna_atkins_ferns_max.jpg",
+      "high_res_url": "https://cdn.public.work/images/anna_atkins_ferns_orig.jpg",
+      "medium_res_url": "https://cdn.public.work/images/anna_atkins_ferns_2048.jpg",
+      "low_res_url": "https://cdn.public.work/images/anna_atkins_ferns_1024.jpg",
+      "tags": ["botany", "cyanotype", "ferns", "nature", "leaves"]
+    },
+    {
+      "id": "pw_celestial_planisphere",
+      "title": "Celestial Planisphere and Constellations",
+      "artist": "Andreas Cellarius",
+      "creator": "Andreas Cellarius (Dutch/German, 1596 - 1665)",
+      "institution": "Universiteit van Amsterdam",
+      "medium": "Copperplate hand-colored engraving",
+      "period": "Golden Age",
+      "url": "https://public.work/item/cellarius-planisphere",
+      "thumbnail": "https://cdn.public.work/thumb/cellarius_planisphere.jpg",
+      "image_url": "https://cdn.public.work/images/cellarius_planisphere_max.jpg",
+      "high_res_url": "https://cdn.public.work/images/cellarius_planisphere_orig.jpg",
+      "medium_res_url": "https://cdn.public.work/images/cellarius_planisphere_2048.jpg",
+      "low_res_url": "https://cdn.public.work/images/cellarius_planisphere_1024.jpg",
+      "tags": ["astronomy", "celestial", "constellations", "stars", "map"]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "oak_floor_01",
+  "title": "Oak Floor 01",
+  "thumbnail": "https://cdn.3dtexel.com/thumbs/oak_floor_01.jpg",
+  "description": "Seamless oak plank floor material.",
+  "url": "https://3dtexel.com/product/oak_floor_01/",
+  "license": "CC0",
+  "price": { "free": true, "credits": 0 },
+  "authors": [{ "name": "3D Texel" }],
+  "resolutions": ["1k", "2k", "4k"]
+}

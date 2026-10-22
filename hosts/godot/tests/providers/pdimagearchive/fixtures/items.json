@@ -1,0 +1,35 @@
+{
+  "total": 2,
+  "images": [
+    {
+      "id": "pdia_alchemical_manuscript",
+      "title": "Alchemical Flask and Splendor Solis",
+      "artist": "Salomon Trismosin",
+      "source_institution": "British Library",
+      "category": "Manuscripts",
+      "medium": "Illuminated vellum manuscript",
+      "url": "https://pdimagearchive.org/entry/splendor-solis-flask",
+      "thumbnail": "https://cdn.pdimagearchive.org/thumbs/splendor_solis.jpg",
+      "image_url": "https://cdn.pdimagearchive.org/max/splendor_solis.jpg",
+      "high_res_url": "https://cdn.pdimagearchive.org/orig/splendor_solis.jpg",
+      "medium_res_url": "https://cdn.pdimagearchive.org/2048/splendor_solis.jpg",
+      "low_res_url": "https://cdn.pdimagearchive.org/1024/splendor_solis.jpg",
+      "tags": ["alchemy", "manuscript", "gold", "illuminated", "symbolism"]
+    },
+    {
+      "id": "pdia_micrographia_flea",
+      "title": "A Flea Drawn from the Microscope",
+      "artist": "Robert Hooke",
+      "source_institution": "Royal Society of London",
+      "category": "Scientific Illustration",
+      "medium": "Copperplate engraving",
+      "url": "https://pdimagearchive.org/entry/hooke-micrographia-flea",
+      "thumbnail": "https://cdn.pdimagearchive.org/thumbs/hooke_flea.jpg",
+      "image_url": "https://cdn.pdimagearchive.org/max/hooke_flea.jpg",
+      "high_res_url": "https://cdn.pdimagearchive.org/orig/hooke_flea.jpg",
+      "medium_res_url": "https://cdn.pdimagearchive.org/2048/hooke_flea.jpg",
+      "low_res_url": "https://cdn.pdimagearchive.org/1024/hooke_flea.jpg",
+      "tags": ["science", "micrographia", "microscope", "engraving", "biology"]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Brick Wall 001",
+  "type": 1,
+  "categories": ["brick", "wall"],
+  "authors": {
+    "Rob Tuytel": "https://polyhaven.com/author/robtuytel"
+  },
+  "description": "Weathered red brick wall with uneven mortar seams and subtle dirt staining.",
+  "date_published": "1632518400",
+  "download_count": 14200,
+  "dimensions": {
+    "units": "meters",
+    "x": 2.0,
+    "y": 2.0,
+    "z": 0.1
+  }
+}

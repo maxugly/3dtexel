@@ -1,0 +1,39 @@
+{
+  "total": 2,
+  "items": [
+    {
+      "id": "mixkit_game_level_music",
+      "slug": "mixkit_game_level_music",
+      "title": "Arcade Retro Level Win",
+      "author": "Mixkit Sound Team",
+      "category": "Game UI",
+      "duration": 2.4,
+      "description": "Joyful chiptune fanfare with 8-bit arpeggios celebrating a game victory.",
+      "url": "https://mixkit.co/free-sound-effects/arcade-win/",
+      "thumbnail": "https://assets.mixkit.co/sfx/preview/arcade_win_thumb.png",
+      "audio_url": "https://assets.mixkit.co/sfx/preview/mixkit-arcade-win-1982.mp3",
+      "files": {
+        "mp3": "https://assets.mixkit.co/sfx/preview/mixkit-arcade-win-1982.mp3",
+        "wav": "https://assets.mixkit.co/sfx/download/mixkit-arcade-win-1982.wav"
+      },
+      "tags": ["arcade", "retro", "8-bit", "win", "game-over", "chiptune"]
+    },
+    {
+      "id": "mixkit_magic_spell_swoosh",
+      "slug": "mixkit_magic_spell_swoosh",
+      "title": "Mystic Magic Spell Cast",
+      "author": "Mixkit Sound Team",
+      "category": "Fantasy & Spells",
+      "duration": 3.1,
+      "description": "Ethereal mystical shimmer with deep whoosh tail for magic projectile release.",
+      "url": "https://mixkit.co/free-sound-effects/magic-spell/",
+      "thumbnail": "https://assets.mixkit.co/sfx/preview/magic_spell_thumb.png",
+      "audio_url": "https://assets.mixkit.co/sfx/preview/mixkit-magic-spell-879.mp3",
+      "files": {
+        "mp3": "https://assets.mixkit.co/sfx/preview/mixkit-magic-spell-879.mp3",
+        "wav": "https://assets.mixkit.co/sfx/download/mixkit-magic-spell-879.wav"
+      },
+      "tags": ["magic", "spell", "fantasy", "whoosh", "shimmer"]
+    }
+  ]
+}

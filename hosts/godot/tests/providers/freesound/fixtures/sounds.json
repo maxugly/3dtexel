@@ -1,0 +1,53 @@
+{
+  "count": 2,
+  "next": "https://freesound.org/apiv2/search/text/?page=2",
+  "previous": null,
+  "results": [
+    {
+      "id": 12345,
+      "name": "Laser Blast Sci-Fi",
+      "description": "Retro futuristic laser cannon blast effect with reverb tail.",
+      "username": "sound_wizard",
+      "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "duration": 1.25,
+      "samplerate": 48000,
+      "channels": 2,
+      "filesize": 240000,
+      "type": "wav",
+      "tags": ["laser", "sci-fi", "blast", "weapon", "sound-effect"],
+      "previews": {
+        "preview-hq-mp3": "https://cdn.freesound.org/previews/12/12345_hq.mp3",
+        "preview-lq-mp3": "https://cdn.freesound.org/previews/12/12345_lq.mp3",
+        "preview-hq-ogg": "https://cdn.freesound.org/previews/12/12345_hq.ogg",
+        "preview-lq-ogg": "https://cdn.freesound.org/previews/12/12345_lq.ogg"
+      },
+      "images": {
+        "waveform_m": "https://cdn.freesound.org/displays/12/12345_wave.png",
+        "spectral_m": "https://cdn.freesound.org/displays/12/12345_spec.png"
+      }
+    },
+    {
+      "id": 67890,
+      "name": "Footsteps on Gravel",
+      "description": "Foley recording of heavy boots walking slowly over crunching loose gravel.",
+      "username": "foley_master",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "duration": 4.5,
+      "samplerate": 44100,
+      "channels": 2,
+      "filesize": 860000,
+      "type": "wav",
+      "tags": ["footsteps", "gravel", "boots", "foley", "walk"],
+      "previews": {
+        "preview-hq-mp3": "https://cdn.freesound.org/previews/67/67890_hq.mp3",
+        "preview-lq-mp3": "https://cdn.freesound.org/previews/67/67890_lq.mp3",
+        "preview-hq-ogg": "https://cdn.freesound.org/previews/67/67890_hq.ogg",
+        "preview-lq-ogg": "https://cdn.freesound.org/previews/67/67890_lq.ogg"
+      },
+      "images": {
+        "waveform_m": "https://cdn.freesound.org/displays/67/67890_wave.png",
+        "spectral_m": "https://cdn.freesound.org/displays/67/67890_spec.png"
+      }
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "total": 2,
+  "books": [
+    {
+      "id": "52",
+      "title": "The Time Machine",
+      "description": "The Time Traveller, an English scientist living in Richmond, Surrey, explains that time is a fourth dimension.",
+      "url_librivox": "https://librivox.org/the-time-machine-by-h-g-wells/",
+      "url_zip_file": "https://www.archive.org/download/time_machine_librivox/time_machine_librivox_64kb_mp3.zip",
+      "url_audio_file": "https://www.archive.org/download/time_machine_librivox/timemachine_01_wells_64kb.mp3",
+      "totaltime": "03:45:12",
+      "language": "English",
+      "authors": [
+        {
+          "id": "153",
+          "first_name": "H. G.",
+          "last_name": "Wells",
+          "dob": "1866",
+          "dod": "1946"
+        }
+      ],
+      "genres": [
+        {
+          "id": "27",
+          "name": "Science Fiction"
+        }
+      ],
+      "coverart_thumbnail": "https://archive.org/services/get-item-image.php?identifier=time_machine_librivox"
+    },
+    {
+      "id": "103",
+      "title": "The Raven",
+      "description": "Once upon a midnight dreary, while I pondered, weak and weary...",
+      "url_librivox": "https://librivox.org/the-raven-by-edgar-allan-poe/",
+      "url_zip_file": "https://www.archive.org/download/raven_librivox/raven_librivox_64kb_mp3.zip",
+      "url_audio_file": "https://www.archive.org/download/raven_librivox/raven_poe_64kb.mp3",
+      "totaltime": "00:08:30",
+      "language": "English",
+      "authors": [
+        {
+          "id": "21",
+          "first_name": "Edgar Allan",
+          "last_name": "Poe",
+          "dob": "1809",
+          "dod": "1849"
+        }
+      ],
+      "genres": [
+        {
+          "id": "15",
+          "name": "Poetry"
+        }
+      ],
+      "coverart_thumbnail": "https://archive.org/services/get-item-image.php?identifier=raven_librivox"
+    }
+  ]
+}

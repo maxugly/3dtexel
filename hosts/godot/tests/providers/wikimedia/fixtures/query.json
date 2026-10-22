@@ -1,0 +1,69 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "12345": {
+        "pageid": 12345,
+        "ns": 6,
+        "title": "File:Mona Lisa, by Leonardo da Vinci, from C2RMF retouched.jpg",
+        "imageinfo": [
+          {
+            "url": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
+            "descriptionurl": "https://commons.wikimedia.org/wiki/File:Mona_Lisa,_by_Leonardo_da_Vinci,_from_C2RMF_retouched.jpg",
+            "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=15442524",
+            "extmetadata": {
+              "Artist": {
+                "value": "Leonardo da Vinci"
+              },
+              "LicenseShortName": {
+                "value": "Public domain"
+              }
+            }
+          }
+        ],
+        "tags": ["louvre", "leonardo", "mona lisa", "portrait", "renaissance"],
+        "files": [
+          {
+            "filename": "mona_lisa_orig.jpg",
+            "resolution": "orig",
+            "url": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg"
+          },
+          {
+            "filename": "mona_lisa_2048.jpg",
+            "resolution": "2048",
+            "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/2048px-Mona_Lisa.jpg"
+          },
+          {
+            "filename": "mona_lisa_1024.jpg",
+            "resolution": "1024",
+            "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/1024px-Mona_Lisa.jpg"
+          }
+        ]
+      },
+      "67890": {
+        "pageid": 67890,
+        "ns": 6,
+        "title": "File:Girl with a Pearl Earring.jpg",
+        "imageinfo": [
+          {
+            "url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/1665_Girl_with_a_Pearl_Earring.jpg",
+            "descriptionurl": "https://commons.wikimedia.org/wiki/File:Girl_with_a_Pearl_Earring.jpg",
+            "extmetadata": {
+              "Artist": {
+                "value": "Johannes Vermeer"
+              }
+            }
+          }
+        ],
+        "tags": ["vermeer", "dutch golden age", "girl with pearl earring"],
+        "files": [
+          {
+            "filename": "girl_pearl_earring_orig.jpg",
+            "resolution": "orig",
+            "url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/1665_Girl_with_a_Pearl_Earring.jpg"
+          }
+        ]
+      }
+    }
+  }
+}

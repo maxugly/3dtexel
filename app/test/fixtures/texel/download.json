@@ -1,0 +1,10 @@
+{
+  "charged_credits": 0,
+  "returned_resolution": "2k",
+  "normal_format": "opengl",
+  "files": {
+    "albedo": "https://cdn.3dtexel.com/oak_floor_01_2k_albedo.png",
+    "normal": "https://cdn.3dtexel.com/oak_floor_01_2k_normal.png",
+    "roughness": "https://cdn.3dtexel.com/oak_floor_01_2k_roughness.png"
+  }
+}

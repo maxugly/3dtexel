@@ -1,0 +1,41 @@
+{
+  "foundAssets": 2,
+  "assets": [
+    {
+      "assetId": "PavingStones036",
+      "dataType": "Material",
+      "category": "PavingStones",
+      "releaseDate": "2023-05-12",
+      "popularity": 95,
+      "downloads": 1200,
+      "previewImage": "https://ambientcg.com/get?preview=PavingStones036",
+      "tags": ["stone", "paving", "grey", "cobblestone"],
+      "downloadData": {
+        "1K-JPG": {
+          "downloadLink": "https://ambientcg.com/get?file=PavingStones036_1K-JPG.zip",
+          "size": 12500000
+        },
+        "2K-JPG": {
+          "downloadLink": "https://ambientcg.com/get?file=PavingStones036_2K-JPG.zip",
+          "size": 45000000
+        }
+      }
+    },
+    {
+      "assetId": "TreeStump001",
+      "dataType": "3DModel",
+      "category": "Nature",
+      "releaseDate": "2023-08-01",
+      "popularity": 80,
+      "downloads": 850,
+      "previewImage": "https://ambientcg.com/get?preview=TreeStump001",
+      "tags": ["wood", "tree", "stump", "nature", "log"],
+      "downloadData": {
+        "1K-JPG": {
+          "downloadLink": "https://ambientcg.com/get?file=TreeStump001_1K-JPG.zip",
+          "size": 18000000
+        }
+      }
+    }
+  ]
+}

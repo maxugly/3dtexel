@@ -1,0 +1,41 @@
+{
+  "total": 2,
+  "items": [
+    {
+      "id": "picryl_wright_flyer_flight",
+      "meta_id": "wright_flyer_1903",
+      "title": "First Flight of the Wright Flyer at Kitty Hawk",
+      "creator": "John T. Daniels",
+      "photographer": "John T. Daniels (American, 1873 - 1948)",
+      "collection": "Library of Congress Glass Negatives",
+      "location": "Kitty Hawk, North Carolina",
+      "date": "December 17, 1903",
+      "medium": "Glass negative photograph",
+      "url": "https://picryl.com/media/first-flight-at-kitty-hawk-1903",
+      "thumbnail": "https://cdn.picryl.com/thumb/wright_flyer_1903.jpg",
+      "image_url": "https://cdn.picryl.com/max/wright_flyer_1903.jpg",
+      "high_res_url": "https://cdn.picryl.com/orig/wright_flyer_1903.jpg",
+      "medium_res_url": "https://cdn.picryl.com/2048/wright_flyer_1903.jpg",
+      "low_res_url": "https://cdn.picryl.com/1024/wright_flyer_1903.jpg",
+      "tags": ["aviation", "wright-brothers", "flight", "aeroplane", "history"]
+    },
+    {
+      "id": "picryl_patent_tesla_ac_motor",
+      "meta_id": "tesla_patent_381968",
+      "title": "Nikola Tesla Electro-Magnetic Motor Patent 381968",
+      "creator": "Nikola Tesla",
+      "photographer": "United States Patent and Trademark Office",
+      "collection": "US Patent Office Historical Records",
+      "location": "New York, USA",
+      "date": "May 1, 1888",
+      "medium": "Patent schematic drawing",
+      "url": "https://picryl.com/media/tesla-ac-motor-patent-drawing",
+      "thumbnail": "https://cdn.picryl.com/thumb/tesla_patent.jpg",
+      "image_url": "https://cdn.picryl.com/max/tesla_patent.jpg",
+      "high_res_url": "https://cdn.picryl.com/orig/tesla_patent.jpg",
+      "medium_res_url": "https://cdn.picryl.com/2048/tesla_patent.jpg",
+      "low_res_url": "https://cdn.picryl.com/1024/tesla_patent.jpg",
+      "tags": ["patent", "tesla", "motor", "schematic", "electricity", "blueprint"]
+    }
+  ]
+}

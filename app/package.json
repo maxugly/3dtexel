@@ -1,0 +1,54 @@
+{
+  "name": "asset-library",
+  "version": "0.1.0",
+  "description": "Provider-neutral 3D, image, and audio asset library with MCP, HTTP, and CLI interfaces.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "asset-library": "./dist/cli.js",
+    "asset-library-mcp": "./dist/mcp.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test test/*.test.ts test/providers/*.test.ts",
+    "test:watch": "node --import tsx --test --watch test/*.test.ts test/providers/*.test.ts",
+    "start": "node dist/cli.js",
+    "mcp": "node dist/mcp.js",
+    "typecheck:test": "tsc -p tsconfig.test.json",
+    "check": "npm run typecheck && npm run typecheck:test && npm test && npm run build"
+  },
+  "engines": {
+    "node": ">=20.11"
+  },
+  "keywords": [
+    "3d",
+    "assets",
+    "mcp",
+    "polyhaven",
+    "opengameart",
+    "creative-commons"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
