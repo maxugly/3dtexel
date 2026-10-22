@@ -28,6 +28,7 @@ func register_provider(provider: Node) -> Error:
 	if id.is_empty() or not id.is_valid_identifier() or providers.has(id):provider.free();return ERR_INVALID_PARAMETER
 	providers[id]=provider;add_child(provider)
 	provider.enabled=bool(ProjectSettings.get_setting("asset_browser/providers/"+id+"/enabled",true))
+	provider.network_allowed=network_allowed and provider.enabled
 	return OK
 func set_enabled(id: String,value: bool) -> void:
 	var provider: Node=providers[id];provider.enabled=value;provider.network_allowed=network_allowed and value

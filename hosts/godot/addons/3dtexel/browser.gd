@@ -58,6 +58,8 @@ var audit_lic_custom: CheckBox
 var audit_status_label: Label
 var last_audit_data := {}
 var seeded := false
+var search_generation := 0
+var search_timed_out := false
 func button(text: String,action: Callable,parent: Node) -> Button:
 	var item := Button.new();item.text=text;item.pressed.connect(action);parent.add_child(item);return item
 func label(text: String,parent: Node) -> Label:
@@ -93,7 +95,7 @@ func _ready() -> void:
 	download=button("Download selected",download_selected,actions);download.disabled=true
 	label("Pause between downloads:",actions)
 	delay=SpinBox.new();delay.min_value=0;delay.max_value=300;delay.step=1;delay.value=5;delay.suffix="s";actions.add_child(delay)
-	stop_button=button("Stop",func():stopping=true;status.text="Stopping after the current operation…",actions);stop_button.disabled=true
+	stop_button=button("Stop",func():stopping=true;client.cancel_all();status.text="Stopping…",actions);stop_button.disabled=true
 	settings_panel=VBoxContainer.new();settings_panel.visible=false;content.add_child(settings_panel);build_settings()
 	results_scroll=ScrollContainer.new();results_scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;results_scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;results_scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED;content.add_child(results_scroll)
 	grid=GridContainer.new();grid.size_flags_horizontal=Control.SIZE_EXPAND_FILL;grid.add_theme_constant_override("h_separation",12);grid.add_theme_constant_override("v_separation",12);results_scroll.add_child(grid)
@@ -156,14 +158,19 @@ func ensure_seeded() -> void:
 	if seeded:return
 	seeded=true
 	client.seed(output.text)
+func _search_timeout(token: int) -> void:
+	await get_tree().create_timer(12.0).timeout
+	if token!=search_generation or not busy:return
+	search_timed_out=true;stopping=true;client.cancel_all()
 func start_search() -> void:
 	if busy:return
 	ensure_seeded()
 	await refresh_search()
 func refresh_search() -> void:
 	if busy:return
-	busy=true;stopping=false;page=1;selection.checked.clear();session.begin(search.text,["all","material","model","audio","image"][kind.selected])
-	client.network_allowed=true;client.refreshing=true;update_actions();status.text="Searching…"
+	busy=true;stopping=false;search_timed_out=false;page=1;selection.checked.clear();session.begin(search.text,["all","material","model","audio","image"][kind.selected])
+	search_generation+=1;_search_timeout.call_deferred(search_generation)
+	client.network_allowed=true;client.refreshing=true;update_actions();status.text="Searching…";status.tooltip_text=""
 	var errors := []
 	for _round in 100:
 		if stopping:break
@@ -172,9 +179,14 @@ func refresh_search() -> void:
 		errors.append_array(result.get("errors",[]))
 		if session.items().size()>=per_page.get_selected_id() or not session.has_more():break
 		status.text="Searching · %s results…" % session.items().size()
+	search_generation+=1
 	client.network_allowed=false;client.refreshing=false;busy=false
 	update_filter_choices();run_search();update_actions();update_cache_label()
-	status.text="Search stopped." if stopping else ("; ".join(errors) if not errors.is_empty() else "%s results loaded." % session.items().size())
+	status.tooltip_text="\n".join(errors)
+	var summary := "" if errors.is_empty() else " · %s site%s unavailable" % [errors.size(),"" if errors.size()==1 else "s"]
+	if search_timed_out:status.text="Search timed out; showing loaded results."+summary
+	elif stopping:status.text="Search stopped."+summary
+	else:status.text="%s results loaded." % session.items().size()+summary
 func filtered_items() -> Array:
 	var result := []
 	var license_name := license_filter.get_item_text(license_filter.selected)
@@ -250,13 +262,16 @@ func clear_cache() -> void:
 	status.text="Cache cleared · %s freed." % Registry.format_size(freed)
 	if is_instance_valid(cache_dialog):cache_dialog.queue_free();cache_dialog=null
 func load_more(wanted: int) -> void:
-	busy=true;stopping=false;client.network_allowed=true;client.refreshing=true;update_actions();status.text="Loading more results…"
+	busy=true;stopping=false;search_timed_out=false;search_generation+=1;_search_timeout.call_deferred(search_generation)
+	client.network_allowed=true;client.refreshing=true;update_actions();status.text="Loading more results…"
 	var budget := session.items().size()+per_page.get_selected_id()
 	for _round in 100:
 		var result: Dictionary=await session.fetch_round()
 		if result.has("error") or not result.get("errors",[]).is_empty():break
 		if stopping or not session.has_more() or filtered_items().size()>wanted or session.items().size()>=budget:break
+	search_generation+=1
 	client.network_allowed=false;client.refreshing=false;busy=false;update_filter_choices()
+	if search_timed_out:status.text="Search timed out; showing loaded results."
 func next_page() -> void:
 	if busy:return
 	var wanted := page*per_page.get_selected_id()

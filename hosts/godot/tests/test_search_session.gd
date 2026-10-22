@@ -4,10 +4,11 @@ const Session = preload("res://addons/3dtexel/core/search_session.gd")
 class Fake:
 	extends "res://addons/3dtexel/core/provider.gd"
 	var calls := 0
-	func descriptor() -> Dictionary:return {"id":"fixture","name":"Fixture"}
+	var id := "fixture"
+	func descriptor() -> Dictionary:return {"id":id,"name":id}
 	func refresh_page(query: String,_category: String,cursor: String) -> Dictionary:
 		calls+=1
-		return {"items":[{"provider_id":"fixture","id":query+cursor,"title":query,"type":"model","price":{"free":true},"license":"CC0"}],"next_cursor":"second" if cursor.is_empty() else ""}
+		return {"items":[{"provider_id":id,"id":query+cursor,"title":query,"type":"model","price":{"free":true},"license":"CC0"}],"next_cursor":"second" if cursor.is_empty() else ""}
 var failures := 0
 func check(value: bool,message: String):
 	if not value:failures+=1;push_error(message)
@@ -27,5 +28,13 @@ func run():
 	check(fake.calls==3,"Submitting same search still queries provider")
 	session.begin("rock","model");await session.fetch_round()
 	check(session.items().size()==1 and session.items()[0].title=="rock","A new query excludes previous matches")
+	var second := Fake.new();second.id="other";hub.register_provider(second);second.enabled=true
+	fake.calls=0;second.calls=0
+	session.begin("oak","model")
+	await session.fetch_round()
+	check(fake.calls+second.calls==1,"A round queries one site instead of every site")
+	check(session.has_more(),"Unqueried sites remain available for more results")
+	await session.fetch_round()
+	check(fake.calls+second.calls==2,"The next round queries the next site")
 	hub.queue_free();await process_frame
 	print("Search session tests complete; failures=",failures);quit(1 if failures else 0)
