@@ -38,6 +38,9 @@ var per_page: OptionButton
 var page_label: Label
 var status: Label
 var progress: ProgressBar
+var cache_button: Button
+var cache_dialog: ConfirmationDialog
+var cache_tick := 0.0
 var selected := {}
 var visible_assets: Array=[]
 var page := 1
@@ -103,10 +106,11 @@ func _ready() -> void:
 	per_page.item_selected.connect(change_page_size)
 	page_label=label("",pages);page_label.size_flags_horizontal=Control.SIZE_EXPAND_FILL;page_label.clip_text=true
 	next=button("Next →",next_page,pages)
+	cache_button=Button.new();cache_button.flat=true;cache_button.focus_mode=Control.FOCUS_NONE;cache_button.size_flags_horizontal=Control.SIZE_SHRINK_END;cache_button.add_theme_font_size_override("font_size",11);cache_button.pressed.connect(confirm_clear_cache);pages.add_child(cache_button)
 	progress=ProgressBar.new();progress.custom_minimum_size.y=6;progress.show_percentage=false;content.add_child(progress)
 	status=label("Search for assets to begin.",content);status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	client.seed(output.text)
-	update_filter_choices();update_actions()
+	update_filter_choices();update_actions();update_cache_label()
 	resized.connect(update_layout);results_scroll.resized.connect(update_layout);call_deferred("update_layout")
 func build_settings() -> void:
 	var row := HFlowContainer.new();settings_panel.add_child(row)
@@ -162,7 +166,7 @@ func refresh_search() -> void:
 		if session.items().size()>=per_page.get_selected_id() or not session.has_more():break
 		status.text="Searching · %s results…" % session.items().size()
 	client.network_allowed=false;client.refreshing=false;busy=false
-	update_filter_choices();run_search();update_actions()
+	update_filter_choices();run_search();update_actions();update_cache_label()
 	status.text="Search stopped." if stopping else ("; ".join(errors) if not errors.is_empty() else "%s results loaded." % session.items().size())
 func filtered_items() -> Array:
 	var result := []
@@ -214,6 +218,30 @@ func change_page_size(_index: int) -> void:
 	page=1
 	if session.items().size()<per_page.get_selected_id() and session.has_more():await load_more(per_page.get_selected_id()-1)
 	run_search()
+func update_cache_label() -> void:
+	if not is_instance_valid(cache_button):return
+	var size := Registry.format_size(client.cache_size())
+	cache_button.text="Cache "+size
+	cache_button.tooltip_text="Cached metadata and thumbnails for all sites: %s.\nClick to clear the cache." % size
+func confirm_clear_cache() -> void:
+	if busy:return
+	if is_instance_valid(cache_dialog):cache_dialog.queue_free()
+	var size := Registry.format_size(client.cache_size())
+	cache_dialog=ConfirmationDialog.new();cache_dialog.title="Clear asset cache";cache_dialog.dialog_text="Delete %s of cached metadata and thumbnails for all sites?\n\nDownloaded assets and imports are not removed." % size;cache_dialog.ok_button_text="Clear cache"
+	cache_dialog.confirmed.connect(clear_cache)
+	cache_dialog.canceled.connect(func():
+		if is_instance_valid(cache_dialog):cache_dialog.queue_free();cache_dialog=null)
+	add_child(cache_dialog);cache_dialog.popup_centered(Vector2i(460,180))
+func clear_cache() -> void:
+	var freed: int=client.cache_size()
+	client.clear_caches()
+	session.reset()
+	selection.checked.clear();serial+=1;thumbnail_queue.clear()
+	for child in grid.get_children():grid.remove_child(child);child.queue_free()
+	visible_assets=[];page=1;page_label.text="No cached results.";previous.disabled=true;next.disabled=true
+	update_filter_choices();update_actions();update_cache_label()
+	status.text="Cache cleared · %s freed." % Registry.format_size(freed)
+	if is_instance_valid(cache_dialog):cache_dialog.queue_free();cache_dialog=null
 func load_more(wanted: int) -> void:
 	busy=true;stopping=false;client.network_allowed=true;client.refreshing=true;update_actions();status.text="Loading more results…"
 	var budget := session.items().size()+per_page.get_selected_id()
@@ -232,7 +260,7 @@ func update_actions() -> void:
 	if not is_instance_valid(download):return
 	var jobs := selection.jobs(filtered_items()) if is_instance_valid(license_filter) else []
 	download.text="Download selected (%s)" % jobs.size();download.disabled=busy or jobs.is_empty()
-	stop_button.disabled=not busy;search_button.disabled=busy;delay.editable=not busy;search.editable=not busy
+	stop_button.disabled=not busy;search_button.disabled=busy;delay.editable=not busy;search.editable=not busy;cache_button.disabled=busy
 	for control in [sites,kind,price_filter,license_filter,policy_filter,version_filter,per_page]:control.disabled=busy
 	var eligible := visible_assets.filter(func(asset):return not selection.options(asset).is_empty() and client.can_download(asset))
 	check_all.disabled=busy or eligible.is_empty()
@@ -329,6 +357,10 @@ func download_resolution(asset: Dictionary,requested: String) -> Dictionary:
 	preparation.output_directory=output.text;preparation.send_to_terrain=handoff.button_pressed and asset.get("type","")=="material";preparation.terrain_inbox=inbox.text
 	return await preparation.prepare(asset,requested)
 func _process(delta: float) -> void:
+	cache_tick+=delta
+	if cache_tick>=15.0:
+		cache_tick=0.0
+		if not busy and is_visible_in_tree():update_cache_label()
 	thumbnail_tick+=delta
 	if thumbnail_tick<.2:return
 	thumbnail_tick=0;pump_thumbnails()

@@ -72,5 +72,60 @@ func thumbnail(url: String,asset: Dictionary) -> Texture2D:
 	return await provider.thumbnail(url)
 func cancel_all() -> void:
 	for provider in providers.values():provider.cancel_all()
+func cache_roots() -> Array[String]:
+	var roots: Array[String]=[]
+	var catalog_root := str(catalog.root)
+	if not catalog_root.is_empty():roots.append(catalog_root)
+	for provider in providers.values():
+		var cache: Variant=provider_cache(provider)
+		if cache == null:continue
+		var root := str(cache.get("root"))
+		if not root.is_empty() and root not in roots:roots.append(root)
+	return roots
+func provider_cache(provider: Node) -> Variant:
+	var provider_client: Variant=provider.get("client")
+	if provider_client == null:return null
+	return provider_client.get("cache")
+func cache_size() -> int:
+	var total := 0
+	for root in cache_roots():total+=cache_path_size(root)
+	return total
+func clear_caches() -> void:
+	for provider in providers.values():
+		provider.cancel_all()
+		var cache: Variant=provider_cache(provider)
+		if cache == null:continue
+		var records: Variant=cache.get("catalog")
+		if records is Dictionary:records.clear()
+		cache.set("loaded",false)
+		var provider_client: Variant=provider.get("client")
+		var thumbs: Variant=provider_client.get("allowed_thumbnails") if provider_client!=null else null
+		if thumbs is Dictionary:thumbs.clear()
+	for root in cache_roots():clear_cache_path(root)
+	catalog.records.clear();catalog.loaded=false
+static func cache_path_size(path: String) -> int:
+	var directory := DirAccess.open(path)
+	if not directory:return 0
+	directory.include_hidden=true
+	var total := 0
+	for name in directory.get_files():
+		var file := FileAccess.open(path.path_join(name),FileAccess.READ)
+		if file:total+=file.get_length();file.close()
+	for name in directory.get_directories():total+=cache_path_size(path.path_join(name))
+	return total
+static func clear_cache_path(path: String) -> void:
+	if not path.begins_with("user://") or path=="user://":return
+	var directory := DirAccess.open(path)
+	if not directory:return
+	directory.include_hidden=true
+	for name in directory.get_files():DirAccess.remove_absolute(ProjectSettings.globalize_path(path.path_join(name)))
+	for name in directory.get_directories():
+		clear_cache_path(path.path_join(name))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+static func format_size(bytes: int) -> String:
+	if bytes<1024:return "%d B" % bytes
+	if bytes<1048576:return "%.1f KB" % (bytes/1024.0)
+	if bytes<1073741824:return "%.1f MB" % (bytes/1048576.0)
+	return "%.2f GB" % (bytes/1073741824.0)
 
 func _exit_tree() -> void:cancel_all()

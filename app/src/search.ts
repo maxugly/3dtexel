@@ -59,7 +59,7 @@ export class SearchService {
   private readonly catalog: Catalog;
   private readonly registry: ProviderRegistry;
   private readonly cache = new Map<string, SearchCacheEntry>();
-  private readonly ttlMs = 10 * 60 * 1000;
+  private readonly ttlMs = 7 * 24 * 60 * 60 * 1000;
 
   constructor(catalog: Catalog, registry: ProviderRegistry) {
     this.catalog = catalog;

@@ -11,6 +11,10 @@ func run():
 	var editor_host := VBoxContainer.new();editor_host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);root.add_child(editor_host)
 	var browser := Browser.new();editor_host.add_child(browser)
 	await settle()
+	check(browser.cache_button!=null and browser.cache_button.text.begins_with("Cache "),"Cache size control is visible")
+	browser.confirm_clear_cache()
+	check(browser.cache_dialog!=null,"Clearing the cache asks for confirmation")
+	browser.cache_dialog.queue_free();browser.cache_dialog=null
 	for i in 12:
 		browser.grid.add_child(browser.make_asset_tile({"id":i,"title":"A long ground material title for layout testing","price":{"free":true,"credits":0}},0))
 	for viewport_size in [Vector2i(1600,900),Vector2i(850,1000),Vector2i(640,960)]:

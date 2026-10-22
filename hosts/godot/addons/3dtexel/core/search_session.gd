@@ -10,6 +10,8 @@ var requests := 0
 func begin(text: String, kind: String) -> void:
 	query=text;category=kind;states.clear();identities.clear();requests=0
 	for id in registry.active_ids():states[id]={"cursor":"","done":false,"seen":{}}
+func reset() -> void:
+	query="";category="all";states.clear();identities.clear();requests=0
 func has_more() -> bool:
 	for id in states:
 		if registry.providers.has(id) and registry.providers[id].enabled and not states[id].done:return true

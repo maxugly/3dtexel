@@ -123,6 +123,8 @@ When `ASSET_LIBRARY_TOKEN` is set, send `Authorization: Bearer <token>` on every
 
 Request bodies are JSON objects. Search queries are bounded per provider; changing filters or pages reuses cached metadata.
 
+Search results are also kept in a process-local query cache for seven days. This cache only avoids repeating provider calls while the process is running; metadata already written to the catalog survives restarts indefinitely. HTTP responses live under `cache/` and are reused until an explicit `refresh` revalidates them. New results are merged into the catalog rather than replacing earlier assets. The standalone app does not download thumbnails; hosts such as the Godot addon keep their own thumbnail caches.
+
 ## TypeScript API
 
 ```ts

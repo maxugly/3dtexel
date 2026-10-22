@@ -1,5 +1,6 @@
 extends SceneTree
 const Client = preload("res://addons/3dtexel/client.gd")
+const Registry = preload("res://addons/3dtexel/core/registry.gd")
 class FakeClient:
 	extends Client
 	var calls := 0
@@ -41,6 +42,14 @@ func run():
 	check(client.files==1 and other.files==0,"Thumbnail persists on disk")
 	check(other.cache.search("grass","pbr",true,"CC-BY 4.0").size()==1,"Free non-CC0 asset filter")
 	check(other.cache.search("grass","pbr",true,"CC0").is_empty(),"Exact local license filter")
+	var cache_root := "user://offline_cache_size_test_%s" % Time.get_ticks_usec()
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(cache_root.path_join("nested")))
+	var first := FileAccess.open(cache_root.path_join("metadata.json"),FileAccess.WRITE);first.store_buffer(PackedByteArray([1,2,3,4]));first.close()
+	var second := FileAccess.open(cache_root.path_join("nested/thumbnail.png"),FileAccess.WRITE);second.store_buffer(PackedByteArray([5,6,7]));second.close()
+	check(Registry.cache_path_size(cache_root)==7,"Cache size counts nested metadata and thumbnails")
+	check(Registry.format_size(2048)=="2.0 KB","Cache size is human readable")
+	Registry.clear_cache_path(cache_root)
+	check(Registry.cache_path_size(cache_root)==0 and not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(cache_root)),"Clear cache removes nested files and directories")
 	client.queue_free();other.queue_free();await process_frame
 	print("Disk cache tests complete; failures=",failures)
 	quit(1 if failures else 0)

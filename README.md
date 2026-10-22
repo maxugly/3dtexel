@@ -45,7 +45,7 @@ The Godot host retains its editor browser, provider adapters, material import, a
 godot --headless --path hosts/godot -s tests/test_core.gd
 ```
 
-Open `hosts/godot/project.godot` in Godot 4.4+ to use the editor addon. Godot-specific provider documentation remains in `hosts/godot/docs/`.
+Open `hosts/godot/project.godot` in Godot 4.4+ to use the editor addon. The browser footer shows the on-disk metadata and thumbnail cache size for all sites; clicking it asks before clearing that cache. Imported assets are not removed. Godot-specific provider documentation remains in `hosts/godot/docs/`.
 
 ## Development
 

@@ -22,6 +22,9 @@ Toggle the addon off/on after updating it to rebuild the controls.
 - Metadata and thumbnails are retained on disk and reused automatically. There
   is no separate cache-search mode or offline toggle. Selecting a card does not
   redownload its files. Thumbnails load near the viewport, at most four at a time.
+  The browser footer reports the combined on-disk cache size for every site.
+  Clicking it asks for confirmation before clearing cached metadata and thumbnails;
+  imported assets, receipts, and credits sidecars are left untouched.
 - Each card shows **only confirmed download versions**, with a direct download
   button for each. Texture resolutions appear only for materials; model providers
   can supply LOD/format choices and triangle counts. Unknown sizes are never guessed.
