@@ -164,6 +164,27 @@ func build_settings() -> void:
 	auto.toggled.connect(func(value):ProjectSettings.set_setting("asset_browser/automatic_scene_credits",value);ProjectSettings.save())
 	button("Write scene credits",write_scene_credits,credits);button("Check connections",check_connection,credits)
 	build_credits_audit_ui()
+
+	# Asset Optimization & Preparation Pipeline Toggles
+	var prep_box := VBoxContainer.new(); settings_panel.add_child(prep_box)
+	var prep_title := label("Optimization & Preparation Settings (Run Early / Save Runtime CPU & Space):", prep_box)
+	prep_title.add_theme_color_override("font_color", Color(0.9, 0.8, 0.3))
+
+	var m_row := HFlowContainer.new(); prep_box.add_child(m_row)
+	var cb_m_glb := CheckBox.new(); cb_m_glb.text = "Center & Convert 3D models to .glb"; cb_m_glb.button_pressed = bool(ProjectSettings.get_setting("asset_browser/preparation/convert_models_to_glb", true)); m_row.add_child(cb_m_glb)
+	cb_m_glb.toggled.connect(func(v): ProjectSettings.set_setting("asset_browser/preparation/convert_models_to_glb", v); ProjectSettings.save())
+	var cb_m_del := CheckBox.new(); cb_m_del.text = "Delete source models after .glb export"; cb_m_del.button_pressed = bool(ProjectSettings.get_setting("asset_browser/preparation/delete_source_models", true)); m_row.add_child(cb_m_del)
+	cb_m_del.toggled.connect(func(v): ProjectSettings.set_setting("asset_browser/preparation/delete_source_models", v); ProjectSettings.save())
+
+	var t_row := HFlowContainer.new(); prep_box.add_child(t_row)
+	var cb_t_del := CheckBox.new(); cb_t_del.text = "Delete loose source textures after material packing"; cb_t_del.button_pressed = bool(ProjectSettings.get_setting("asset_browser/preparation/delete_source_textures", true)); t_row.add_child(cb_t_del)
+	cb_t_del.toggled.connect(func(v): ProjectSettings.set_setting("asset_browser/preparation/delete_source_textures", v); ProjectSettings.save())
+
+	var a_row := HFlowContainer.new(); prep_box.add_child(a_row)
+	var cb_a_opus := CheckBox.new(); cb_a_opus.text = "Transcode WAV/FLAC to Opus"; cb_a_opus.button_pressed = bool(ProjectSettings.get_setting("asset_browser/preparation/convert_audio_to_opus", true)); a_row.add_child(cb_a_opus)
+	cb_a_opus.toggled.connect(func(v): ProjectSettings.set_setting("asset_browser/preparation/convert_audio_to_opus", v); ProjectSettings.save())
+	var cb_a_del := CheckBox.new(); cb_a_del.text = "Delete source audio after Opus transcode"; cb_a_del.button_pressed = bool(ProjectSettings.get_setting("asset_browser/preparation/delete_source_audio", true)); a_row.add_child(cb_a_del)
+	cb_a_del.toggled.connect(func(v): ProjectSettings.set_setting("asset_browser/preparation/delete_source_audio", v); ProjectSettings.save())
 	account=label("API keys can come from the environment or be entered for this editor session.",settings_panel);account.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	for id in client.providers:
 		var provider: Node=client.providers[id];var info: Dictionary=provider.descriptor()

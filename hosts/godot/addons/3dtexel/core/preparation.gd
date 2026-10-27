@@ -79,6 +79,19 @@ func prepare(asset: Dictionary, requested: String) -> Dictionary:
 	credits.requested_resolution=requested;credits.returned_resolution=actual;credits.sha256=hashes;credits.dimensions=result.dimensions
 	provenance.merge(credits,true)
 	if Importer.write_json(folder.path_join("provenance.json"),provenance)!=OK or Credits.write_asset_sidecars(folder,credits)!=OK:return {"error":"Could not save provenance or credits."}
+	var delete_sources := bool(ProjectSettings.get_setting("asset_browser/preparation/delete_source_textures", true))
+	if delete_sources and not send_to_terrain:
+		for role in maps:
+			var path := folder.path_join(str(maps[role]))
+			if FileAccess.file_exists(path):
+				DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+		var source_dir := folder.path_join("_source")
+		if DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(source_dir)):
+			var da := DirAccess.open(source_dir)
+			if da:
+				for f in da.get_files():
+					DirAccess.remove_absolute(ProjectSettings.globalize_path(source_dir.path_join(f)))
+				DirAccess.remove_absolute(ProjectSettings.globalize_path(source_dir))
 	var note := ""
 	if send_to_terrain:
 		var terrain := Importer.terrain_handoff(folder,maps,asset,normal_format,terrain_inbox)

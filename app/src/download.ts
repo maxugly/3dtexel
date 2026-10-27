@@ -31,6 +31,8 @@ import {
   slug,
   writeJsonAtomic
 } from "./util/fs.js";
+import { convertAudioToOpus, convertModelToGlb } from "./util/converter.js";
+import fs from "node:fs/promises";
 import { assertHttpsUrl, sanitizeUrl } from "./util/sanitize.js";
 
 export interface DownloadServiceOptions {
@@ -427,6 +429,48 @@ export class DownloadService {
         sha256: result.sha256,
         bytes: result.bytes
       });
+
+      // Automated preparation & conversions
+      const ext = path.extname(entry.filename).toLowerCase().replace(".", "");
+      if (this.config.convert_models_to_glb && (ext === "blend" || ext === "obj" || ext === "fbx")) {
+        const glbName = `${path.basename(entry.filename, path.extname(entry.filename))}.glb`;
+        const glbDest = path.join(folder, glbName);
+        const conv = await convertModelToGlb(destination, glbDest);
+        if (conv.success && conv.bytes && conv.sha256) {
+          downloaded.push(relativeFile("model_glb", glbName, conv.bytes, conv.sha256, "model/gltf-binary"));
+          await writeJsonAtomic(path.join(folder, `${glbName}.credits.json`), {
+            ...record,
+            file: glbName,
+            sha256: conv.sha256,
+            bytes: conv.bytes
+          });
+          if (this.config.delete_source_models) {
+            await fs.rm(destination, { force: true });
+            await fs.rm(path.join(folder, `${entry.filename}.credits.json`), { force: true });
+            const idx = downloaded.findIndex((f) => f.path === entry.filename);
+            if (idx !== -1) downloaded.splice(idx, 1);
+          }
+        }
+      } else if (this.config.convert_audio_to_opus && (ext === "wav" || ext === "flac" || ext === "aiff")) {
+        const opusName = `${path.basename(entry.filename, path.extname(entry.filename))}.opus`;
+        const opusDest = path.join(folder, opusName);
+        const conv = await convertAudioToOpus(destination, opusDest, { bitrateKbps: this.config.audio_opus_bitrate });
+        if (conv.success && conv.bytes && conv.sha256) {
+          downloaded.push(relativeFile("audio_opus", opusName, conv.bytes, conv.sha256, "audio/opus"));
+          await writeJsonAtomic(path.join(folder, `${opusName}.credits.json`), {
+            ...record,
+            file: opusName,
+            sha256: conv.sha256,
+            bytes: conv.bytes
+          });
+          if (this.config.delete_source_audio) {
+            await fs.rm(destination, { force: true });
+            await fs.rm(path.join(folder, `${entry.filename}.credits.json`), { force: true });
+            const idx = downloaded.findIndex((f) => f.path === entry.filename);
+            if (idx !== -1) downloaded.splice(idx, 1);
+          }
+        }
+      }
     }
 
     await writeJsonAtomic(path.join(folder, "files.json"), {

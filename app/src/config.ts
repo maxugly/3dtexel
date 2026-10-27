@@ -20,6 +20,12 @@ export interface RuntimeConfig {
   min_request_interval_ms: number;
   texel_key?: string;
   user_agent: string;
+  convert_models_to_glb: boolean;
+  delete_source_models: boolean;
+  delete_source_textures: boolean;
+  convert_audio_to_opus: boolean;
+  audio_opus_bitrate: number;
+  delete_source_audio: boolean;
 }
 
 export interface RuntimeConfigInput {
@@ -80,7 +86,13 @@ export function resolveConfig(input: RuntimeConfigInput = {}): RuntimeConfig {
     max_download_bytes: input.max_download_bytes ?? positiveInt(env.ASSET_LIBRARY_MAX_DOWNLOAD_BYTES, 512 * 1024 * 1024),
     min_request_interval_ms: input.min_request_interval_ms ?? positiveInt(env.ASSET_LIBRARY_MIN_INTERVAL_MS, 500),
     texel_key: texelKey?.trim() || undefined,
-    user_agent: env.ASSET_LIBRARY_USER_AGENT ?? "asset-library/0.1 (+https://github.com/maxugly/3dtexel)"
+    user_agent: env.ASSET_LIBRARY_USER_AGENT ?? "asset-library/0.1 (+https://github.com/maxugly/3dtexel)",
+    convert_models_to_glb: env.CONVERT_MODELS_TO_GLB !== "0",
+    delete_source_models: env.DELETE_SOURCE_MODELS !== "0",
+    delete_source_textures: env.DELETE_SOURCE_TEXTURES !== "0",
+    convert_audio_to_opus: env.CONVERT_AUDIO_TO_OPUS !== "0",
+    audio_opus_bitrate: positiveInt(env.AUDIO_OPUS_BITRATE, 128),
+    delete_source_audio: env.DELETE_SOURCE_AUDIO !== "0"
   };
 }
 
