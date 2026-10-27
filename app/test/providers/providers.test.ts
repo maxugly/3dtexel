@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Asset } from "../../src/types.js";
 import { AmbientCgProvider } from "../../src/providers/ambientcg.js";
+import { BlendSwapProvider } from "../../src/providers/blendswap.js";
+import { CGTraderProvider } from "../../src/providers/cgtrader.js";
 import { KenneyProvider } from "../../src/providers/kenney.js";
 import { MetMuseumProvider } from "../../src/providers/met-museum.js";
 import { NasaProvider } from "../../src/providers/nasa.js";
@@ -219,3 +221,59 @@ test("texel preview does not call the download endpoint and actual plans use zer
   assert.deepEqual((post.body as Record<string, unknown>).max_credits, 0);
   assert.equal((post.body as Record<string, unknown>).resolution, "2k");
 });
+
+test("blendswap search, details, and .blend model plan contract", async () => {
+  const http = new FakeHttp({
+    json: [
+      {
+        match: "https://blendswap.com/api/v1/assets",
+        value: fixtureJsonSync("blendswap/assets.json")
+      }
+    ]
+  });
+  const provider = new BlendSwapProvider(context(http, { BLENDSWAP_KEY: "test-blendswap-key" }));
+  const page = await provider.search(params("pumpkin", "model"));
+  assert.equal(page.items.length, 1);
+  const asset = first(page.items);
+  assert.equal(asset.id, "26300");
+  assert.equal(asset.title, "Low Poly Stylized Pumpkin");
+  assert.equal(asset.license.id, "cc0");
+  assert.equal(asset.type, "model");
+
+  const plan = await provider.resolveDownload(asset, "blend");
+  assert.equal(plan.kind, "files");
+  if (plan.kind === "files") {
+    assert.equal(plan.files.length, 1);
+    assert.equal(plan.files[0].filename, "stylized_pumpkin.blend");
+    assert.ok(plan.files[0].url.startsWith("https://blendswap.com/"));
+  }
+});
+
+test("cgtrader search, details, and model plan contract", async () => {
+  const http = new FakeHttp({
+    json: [
+      {
+        match: "https://api.cgtrader.com/v1/models",
+        value: fixtureJsonSync("cgtrader/models.json")
+      }
+    ]
+  });
+  const provider = new CGTraderProvider(context(http, { CGTRADER_API_TOKEN: "test-cgtrader-token" }));
+  const page = await provider.search(params("plants", "model"));
+  assert.equal(page.items.length, 1);
+  const asset = first(page.items);
+  assert.equal(asset.id, "cgt_99120");
+  assert.equal(asset.title, "Low Poly Plants Kit");
+  assert.equal(asset.license.id, "royalty-free");
+  assert.equal(asset.type, "model");
+
+  const plan = await provider.resolveDownload(asset, asset.variants[0]!.id);
+  assert.equal(plan.kind, "files");
+  if (plan.kind === "files") {
+    assert.equal(plan.files.length, 1);
+    assert.equal(plan.files[0].filename, "plants_kit.fbx");
+    assert.ok(plan.files[0].url.startsWith("https://api.cgtrader.com/"));
+  }
+});
+
+

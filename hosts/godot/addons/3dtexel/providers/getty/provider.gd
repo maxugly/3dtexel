@@ -5,6 +5,8 @@ extends "res://addons/3dtexel/core/provider.gd"
 const Client = preload("res://addons/3dtexel/providers/getty/client.gd")
 const Cache = preload("res://addons/3dtexel/providers/getty/cache.gd")
 const Credits = preload("res://addons/3dtexel/credits.gd")
+const Files = preload("res://addons/3dtexel/core/reported_files.gd")
+const SourceLicense = preload("res://addons/3dtexel/core/source_license.gd")
 const Importer = preload("res://addons/3dtexel/importer.gd")
 
 var client: Node
@@ -97,7 +99,7 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 		tags.append_array(raw.tags)
 	asset.tags = tags
 
-	asset.price = {"free": true, "credits": 0}
+	asset.price = raw.get("price",{"free":true,"credits":0})
 
 	var lic_val := {
 		"id": "cc0-1.0",
@@ -105,65 +107,28 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 		"url": "https://creativecommons.org/publicdomain/zero/1.0/",
 		"attribution_required": false
 	}
+	if raw.has("license"):lic_val=SourceLicense.record(raw.license,str(raw.get("license_version","")))
 	asset.license = Credits.license_record(lic_val)
 	asset.licenses = [asset.license]
 	asset.selected_license = asset.license
 
 	asset.attribution_text = "%s - %s (The J. Paul Getty Museum, CC0 1.0 Universal)" % [display_title, artist]
+	if raw.has("license"):
+		var supplied := str(raw.get("attribution_text",""))
+		var names: Array[String]=[]
+		for person in asset.authors:
+			if person is Dictionary and not str(person.get("name","")).is_empty():names.append(str(person.name))
+		asset.attribution_text=supplied if not supplied.is_empty() else "%s — %s (%s)" % [asset.title,", ".join(names),asset.license.name]
 	asset.metadata_source_url = asset.url
-	asset.source_metadata = Cache.public_asset(raw)
+	asset.source_metadata = Cache.public_asset(raw.get("source_metadata",raw))
 	asset.retrieved_utc = Time.get_datetime_string_from_system(true) if fetched else raw.get("retrieved_utc", "")
 	asset.variants = variants(asset)
 	return asset
 
+func file_offers(asset: Dictionary) -> Array:
+	return Files.offers(asset,[["high_res_url","orig","Original Image"],["image_url","orig","Source Image"],["primary_image","orig","Source Image"],["image_uri","orig","Source Image"],["medium_res_url","2048","Medium Image"],["low_res_url","1024","Low Resolution Image"],["thumbnail","512","Image Preview"]])
 func variants(asset: Dictionary) -> Array:
-	var files: Array = asset.get("files", [])
-	if files.is_empty() and asset.get("source_metadata") is Dictionary:
-		files = asset.source_metadata.get("files", [])
-
-	var result := []
-	if not files.is_empty():
-		for f in files:
-			if not (f is Dictionary):
-				continue
-			var f_dict: Dictionary = f
-			var res := str(f_dict.get("resolution", f_dict.get("filename", "")))
-			var vid := Importer.slug(res)
-			result.append({
-				"id": vid,
-				"label": "%s Resolution" % vid.to_upper(),
-				"kind": "files",
-				"confirmed": true,
-				"resolution": vid
-			})
-		return result
-
-	return [
-		{
-			"id": "orig",
-			"label": "Original Maximum Resolution",
-			"kind": "files",
-			"confirmed": true
-		},
-		{
-			"id": "2048",
-			"label": "2048px Resolution",
-			"kind": "files",
-			"confirmed": true
-		},
-		{
-			"id": "1024",
-			"label": "1024px Resolution",
-			"kind": "files",
-			"confirmed": true
-		},
-		{
-			"id": "512",
-			"label": "512px Preview",
-			"kind": "files",
-			"confirmed": true
-		}
-	]
+	return Files.variants(file_offers(asset))
 
 func refresh_page(query: String, category: String, cursor: String) -> Dictionary:
 	sync_network()
@@ -198,65 +163,15 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 	}
 
 func asset_details(asset: Dictionary) -> Dictionary:
-	return asset
+	var cached: Dictionary=client.cache.asset(str(asset.id))
+	if cached.is_empty():return asset
+	return Cache.merge_asset(cached,asset)
 
-func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
-	sync_network()
+func resolve_download(asset: Dictionary,variant: String) -> Dictionary:
+	if not network_allowed:return {"error":"Download requires explicit action."}
 	var detailed := await asset_details(asset)
-	if detailed.has("error"):
-		return detailed
-
-	var target_variant := variant if not variant.is_empty() else "orig"
-	var files: Array = detailed.get("files", [])
-	if files.is_empty() and detailed.get("source_metadata") is Dictionary:
-		files = detailed.source_metadata.get("files", [])
-
-	var download_url := ""
-	var filename := ""
-
-	for f in files:
-		if f is Dictionary:
-			var f_dict: Dictionary = f
-			var res_slug := Importer.slug(str(f_dict.get("resolution", "")))
-			if res_slug == target_variant or target_variant in res_slug:
-				download_url = str(f_dict.get("url", ""))
-				filename = str(f_dict.get("filename", ""))
-				break
-
-	if download_url.is_empty() and not files.is_empty() and files[0] is Dictionary:
-		download_url = str(files[0].get("url", ""))
-		filename = str(files[0].get("filename", ""))
-
-	if download_url.is_empty():
-		if target_variant in ["orig", "high"]:
-			download_url = str(detailed.get("high_res_url", detailed.get("image_url", detailed.get("primary_image", detailed.get("thumbnail", "")))))
-		elif target_variant in ["2048", "medium"]:
-			download_url = str(detailed.get("medium_res_url", detailed.get("image_url", detailed.get("primary_image", detailed.get("thumbnail", "")))))
-		elif target_variant in ["1024", "low"]:
-			download_url = str(detailed.get("low_res_url", detailed.get("thumbnail", "")))
-		else:
-			download_url = str(detailed.get("image_url", detailed.get("primary_image", detailed.get("thumbnail", ""))))
-
-	if download_url.is_empty():
-		return {"error": "No download URL available for Getty artwork."}
-
-	if filename.is_empty():
-		var ext := download_url.get_file().get_extension()
-		if ext.is_empty() or ext.contains("?"):
-			ext = "jpg"
-		filename = "%s_%s.%s" % [str(detailed.get("id", "getty")), target_variant, ext]
-
-	return {
-		"kind": "files",
-		"asset": detailed,
-		"variant": target_variant,
-		"files": [
-			{
-				"filename": filename,
-				"url": download_url
-			}
-		]
-	}
+	if detailed.has("error"):return detailed
+	return Files.plan(detailed,variant,file_offers(detailed))
 
 func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	if not network_allowed:
@@ -264,4 +179,13 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func thumbnail(url: String) -> Texture2D:
-	return null
+	sync_network()
+	return await client.thumbnail(url)
+
+func cancel_all() -> void:
+	client.cancel_all()
+
+func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
+	return await client.search("",1,1)

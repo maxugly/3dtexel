@@ -77,7 +77,7 @@ func asset(id: String) -> Dictionary:
 	ensure_loaded()
 	return catalog.get(id, {}).duplicate(true)
 
-func put_asset(asset: Dictionary) -> void:
+func put_asset(asset: Dictionary, save := true) -> void:
 	ensure_loaded()
 	if asset.is_empty():
 		return
@@ -88,7 +88,8 @@ func put_asset(asset: Dictionary) -> void:
 	clean.provider_id = "europeana"
 	clean.provider = "Europeana Collections"
 	catalog[id] = clean
-	save_catalog()
+	if save:
+		save_catalog()
 
 func save_catalog() -> void:
 	ensure_loaded()

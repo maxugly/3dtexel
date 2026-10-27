@@ -1,12 +1,14 @@
 @tool
 extends Node
 ## Register provider Scripts here or from another addon; browser never imports site code.
+const Defaults = preload("res://addons/3dtexel/core/provider_defaults.gd")
 const Catalog = preload("res://addons/3dtexel/core/catalog.gd")
 const Policy = preload("res://addons/3dtexel/core/license_policy.gd")
 var catalog := Catalog.new()
 var inventory := preload("res://addons/3dtexel/core/download_inventory.gd").new()
 var providers := {}
 var scope := ""
+var preparation_task := -1
 var network_allowed := false:
 	set(value):
 		network_allowed=value
@@ -28,22 +30,37 @@ func register_provider(provider: Node) -> Error:
 	if id.is_empty() or not id.is_valid_identifier() or providers.has(id):provider.free();return ERR_INVALID_PARAMETER
 	providers[id]=provider;add_child(provider)
 	var fallback: bool = provider.default_enabled() if provider.has_method("default_enabled") else true
-	provider.enabled=bool(ProjectSettings.get_setting("asset_browser/providers/"+id+"/enabled",fallback))
+	var settings_key := "asset_browser/providers/"+id+"/"
+	if Defaults.bundled(provider,id):
+		fallback=Defaults.verified(id)
+		# Ignore opt-ins saved before the live-verification policy. A new explicit
+		# user toggle can still enable an unchecked provider for later repairs.
+		var current := str(ProjectSettings.get_setting(settings_key+"enabled_policy_revision",""))==Defaults.REVISION
+		provider.enabled=bool(ProjectSettings.get_setting(settings_key+"enabled",fallback)) if current else fallback
+	else:
+		provider.enabled=bool(ProjectSettings.get_setting(settings_key+"enabled",fallback))
 	provider.network_allowed=network_allowed and provider.enabled
 	return OK
 func set_enabled(id: String,value: bool) -> void:
 	var provider: Node=providers[id];provider.enabled=value;provider.network_allowed=network_allowed and value
 	if not value:provider.cancel_all()
-	ProjectSettings.set_setting("asset_browser/providers/"+id+"/enabled",value);ProjectSettings.save()
+	ProjectSettings.set_setting("asset_browser/providers/"+id+"/enabled",value)
+	if Defaults.bundled(provider,id):ProjectSettings.set_setting("asset_browser/providers/"+id+"/enabled_policy_revision",Defaults.REVISION)
+	ProjectSettings.save()
 ## Providers that are switched off by default, with the reason they give.
 func disabled_providers() -> Array:
 	var result: Array=[]
 	for id in providers:
 		var provider: Node=providers[id]
 		if provider.enabled:continue
-		var reason := str(provider.disabled_reason()) if provider.has_method("disabled_reason") else ""
+		var reason := provider_status(str(id))
 		result.append({"id":str(id),"name":str(provider.descriptor().get("name",id)),"reason":reason})
 	return result
+func provider_status(id: String) -> String:
+	var provider: Node=providers.get(id)
+	if not provider:return "Provider is unavailable."
+	if Defaults.bundled(provider,id):return Defaults.reason(id)
+	return str(provider.disabled_reason()) if provider.has_method("disabled_reason") else "Disabled."
 func active_ids() -> Array:
 	var result := []
 	for id in providers:
@@ -64,6 +81,35 @@ func seed(output: String) -> void:
 		index_assets(provider.local_assets())
 		for folder in provider.local_import_roots():inventory.scan(str(folder))
 	inventory.save()
+## Prepare local data without normalizing/re-saving every provider catalog on
+## each first search. Only RefCounted disk caches are touched by this worker.
+func prepare_search(output: String) -> void:
+	var imports := preload("res://addons/3dtexel/core/download_inventory.gd").new()
+	imports.root=inventory.root
+	var metadata := Catalog.new();metadata.root=catalog.root
+	var roots: Array[String]=[output]
+	var caches: Array=[];var active_ids := active_ids()
+	for provider in providers.values():
+		for folder in provider.local_import_roots():
+			if str(folder) not in roots:roots.append(str(folder))
+		if str(provider.descriptor().get("id","")) in active_ids:
+			var cache: Variant=provider_cache(provider)
+			if cache!=null:caches.append(cache)
+	var task := WorkerThreadPool.add_task(_prepare_search_data.bind(imports,metadata,roots,caches))
+	preparation_task=task
+	while not WorkerThreadPool.is_task_completed(task):await get_tree().process_frame
+	WorkerThreadPool.wait_for_task_completion(task)
+	preparation_task=-1
+	inventory=imports;catalog=metadata
+static func _prepare_search_data(imports: RefCounted,metadata: RefCounted,roots: Array[String],caches: Array) -> void:
+	for folder in roots:imports.scan(folder)
+	imports.save();metadata.load_catalog()
+	for cache in caches:
+		cache.ensure_loaded()
+		if cache.has_method("load_local_imports"):
+			for folder in roots:cache.load_local_imports(folder)
+static func measure_cache(roots: Array[String],holder: Dictionary) -> void:
+	for path in roots:holder.bytes+=cache_path_size(path)
 func search(query: String,category: String,free_only: bool,license_name: String) -> Array:
 	return catalog.search(active_ids(),query,category,free_only,license_name)
 func licenses() -> Array[String]:
@@ -101,6 +147,9 @@ func cache_roots() -> Array[String]:
 	for provider in providers.values():
 		var cache: Variant=provider_cache(provider)
 		if cache == null:continue
+		if cache.has_method("cache_paths"):
+			for path in cache.cache_paths():
+				if not str(path).is_empty() and str(path) not in roots:roots.append(str(path))
 		var root := str(cache.get("root"))
 		if not root.is_empty() and root not in roots:roots.append(root)
 	return roots
@@ -119,6 +168,8 @@ func clear_caches() -> void:
 		if cache == null:continue
 		var records: Variant=cache.get("catalog")
 		if records is Dictionary:records.clear()
+		var assets: Variant=cache.get("assets")
+		if assets is Dictionary:assets.clear()
 		cache.set("loaded",false)
 		var provider_client: Variant=provider.get("client")
 		var thumbs: Variant=provider_client.get("allowed_thumbnails") if provider_client!=null else null
@@ -126,6 +177,9 @@ func clear_caches() -> void:
 	for root in cache_roots():clear_cache_path(root)
 	catalog.records.clear();catalog.loaded=false
 static func cache_path_size(path: String) -> int:
+	if FileAccess.file_exists(path):
+		var file := FileAccess.open(path,FileAccess.READ)
+		return file.get_length() if file else 0
 	var directory := DirAccess.open(path)
 	if not directory:return 0
 	directory.include_hidden=true
@@ -137,6 +191,8 @@ static func cache_path_size(path: String) -> int:
 	return total
 static func clear_cache_path(path: String) -> void:
 	if not path.begins_with("user://") or path=="user://":return
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path));return
 	var directory := DirAccess.open(path)
 	if not directory:return
 	directory.include_hidden=true
@@ -150,4 +206,8 @@ static func format_size(bytes: int) -> String:
 	if bytes<1073741824:return "%.1f MB" % (bytes/1048576.0)
 	return "%.2f GB" % (bytes/1073741824.0)
 
-func _exit_tree() -> void:cancel_all()
+func _exit_tree() -> void:
+	if preparation_task>=0:
+		WorkerThreadPool.wait_for_task_completion(preparation_task)
+		preparation_task=-1
+	cancel_all()

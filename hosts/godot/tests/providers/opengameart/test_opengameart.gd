@@ -170,8 +170,8 @@ func run() -> void:
 
 	var multi_file_asset := {"id": "dungeon-chest-3d", "title": "Dungeon Chest", "files": parsed_model.files}
 	var multi_vars := provider.variants(multi_file_asset)
-	check(multi_vars.size() == 3, "Multi-file asset produces 'all-files' + 2 format variants")
-	check(multi_vars[0].id == "all-files", "First variant is all-files")
+	check(multi_vars.size() == 3, "Multi-file asset produces 'all_files' + 2 format variants")
+	check(multi_vars[0].id == "all_files", "First variant is all_files")
 	check(multi_vars[1].id == "chest_glb" and multi_vars[1].filter_key == "format:glb", "GLB variant with safe slug")
 	check(multi_vars[2].id == "chest_blend" and multi_vars[2].filter_key == "format:blend", "Blend variant with safe slug")
 
@@ -223,6 +223,7 @@ func run() -> void:
 
 	# Configure discovered provider with a fresh mock client
 	var hub_provider: Node = hub.providers["opengameart"]
+	hub_provider.enabled=true
 	hub_provider.client.queue_free()
 	hub_provider.remove_child(hub_provider.client)
 	var hub_mock := MockOGAClient.new()

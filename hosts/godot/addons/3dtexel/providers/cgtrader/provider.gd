@@ -165,12 +165,13 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 	for raw in raw_models:
 		if raw is Dictionary:
 			var normalized := normalize(raw, true)
-			client.cache.put_asset(normalized)
+			client.cache.put_asset(normalized, false)
 			items.append(normalized)
 
 	var total_found := int(resp.get("total", raw_models.size()))
 	var per_page := int(resp.get("per_page", 30))
 	var next_cur := str(page + 1) if (page * per_page < total_found) else ""
+	client.cache.save_catalog()
 	return {"items": items, "next_cursor": next_cur}
 
 func asset_details(asset: Dictionary) -> Dictionary:
@@ -244,6 +245,8 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
 	return await client.search_models("", "character-people", 1, true)
 
 func cancel_all() -> void:

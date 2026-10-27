@@ -50,4 +50,4 @@ func scan(folder: String, depth := 6) -> void:
 					var entries: Dictionary=records.get(identity(asset),{})
 					entries[version]={"folder":folder,"requested":value.get("requested_resolution",""),"imported_utc":value.get("imported_utc","")};records[identity(asset)]=entries
 	for name in directory.get_directories():
-		if not name.begins_with(".") and name!="_source":scan(folder.path_join(name),depth-1)
+		if not name.begins_with(".") and name!="_source" and name!="live-verification":scan(folder.path_join(name),depth-1)

@@ -68,12 +68,12 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 
 	asset.url = str(raw.get("url", "https://www.artic.edu/artworks/" + id))
 
-	var img_id: String = str(raw.get("image_id", ""))
+	var img_id: String = str(raw.get("image_id", asset.get("image_id", "")))
 	var thumb_dict: Variant = raw.get("thumbnail", null)
-	if thumb_dict is Dictionary and thumb_dict.has("lqip"):
-		asset.thumbnail = str(thumb_dict.lqip)
-	elif not img_id.is_empty():
+	if not img_id.is_empty():
 		asset.thumbnail = "https://www.artic.edu/iiif/2/%s/full/400,/0/default.jpg" % img_id
+	elif thumb_dict is Dictionary and str(thumb_dict.get("lqip", "")).begins_with("https://"):
+		asset.thumbnail = str(thumb_dict.lqip)
 	else:
 		asset.thumbnail = str(raw.get("thumbnail", ""))
 
@@ -167,12 +167,16 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 		if not (raw is Dictionary):
 			continue
 		var normalized := normalize(raw, true)
+		if normalized.thumbnail.is_empty():
+			continue
 		if category == "material":
 			normalized.type = "material"
-		client.cache.put_asset(normalized)
+		client.allowed_thumbnails[normalized.thumbnail] = true
+		client.cache.put_asset(normalized, false)
 		items.append(normalized)
 
 	var next_cur := str(offset + rows) if all_items.size() >= rows else ""
+	client.cache.save_catalog()
 	return {"items": items, "next_cursor": next_cur}
 
 func asset_details(asset: Dictionary) -> Dictionary:
@@ -210,12 +214,10 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 	if dl_url.is_empty():
 		var img_id := str(detailed.get("image_id", detailed.get("source_metadata", {}).get("image_id", "")))
 		if not img_id.is_empty():
-			if variant in ["843", "small"]:
+			if variant in ["843", "small", "orig"]:
 				dl_url = "https://www.artic.edu/iiif/2/%s/full/843,/0/default.jpg" % img_id
-			elif variant in ["2048", "large"]:
-				dl_url = "https://www.artic.edu/iiif/2/%s/full/2048,/0/default.jpg" % img_id
 			else:
-				dl_url = "https://www.artic.edu/iiif/2/%s/full/max/0/default.jpg" % img_id
+				dl_url = "https://www.artic.edu/iiif/2/%s/full/2048,/0/default.jpg" % img_id
 
 	if dl_url.is_empty():
 		return {"error": "No download URL available for Art Institute of Chicago artwork."}
@@ -247,6 +249,8 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
 	return await client.search()
 
 func cancel_all() -> void:

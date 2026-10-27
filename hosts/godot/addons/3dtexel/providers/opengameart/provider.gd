@@ -42,6 +42,39 @@ func can_download(asset: Dictionary) -> bool:
 	var vars := variants(asset)
 	return not vars.is_empty()
 
+const MODEL_EXTS := [
+	"glb", "gltf", "obj", "fbx", "blend", "dae", "stl", "ply", "3ds", "x",
+	"md2", "md3", "md5mesh", "iqm", "abc", "usd", "usda", "usdc", "usdz",
+	"zip", "7z", "rar", "tar", "gz", "tgz", "bz2", "xz"
+]
+const AUDIO_EXTS := [
+	"ogg", "wav", "mp3", "flac", "m4a", "oga", "opus", "mid", "midi",
+	"xm", "it", "s3m", "mod", "zip", "7z", "rar", "tar", "gz", "tgz"
+]
+const IMAGE_EXTS := [
+	"png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "tga", "tif", "tiff",
+	"exr", "hdr", "xcf", "psd", "kra", "zip", "7z", "rar", "tar", "gz", "tgz"
+]
+const IMAGE_ONLY_EXTS := ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "xcf", "psd", "kra"]
+
+static func _filter_model_files(files: Array) -> Array:
+	return _filter_files_for_type(files, "model")
+
+static func _filter_files_for_type(files: Array, asset_type: String) -> Array:
+	var allowed: Array = []
+	match asset_type:
+		"model": allowed = MODEL_EXTS
+		"audio": allowed = AUDIO_EXTS
+		"image", "material": allowed = IMAGE_EXTS
+		_: return files
+	var out := []
+	for f in files:
+		if f is Dictionary:
+			var ext := str(f.get("filename", "")).get_extension().to_lower()
+			if ext in allowed:
+				out.append(f)
+	return out
+
 func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 	var id := str(raw.get("id", raw.get("slug", "")))
 	var asset: Dictionary = client.cache.asset(id)
@@ -51,6 +84,18 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 	asset.provider = "OpenGameArt"
 	asset.id = id
 	asset.type = str(raw.get("type", asset.get("type", "image")))
+	var known_files: Array = asset.get("files", [])
+	if known_files.is_empty() and asset.get("source_metadata") is Dictionary:
+		known_files = asset.source_metadata.get("files", [])
+	if asset.type == "model" and not known_files.is_empty():
+		if _filter_model_files(known_files).is_empty():
+			var all_2d := true
+			for f in known_files:
+				if f is Dictionary and str(f.get("filename", "")).get_extension().to_lower() not in IMAGE_ONLY_EXTS:
+					all_2d = false
+					break
+			if all_2d:
+				asset.type = "image"
 	asset.title = str(raw.get("title", asset.get("title", "Untitled")))
 	asset.url = str(raw.get("url", asset.get("url", "https://opengameart.org/content/" + id)))
 	asset.thumbnail = str(raw.get("thumbnail", asset.get("thumbnail", "")))
@@ -81,15 +126,18 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 	return asset
 
 func variants(asset: Dictionary) -> Array:
-	var existing: Array = asset.get("variants", [])
-	if not existing.is_empty():
-		return existing
-
 	var files: Array = asset.get("files", [])
 	if files.is_empty() and asset.get("source_metadata") is Dictionary:
 		files = asset.source_metadata.get("files", [])
 
+	var asset_type := str(asset.get("type", ""))
+	if asset_type in ["model", "audio", "image", "material"]:
+		files = _filter_files_for_type(files, asset_type)
+
 	if files.is_empty():
+		var existing: Array = asset.get("variants", [])
+		if not existing.is_empty():
+			return existing
 		return []
 
 	var result := []
@@ -107,12 +155,12 @@ func variants(asset: Dictionary) -> Array:
 		})
 	else:
 		result.append({
-			"id": "all-files",
+			"id": "all_files",
 			"label": "All Files (%d)" % files.size(),
 			"kind": "files",
 			"confirmed": true
 		})
-		var seen := {"all-files": true}
+		var seen := {"all_files": true}
 		for f: Dictionary in files:
 			var fname := str(f.get("filename", ""))
 			var ext := fname.get_extension().to_lower()
@@ -157,7 +205,7 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 	sync_network()
 
 	var page_num := int(cursor) if not cursor.is_empty() and cursor.is_valid_int() else 0
-	var url := "https://opengameart.org/art-search?page=%d" % page_num
+	var url := "https://opengameart.org/art-search-advanced?page=%d" % page_num
 
 	var trimmed_query := query.strip_edges()
 	if not trimmed_query.is_empty():
@@ -180,6 +228,8 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 	var parsed: Dictionary = Parser.parse_search_page(str(resp.get("body", "")), url)
 	var items := []
 	for raw: Dictionary in parsed.get("items", []):
+		if raw.get("files", []).is_empty() and raw.get("variants", []).is_empty():
+			raw["variants"] = [{"id": "all_files", "label": "Download", "kind": "files", "confirmed": true}]
 		var normalized := normalize(raw, true)
 		items.append(normalized)
 		var thumb_url := str(normalized.get("thumbnail", ""))
@@ -245,6 +295,10 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 		files = details.get("files", details.get("source_metadata", {}).get("files", []))
 		asset = details
 
+	var asset_type := str(asset.get("type", ""))
+	if asset_type in ["model", "audio", "image", "material"]:
+		files = _filter_files_for_type(files, asset_type)
+
 	if files.is_empty():
 		return {"error": "No downloadable files found on source page."}
 
@@ -252,16 +306,16 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 		return {"error": "Asset is not declared free."}
 
 	var matched_files: Array[Dictionary] = []
-	if variant == "all-files" or (variant == "original" and files.size() == 1):
+	if variant in ["all_files", "all-files"] or (variant == "original" and files.size() == 1):
 		for f: Dictionary in files:
 			matched_files.append({
-				"filename": str(f.get("filename", "")),
+				"filename": str(f.get("filename", "")).get_file(),
 				"url": str(f.get("url", ""))
 			})
 	else:
 		# Match specific file by slug or filename
 		for f: Dictionary in files:
-			var fname := str(f.get("filename", ""))
+			var fname := str(f.get("filename", "")).get_file()
 			if Importer.slug(fname) == variant or fname == variant:
 				matched_files.append({
 					"filename": fname,
@@ -270,7 +324,7 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 				break
 		if matched_files.is_empty() and files.size() == 1:
 			matched_files.append({
-				"filename": str(files[0].get("filename", "")),
+				"filename": str(files[0].get("filename", "")).get_file(),
 				"url": str(files[0].get("url", ""))
 			})
 
@@ -298,6 +352,8 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
 	return await client.http_get_string("https://opengameart.org/art-search")
 
 func cancel_all() -> void:

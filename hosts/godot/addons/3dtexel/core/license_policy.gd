@@ -12,5 +12,5 @@ static func evaluate(asset: Dictionary) -> Dictionary:
 	if not price.has("free"):return {"status":Status.UNKNOWN,"reason":"Price/entitlement metadata is missing; review before distribution."}
 	if normalized in ["cc0","cc0-1.0","cc0-1.0-universal","cc0-1.0","creative-commons-zero-(cc0)","public-domain"]:return {"status":Status.PERMISSIVE,"reason":"Declared CC0/public domain; retain source and creator metadata."}
 	if normalized in ["cc-by-3.0","cc-by-4.0","oga-by-3.0","oga-by-4.0"]:return {"status":Status.ATTRIBUTION,"reason":"Commercial use with attribution and the selected license's additional terms."}
-	if "-nc" in normalized or "noncommercial" in normalized or "all-rights-reserved" in normalized:return {"status":Status.BLOCKED,"reason":"Declared terms conflict with commercial distribution."}
+	if "-nd" in normalized or "noderivatives" in normalized or "-nc" in normalized or "noncommercial" in normalized or "all-rights-reserved" in normalized:return {"status":Status.BLOCKED,"reason":"Declared terms conflict with commercial distribution."}
 	return {"status":Status.UNKNOWN,"reason":"Terms need review; share-alike/GPL are not automatically prohibited or attribution-only."}

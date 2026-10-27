@@ -1,5 +1,7 @@
 @tool
 extends Node
+const Thumbnail = preload("res://addons/3dtexel/core/thumbnail_image.gd")
+const Transport = preload("res://addons/3dtexel/core/request_transport.gd")
 ## Trove Australia HTTP client with rate pacing and disk caching.
 
 const Cache = preload("res://addons/3dtexel/providers/trove/cache.gd")
@@ -13,19 +15,18 @@ var refreshing := false
 var last_network_request_ms := -1000
 var allowed_thumbnails := {}
 var active: Array[HTTPRequest] = []
+var transport_generation := 0
 
 const BASE_URL := "https://api.trove.nla.gov.au"
 
 func cancel_all() -> void:
-	for request in active:
-		if is_instance_valid(request):
-			request.cancel_request()
-			request.queue_free()
-	active.clear()
+	transport_generation+=1
+	Thumbnail.finish_tasks(self)
+	Transport.cancel_all(active)
 
 func pace_request() -> void:
 	var elapsed := Time.get_ticks_msec() - last_network_request_ms
-	var remaining := 500 - elapsed
+	var remaining := 100 - elapsed
 	if remaining > 0:
 		await get_tree().create_timer(remaining / 1000.0).timeout
 	last_network_request_ms = Time.get_ticks_msec()
@@ -43,9 +44,11 @@ func json_request(path_or_url: String) -> Dictionary:
 	if not network_allowed:
 		return {"error": "Network requests require explicit action."}
 
+	var generation := transport_generation
 	await pace_request()
+	if generation!=transport_generation:return {"error":"Request cancelled."}
 
-	var request := HTTPRequest.new()
+	var request := Transport.create_request()
 	request.timeout = 30
 	request.max_redirects = 3
 	request.body_size_limit = 16 * 1024 * 1024
@@ -123,10 +126,15 @@ func get_bytes(url: String, destination: String, max_bytes: int, redirects_left 
 	if not network_allowed and not allowed_thumbnails.has(url):
 		return {"error": "Network downloads require explicit action."}
 
-	await pace_request()
+	var generation := transport_generation
+	if not (destination.is_empty() and allowed_thumbnails.has(url)):
+		await pace_request()
+	if generation!=transport_generation:return {"error":"Request cancelled."}
 
-	var request := HTTPRequest.new()
+	var request := Transport.create_request()
 	request.timeout = 180
+	if destination.is_empty() and allowed_thumbnails.has(url):request.timeout=10
+	request.body_size_limit=max_bytes
 	request.use_threads = true
 	request.max_redirects = 0
 	if not destination.is_empty():
@@ -150,7 +158,7 @@ func get_bytes(url: String, destination: String, max_bytes: int, redirects_left 
 	if response[0] in [HTTPRequest.RESULT_SUCCESS, HTTPRequest.RESULT_REDIRECT_LIMIT_REACHED] and int(response[1]) in [301, 302, 303, 307, 308] and redirects_left > 0:
 		for header: String in response[2]:
 			if header.to_lower().begins_with("location:"):
-				var location := header.substr(header.find(":") + 1).strip_edges()
+				var location := Transport.thumbnail_redirect(allowed_thumbnails,url,header.substr(header.find(":") + 1).strip_edges())
 				if not location.begins_with("https://"):
 					return {"error": "Refused a non-HTTPS download redirect."}
 				return await get_bytes(location, destination, max_bytes, redirects_left - 1)
@@ -161,36 +169,4 @@ func get_bytes(url: String, destination: String, max_bytes: int, redirects_left 
 	return {"bytes": response[3]}
 
 func thumbnail(url: String) -> Texture2D:
-	var path := cache.thumbnail_path(url)
-	if FileAccess.file_exists(path):
-		var stored := Image.load_from_file(ProjectSettings.globalize_path(path))
-		if stored:
-			return ImageTexture.create_from_image(stored)
-
-	if not allowed_thumbnails.has(url) and not network_allowed:
-		return null
-
-	var result := await get_bytes(url, "", 8 * 1024 * 1024)
-	if result.has("error"):
-		return null
-
-	var bytes: PackedByteArray = result.get("bytes", PackedByteArray())
-	if bytes.is_empty():
-		return null
-
-	var image := Image.new()
-	var err := ERR_FILE_UNRECOGNIZED
-	if bytes.size() >= 4 and bytes[0] == 137 and bytes[1] == 80:
-		err = image.load_png_from_buffer(bytes)
-	elif bytes.size() >= 2 and bytes[0] == 255 and bytes[1] == 216:
-		err = image.load_jpg_from_buffer(bytes)
-	elif bytes.size() >= 12 and bytes.slice(0, 4).get_string_from_ascii() == "RIFF":
-		err = image.load_webp_from_buffer(bytes)
-
-	if err != OK:
-		return null
-
-	image.resize(192, 192, Image.INTERPOLATE_LANCZOS)
-	image.save_png(ProjectSettings.globalize_path(path))
-	allowed_thumbnails.erase(url)
-	return ImageTexture.create_from_image(image)
+	return await Thumbnail.load_for(self,url)

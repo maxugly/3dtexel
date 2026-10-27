@@ -108,6 +108,7 @@ func run() -> void:
 			hub.providers[p_id].enabled = false
 
 	var hub_provider: Provider = hub.providers["usda_watercolors"]
+	hub_provider.enabled=true
 	var hub_mock := MockUSDAClient.new()
 	hub_provider.remove_child(hub_provider.client)
 	hub_provider.client.queue_free()

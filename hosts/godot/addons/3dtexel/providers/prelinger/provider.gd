@@ -147,10 +147,11 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 		var normalized := normalize(raw, true)
 		if not category.is_empty() and category != "all" and normalized.type != category:
 			continue
-		client.cache.put_asset(normalized)
+		client.cache.put_asset(normalized, false)
 		items.append(normalized)
 
 	var next_cur := str(page + 1) if docs.size() >= rows else ""
+	client.cache.save_catalog()
 	return {"items": items, "next_cursor": next_cur}
 
 func asset_details(asset: Dictionary) -> Dictionary:
@@ -158,6 +159,17 @@ func asset_details(asset: Dictionary) -> Dictionary:
 
 func refresh_asset(asset: Dictionary) -> Dictionary:
 	sync_network()
+	var id := str(asset.get("id", asset.get("identifier", "")))
+	var files: Array = asset.get("files", [])
+	if files.is_empty() and not id.is_empty() and client.has_method("fetch_metadata"):
+		var meta: Dictionary = await client.fetch_metadata(id)
+		if not meta.has("error") and meta.has("files") and meta.files is Array:
+			var merged := asset.duplicate(true)
+			merged["files"] = meta.files
+			merged.source_metadata = meta
+			var normalized := normalize(merged, true)
+			client.cache.upsert(normalized)
+			return normalized
 	return normalize(asset, false)
 
 func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
@@ -178,7 +190,7 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 			continue
 		var f_dict: Dictionary = f
 		var fname := str(f_dict.get("name", f_dict.get("filename", "")))
-		if Importer.slug(fname.get_basename()) == target_slug or str(f_dict.get("variant_id", "")) == target_slug:
+		if Importer.slug(fname.get_file().get_basename()) == target_slug or str(f_dict.get("variant_id", "")) == target_slug:
 			chosen_file = f_dict
 			break
 
@@ -186,10 +198,14 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 		chosen_file = files[0]
 
 	var dl_url := str(chosen_file.get("url", ""))
-	var fname := str(chosen_file.get("name", chosen_file.get("filename", "%s.media" % detailed.id)))
+	var raw_name := str(chosen_file.get("name", chosen_file.get("filename", "%s.media" % detailed.id)))
+	var safe_fname := raw_name.get_file()
 
 	if dl_url.is_empty():
-		dl_url = "https://archive.org/download/%s/%s" % [detailed.id, fname]
+		var encoded_parts: Array[String] = []
+		for p in raw_name.split("/", false):
+			encoded_parts.append(p.uri_encode())
+		dl_url = "https://archive.org/download/%s/%s" % [detailed.id, "/".join(encoded_parts)]
 
 	if not dl_url.begins_with("https://"):
 		return {"error": "Insecure download URL: %s" % dl_url}
@@ -200,7 +216,7 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 		"variant": variant,
 		"files": [
 			{
-				"filename": fname,
+				"filename": safe_fname,
 				"url": dl_url
 			}
 		]
@@ -216,6 +232,8 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
 	return await client.search("", 1, 1)
 
 func cancel_all() -> void:

@@ -45,7 +45,11 @@ The Godot host retains its editor browser, provider adapters, material import, a
 godot --headless --path hosts/godot -s tests/test_core.gd
 ```
 
-Open `hosts/godot/project.godot` in Godot 4.4+ to use the editor addon. The browser footer shows the on-disk metadata and thumbnail cache size for all sites; clicking it asks before clearing that cache. Imported assets are not removed. Godot-specific provider documentation remains in `hosts/godot/docs/`.
+Open `hosts/godot/project.godot` in Godot 4.4+ to use the editor addon. The browser footer shows the on-disk metadata and thumbnail cache size for all sites; clicking it asks before clearing that cache. Imported assets are not removed. Only providers verified through a live search, rendered image, and validated asset download start checked. The current verified defaults are **Kenney, Internet Archive, Wellcome Collection, Freesound, KayKit, and 3D Texel**; all other bundled sites start unchecked. See [the live verification record](hosts/godot/docs/LIVE_VERIFICATION.md). Older saved opt-ins do not bypass these defaults; explicit new opt-ins in Settings remain available.
+
+Search preparation, HTTP transport, and thumbnail decoding use workers. Cards appear only when a preview image is ready. In Settings, **Show domain on tile images** adds a small domain label over each image without changing card size. Hover the page counter for per-domain image counts (ready, loading, unavailable).
+
+Godot-specific provider documentation remains in `hosts/godot/docs/`.
 
 ## Development
 

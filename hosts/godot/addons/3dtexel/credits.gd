@@ -20,15 +20,17 @@ static func license_record(value: Variant) -> Dictionary:
 		var name := str(result.name).to_lower()
 		result.attribution_required=false if "cc0" in name else (true if "cc-by" in name or "cc by" in name else null)
 	return result
+static var _res_regex: RegEx
 static func available_resolutions(asset: Dictionary) -> Array[String]:
 	var result: Array[String]=[]
 	var values := []
 	for key in ["resolutions","available_resolutions","formats"]:
-		values.append(asset.get(key,[]))
-		if asset.get("download") is Dictionary:values.append(asset.download.get(key,[]))
-	var regex := RegEx.create_from_string("(?i)(?<![0-9])(1|2|4|8|16)\\s*k\\b")
+		if asset.has(key):values.append(asset[key])
+		if asset.get("download") is Dictionary and asset.download.has(key):values.append(asset.download[key])
+	if values.is_empty():return result
+	if _res_regex==null:_res_regex=RegEx.create_from_string("(?i)(?<![0-9])(1|2|4|8|16)\\s*k\\b")
 	for value in values:
-		for match in regex.search_all(JSON.stringify(value)):
+		for match in _res_regex.search_all(JSON.stringify(value)):
 			var size := match.get_string(1)+"k"
 			if size not in result:result.append(size)
 	result.sort_custom(func(a,b):return int(a)<int(b))

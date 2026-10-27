@@ -41,6 +41,8 @@ var progress: ProgressBar
 var cache_button: Button
 var cache_dialog: ConfirmationDialog
 var cache_tick := 0.0
+var cache_size_updating := false
+var cache_size_task := -1
 var selected := {}
 var visible_assets: Array=[]
 var page := 1
@@ -50,6 +52,13 @@ var serial := 0
 var thumbnail_queue: Array[Dictionary]=[]
 var thumbnails_active := 0
 var thumbnail_tick := 0.0
+var thumbnail_textures := {}
+var thumbnail_pending := {}
+var thumbnail_failed := {}
+var thumbnail_epoch := 0
+var show_domains: CheckBox
+const THUMBNAIL_TIMEOUT := 15.0
+const THUMBNAIL_MEMORY_LIMIT := 256
 var audit_scope: OptionButton
 var audit_lic_cc0: CheckBox
 var audit_lic_attr: CheckBox
@@ -58,7 +67,7 @@ var audit_lic_custom: CheckBox
 var audit_status_label: Label
 var last_audit_data := {}
 var seeded := false
-const SEARCH_WORKERS := 6
+const SEARCH_WORKERS := 32
 ## Per-site deadline. A slow provider now loses only its own slot instead of
 ## cutting the whole sweep short.
 const PROVIDER_TIMEOUT := 12.0
@@ -71,6 +80,9 @@ var search_render_ms := 0
 var searching := false
 var restarting := false
 var visible_signature: Array=[]
+var card_pool: Array[PanelContainer]=[]
+var _filtered_cache: Array=[]
+var _filtered_state: Array=[]
 func button(text: String,action: Callable,parent: Node) -> Button:
 	var item := Button.new();item.text=text;item.pressed.connect(action);parent.add_child(item);return item
 func label(text: String,parent: Node) -> Label:
@@ -78,7 +90,7 @@ func label(text: String,parent: Node) -> Label:
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	size_flags_horizontal=Control.SIZE_EXPAND_FILL;size_flags_vertical=Control.SIZE_EXPAND_FILL
-	content=VBoxContainer.new();content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);content.add_theme_constant_override("separation",8);add_child(content)
+	content=VBoxContainer.new();content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);content.add_theme_constant_override("separation",8)
 	client=Registry.new();add_child(client);session.registry=client;selection.registry=client
 	preparation=Preparation.new();add_child(preparation);preparation.registry=client
 	preparation.progress.connect(func(message):status.text=message)
@@ -99,8 +111,8 @@ func _ready() -> void:
 	for i in Policy.LABELS.size():policy_filter.add_item(Policy.LABELS[i],i)
 	filters.add_child(policy_filter)
 	version_filter=OptionButton.new();version_filter.add_item("All versions");version_filter.set_item_metadata(0,"");filters.add_child(version_filter)
-	for control in [price_filter,license_filter,policy_filter]:control.item_selected.connect(func(_index):page=1;run_search())
-	version_filter.item_selected.connect(func(index):selection.filter_key=str(version_filter.get_item_metadata(index));selection.checked.clear();page=1;run_search())
+	for control in [price_filter,license_filter,policy_filter]:control.item_selected.connect(func(_index):page=1;run_search(true,true,false,not searching))
+	version_filter.item_selected.connect(func(index):selection.filter_key=str(version_filter.get_item_metadata(index));selection.checked.clear();page=1;run_search(true,true,false,not searching))
 	var actions := HFlowContainer.new();content.add_child(actions)
 	check_all=CheckBox.new();check_all.text="Check all";check_all.tooltip_text="Select or unselect the cards on this page.";actions.add_child(check_all);check_all.toggled.connect(toggle_all)
 	download=button("Download selected",download_selected,actions);download.disabled=true
@@ -111,7 +123,9 @@ func _ready() -> void:
 	results_scroll=ScrollContainer.new();results_scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;results_scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;results_scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED;content.add_child(results_scroll)
 	grid=GridContainer.new();grid.size_flags_horizontal=Control.SIZE_EXPAND_FILL;grid.add_theme_constant_override("h_separation",12);grid.add_theme_constant_override("v_separation",12);results_scroll.add_child(grid)
 	var pages := HBoxContainer.new();content.add_child(pages)
-	previous=button("← Previous",func():page=maxi(1,page-1);run_search(),pages)
+	previous=button("< Previous",func():
+		if busy and not searching:return
+		page=maxi(1,page-1);run_search(true,true,false,not searching),pages)
 	label("Per page:",pages);per_page=OptionButton.new()
 	var preferences := ConfigFile.new()
 	if preferences.load("user://asset_browser.cfg")!=OK:preferences.load("user://3dtexel_browser.cfg")
@@ -119,15 +133,26 @@ func _ready() -> void:
 	per_page.select(maxi(0,per_page.get_item_index(int(preferences.get_value("browser","per_page",12)))));pages.add_child(per_page)
 	per_page.item_selected.connect(change_page_size)
 	page_label=label("",pages);page_label.size_flags_horizontal=Control.SIZE_EXPAND_FILL;page_label.clip_text=true
-	next=button("Next →",next_page,pages)
+	next=button("Next >",next_page,pages)
 	cache_button=Button.new();cache_button.text="Cache";cache_button.flat=true;cache_button.focus_mode=Control.FOCUS_NONE;cache_button.size_flags_horizontal=Control.SIZE_SHRINK_END;cache_button.add_theme_font_size_override("font_size",11);cache_button.pressed.connect(confirm_clear_cache);pages.add_child(cache_button)
 	progress=ProgressBar.new();progress.custom_minimum_size.y=6;progress.show_percentage=false;content.add_child(progress)
 	status=label("Search for assets to begin.",content);status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	add_child(content)
 	update_filter_choices();update_actions()
 	resized.connect(update_layout);results_scroll.resized.connect(update_layout);visibility_changed.connect(func():
 		if visible:call_deferred("update_cache_label"))
 	call_deferred("update_layout")
 func build_settings() -> void:
+	show_domains=CheckBox.new();show_domains.text="Show domain on tile images"
+	var prefs := ConfigFile.new();prefs.load("user://asset_browser.cfg")
+	show_domains.button_pressed=bool(prefs.get_value("browser","show_domains",false))
+	settings_panel.add_child(show_domains)
+	show_domains.toggled.connect(func(value):
+		var saved := ConfigFile.new();saved.load("user://asset_browser.cfg")
+		saved.set_value("browser","show_domains",value);saved.save("user://asset_browser.cfg")
+		for card in grid.get_children():
+			var overlay := card.find_child("Domain",true,false)
+			if overlay:overlay.visible=value)
 	var row := HFlowContainer.new();settings_panel.add_child(row)
 	label("Save to:",row);output=LineEdit.new();output.text=str(ProjectSettings.get_setting("asset_browser/output_directory",ProjectSettings.get_setting("3dtexel/output_directory","res://AssetLibrary")));output.custom_minimum_size.x=230;row.add_child(output)
 	button("Open folder",func():OS.shell_open(ProjectSettings.globalize_path(output.text)),row)
@@ -143,7 +168,7 @@ func build_settings() -> void:
 	for id in client.providers:
 		var provider: Node=client.providers[id];var info: Dictionary=provider.descriptor()
 		var site := HFlowContainer.new();settings_panel.add_child(site)
-		var enabled := CheckBox.new();enabled.text=str(info.name);enabled.button_pressed=provider.enabled;site.add_child(enabled)
+		var enabled := CheckBox.new();enabled.text=str(info.name);enabled.tooltip_text=client.provider_status(str(info.id));enabled.button_pressed=provider.enabled;site.add_child(enabled)
 		enabled.toggled.connect(func(value):
 			if busy:enabled.set_pressed_no_signal(provider.enabled);return
 			client.set_enabled(str(info.id),value);rebuild_sites();start_search())
@@ -153,9 +178,7 @@ func build_settings() -> void:
 			var key := LineEdit.new();key.secret=true;key.placeholder_text="Session API key";key.custom_minimum_size.x=180;site.add_child(key)
 			var apply := func():
 				provider.set_session_key(key.text);key.clear();state.text=provider.credential_status()
-				# A site that was waiting for a key can start working once it has one.
-				if not provider.enabled and not provider.api_key().is_empty():
-					client.set_enabled(str(info.id),true);rebuild_sites()
+				# Credentials alone do not opt an unchecked site back into searches.
 				run_search()
 			key.text_submitted.connect(func(_value):apply.call());button("Use key",apply,site)
 func update_layout() -> void:
@@ -172,25 +195,26 @@ func rebuild_sites() -> void:
 		if disabled:label+=" (off)"
 		sites.add_item(label);sites.set_item_metadata(sites.item_count-1,id)
 		if disabled:
-			var reason := str(provider.disabled_reason()) if provider.has_method("disabled_reason") else "Disabled."
+			var reason: String=client.provider_status(str(id))
 			sites.set_item_tooltip(sites.item_count-1,reason if not reason.is_empty() else "Disabled.")
 		elif scope==id:sites.select(sites.item_count-1)
 	client.scope=str(sites.get_item_metadata(sites.selected))
-## Picking a site that is switched off turns it on: that is an explicit request
-## for that one source, so its network access is allowed with it.
+## Selecting an unchecked site does not silently opt it back into searches.
+## Enable it explicitly in Settings when returning to investigate or repair it.
 func _on_site_selected(index: int) -> void:
 	var id := str(sites.get_item_metadata(index))
 	client.scope=id
 	if not id.is_empty():
 		var provider: Node=client.providers.get(id)
 		if provider and not provider.enabled:
-			client.set_enabled(id,true)
-			rebuild_sites()
+			run_search()
+			status.text=client.provider_status(id)+" Enable this site explicitly in Settings to test it."
+			return
 	start_search()
 func ensure_seeded() -> void:
 	if seeded:return
+	await client.prepare_search(output.text)
 	seeded=true
-	client.seed(output.text)
 func _search_worker(generation: int, work: RefCounted) -> void:
 	while not stopping and generation==search_generation:
 		var id: String=work.next_id()
@@ -216,11 +240,17 @@ func start_search() -> void:
 		stopping=true;client.cancel_all();search_generation+=1
 		while busy:await get_tree().process_frame
 		restarting=false
-	ensure_seeded()
 	await refresh_search()
 func refresh_search() -> void:
 	if busy:return
 	busy=true;searching=true;stopping=false;page=1;selection.checked.clear()
+	status.text="Preparing search…";update_actions()
+	# Paint feedback before any disk work, and scan import receipts off the UI thread.
+	await get_tree().process_frame
+	await ensure_seeded()
+	if stopping:
+		busy=false;searching=false;update_actions();return
+	thumbnail_failed.clear()
 	var next_session := Session.new();next_session.registry=client
 	next_session.begin(search.text,["all","material","model","audio","image"][kind.selected]);session=next_session
 	search_generation+=1
@@ -260,39 +290,68 @@ func search_report() -> String:
 	if lines.is_empty():return "No site results yet."
 	return "\n".join(lines)
 func filtered_items() -> Array:
+	var license_name := license_filter.get_item_text(license_filter.selected) if is_instance_valid(license_filter) and license_filter.selected>=0 else "Any license"
+	var active_ids: Array=client.active_ids()
+	var price_sel := price_filter.selected if is_instance_valid(price_filter) else 0
+	var policy_sel := policy_filter.selected if is_instance_valid(policy_filter) else 0
+	var policy_id := policy_filter.get_selected_id() if is_instance_valid(policy_filter) else -1
+	var state := [session,session.identities.size(),client.catalog.revision,client.catalog.records.size(),active_ids,price_sel,license_name,policy_sel,policy_id,selection.filter_key]
+	if state==_filtered_state:return _filtered_cache
+	var active_set := {}
+	for id in active_ids:active_set[str(id)]=true
 	var result := []
-	var license_name := license_filter.get_item_text(license_filter.selected)
 	for asset: Dictionary in session.items():
-		if str(asset.get("provider_id","")) not in client.active_ids():continue
-		if price_filter.selected==0 and not asset.get("price",{}).get("free",false):continue
-		if license_name!="Any license" and Credits.license_record(asset.get("license","")).name!=license_name:continue
-		if policy_filter.selected>0 and int(Policy.evaluate(asset).status)!=policy_filter.get_selected_id():continue
+		if not active_set.has(str(asset.get("provider_id",""))):continue
+		if session.category!="all" and str(asset.get("type",""))!=session.category:continue
+		if price_sel==0 and not asset.get("price",{}).get("free",false):continue
+		if license_name!="Any license":
+			var lic = asset.get("license","")
+			var asset_lic := str(lic.get("name","")) if lic is Dictionary else str(Credits.license_record(lic).name)
+			if asset_lic!=license_name:continue
+		if policy_sel>0:
+			var st := int(asset.get("license_status",Policy.evaluate(asset).status))
+			if st!=policy_id:continue
 		if not selection.filter_key.is_empty() and selection.options(asset).is_empty():continue
 		result.append(asset)
+	_filtered_state=state;_filtered_cache=result
 	return result
 func run_search(reset_scroll := true, reset_thumbnails := true, skip_if_same := false, announce := true) -> void:
-	if reset_thumbnails:serial+=1;thumbnail_queue.clear()
 	var items := filtered_items();var count := per_page.get_selected_id();var pages := maxi(1,ceili(float(items.size())/count))
 	page=clampi(page,1,pages);visible_assets=items.slice((page-1)*count,mini(items.size(),page*count))
 	var signature := []
 	for asset: Dictionary in visible_assets:signature.append(Selection.identity(asset))
 	var same := signature==visible_signature
 	visible_signature=signature
+	if reset_thumbnails or not (skip_if_same and same):serial+=1;thumbnail_queue.clear()
 	if not (skip_if_same and same):
-		for child in grid.get_children():grid.remove_child(child);child.queue_free()
-		for asset: Dictionary in visible_assets:grid.add_child(make_asset_tile(asset,serial))
+		var needed := visible_assets.size()
+		while grid.get_child_count()>needed:
+			var extra := grid.get_child(grid.get_child_count()-1) as PanelContainer
+			grid.remove_child(extra)
+			card_pool.append(extra)
+		for i in needed:
+			var asset: Dictionary=visible_assets[i]
+			if i<grid.get_child_count():
+				configure_asset_tile(grid.get_child(i) as PanelContainer,asset,serial)
+			else:
+				var card: PanelContainer=card_pool.pop_back() if not card_pool.is_empty() else _create_empty_tile()
+				configure_asset_tile(card,asset,serial)
+				grid.add_child(card)
 		if reset_scroll:results_scroll.scroll_vertical=0
 	page_label.text="Page %s · %s results%s" % [page,items.size()," · more available" if session.has_more() else ""]
 	previous.disabled=page<=1;next.disabled=page>=pages and not session.has_more()
 	if announce:status.text="%s assets on this page." % visible_assets.size() if not items.is_empty() else "No matching results."
+	update_image_report()
 	update_actions()
+	if is_processing() and not thumbnail_queue.is_empty():pump_thumbnails()
 func update_filter_choices() -> void:
 	var selected_license := license_filter.get_item_text(license_filter.selected) if license_filter.selected>=0 else "Any license"
 	license_filter.clear();license_filter.add_item("Any license")
-	var licenses := [];var options := {}
+	var licenses := [];var license_set := {};var options := {}
 	for asset: Dictionary in session.items():
-		var name := str(Credits.license_record(asset.get("license","")).name)
-		if name not in licenses:licenses.append(name)
+		var lic = asset.get("license","")
+		var name := str(lic.get("name","")) if lic is Dictionary else str(Credits.license_record(lic).name)
+		if not license_set.has(name):license_set[name]=true;licenses.append(name)
 		for option: Dictionary in selection.options(asset,false):
 			var key := Selection.option_key(asset,option)
 			var default_label := str(option.get("label",option.id))
@@ -309,13 +368,20 @@ func update_filter_choices() -> void:
 		if key==selection.filter_key:version_filter.select(version_filter.item_count-1)
 	if version_filter.selected==0:selection.filter_key=""
 func change_page_size(_index: int) -> void:
-	var prefs := ConfigFile.new();prefs.set_value("browser","per_page",per_page.get_selected_id());prefs.save("user://asset_browser.cfg")
+	var prefs := ConfigFile.new();prefs.load("user://asset_browser.cfg");prefs.set_value("browser","per_page",per_page.get_selected_id());prefs.save("user://asset_browser.cfg")
 	page=1
-	if session.items().size()<per_page.get_selected_id() and session.has_more():await load_more(per_page.get_selected_id()-1)
-	run_search()
+	if session.items().size()<per_page.get_selected_id() and session.has_more() and not searching:await load_more(per_page.get_selected_id()-1)
+	run_search(true,true,false,not searching)
 func update_cache_label() -> void:
-	if not is_instance_valid(cache_button):return
-	var size := Registry.format_size(client.cache_size())
+	if not is_instance_valid(cache_button) or cache_size_updating:return
+	cache_size_updating=true
+	var roots: Array[String]=client.cache_roots();var holder := {"bytes":0}
+	var task := WorkerThreadPool.add_task(Registry.measure_cache.bind(roots,holder))
+	cache_size_task=task
+	while not WorkerThreadPool.is_task_completed(task):await get_tree().process_frame
+	WorkerThreadPool.wait_for_task_completion(task)
+	cache_size_task=-1;cache_size_updating=false
+	var size := Registry.format_size(int(holder.bytes))
 	cache_button.text="Cache "+size
 	cache_button.tooltip_text="Cached metadata and thumbnails for all sites: %s.\nClick to clear the cache." % size
 func confirm_clear_cache() -> void:
@@ -329,11 +395,16 @@ func confirm_clear_cache() -> void:
 	add_child(cache_dialog);cache_dialog.popup_centered(Vector2i(460,180))
 func clear_cache() -> void:
 	var freed: int=client.cache_size()
+	thumbnail_epoch+=1
 	client.clear_caches()
 	session.reset()
-	selection.checked.clear();serial+=1;thumbnail_queue.clear()
+	_filtered_state.clear();_filtered_cache.clear()
+	selection.checked.clear();serial+=1;thumbnail_queue.clear();thumbnail_textures.clear();thumbnail_failed.clear()
 	for child in grid.get_children():grid.remove_child(child);child.queue_free()
-	visible_assets=[];page=1;page_label.text="No cached results.";previous.disabled=true;next.disabled=true
+	for card in card_pool:
+		if is_instance_valid(card):card.queue_free()
+	card_pool.clear()
+	visible_assets=[];visible_signature=[];page=1;page_label.text="No cached results.";previous.disabled=true;next.disabled=true
 	update_filter_choices();update_actions();update_cache_label()
 	status.text="Cache cleared · %s freed." % Registry.format_size(freed)
 	if is_instance_valid(cache_dialog):cache_dialog.queue_free();cache_dialog=null
@@ -346,66 +417,152 @@ func load_more(wanted: int) -> void:
 		if result.has("error"):break
 		if stopping or not session.has_more() or filtered_items().size()>wanted or session.items().size()>=budget:break
 	search_generation+=1
+	session.flush()
 	client.network_allowed=false;client.refreshing=false;busy=false;update_filter_choices()
 	status.tooltip_text=search_report()
 func next_page() -> void:
-	if busy:return
+	if busy and not searching:return
 	var wanted := page*per_page.get_selected_id()
-	if filtered_items().size()<=wanted and session.has_more():
+	if filtered_items().size()<=wanted and session.has_more() and not searching:
 		await load_more(wanted)
-	page+=1;run_search()
+	page+=1;run_search(true,true,false,not searching)
 func update_actions() -> void:
 	if not is_instance_valid(download):return
-	var jobs := selection.jobs(filtered_items()) if is_instance_valid(license_filter) else []
+	var jobs := selection.jobs(filtered_items()) if not busy and is_instance_valid(license_filter) else []
 	download.text="Download selected (%s)" % jobs.size();download.disabled=busy or jobs.is_empty()
 	var can_search := not busy or searching
+	var locked := busy and not searching
 	stop_button.disabled=not busy;search_button.disabled=not can_search;delay.editable=not busy;search.editable=can_search;cache_button.disabled=busy
-	for control in [sites,kind,price_filter,license_filter,policy_filter,version_filter,per_page]:control.disabled=busy
-	var eligible := visible_assets.filter(func(asset):return not selection.options(asset).is_empty() and client.can_download(asset))
+	for control in [sites,kind]:control.disabled=locked
+	for control in [price_filter,license_filter,policy_filter,version_filter,per_page]:control.disabled=locked
+	var eligible := displayed_assets().filter(func(asset):return not selection.options(asset).is_empty() and client.can_download(asset))
 	check_all.disabled=busy or eligible.is_empty()
 	check_all.set_pressed_no_signal(not eligible.is_empty() and eligible.all(func(asset):return selection.is_checked(asset)))
+func displayed_assets() -> Array:
+	return visible_assets.filter(func(asset):return thumbnail_textures.has(thumbnail_key(asset)))
 func toggle_all(value: bool) -> void:
 	if busy:return
-	for asset: Dictionary in visible_assets:
+	for asset: Dictionary in displayed_assets():
 		if not selection.options(asset).is_empty() and client.can_download(asset):selection.set_checked(asset,value)
 	run_search()
-func make_asset_tile(asset: Dictionary,token: int) -> PanelContainer:
-	selection.ensure_default(asset)
-	var card := PanelContainer.new();card.custom_minimum_size=Vector2(210,280);card.size_flags_horizontal=Control.SIZE_EXPAND_FILL;card.tooltip_text=str(asset.get("title","Asset"))
+static func thumbnail_key(asset: Dictionary) -> String:
+	return str(asset.get("provider_id",""))+":"+str(asset.get("thumbnail",""))
+func domain_name(asset: Dictionary) -> String:
+	var provider: Node=client.provider_for(asset)
+	var url := str(provider.descriptor().get("website","")) if provider else ""
+	if url.is_empty():url=str(asset.get("url",""))
+	if url.is_empty():return ""
+	var host := url.get_slice("://",1) if "://" in url else url
+	host=host.get_slice("/",0).get_slice("?",0).get_slice("#",0).get_slice(":",0).to_lower()
+	return host.trim_prefix("www.")
+func _create_empty_tile() -> PanelContainer:
+	var card := PanelContainer.new();card.custom_minimum_size=Vector2(210,280);card.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var contents := VBoxContainer.new();contents.name="Contents";contents.add_theme_constant_override("separation",6);card.add_child(contents)
 	var header := HBoxContainer.new();header.name="Header";contents.add_child(header)
-	var check := CheckBox.new();check.name="Select";check.button_pressed=selection.is_checked(asset);check.disabled=busy or selection.options(asset).is_empty() or not client.can_download(asset);header.add_child(check)
-	check.toggled.connect(func(value):selection.set_checked(asset,value);update_actions())
-	var imported: Dictionary=client.inventory.versions(asset)
-	var badge := label("✓ Downloaded" if not imported.is_empty() else "",header);badge.name="Imported";badge.tooltip_text=" · ".join(imported.keys())
+	var check := CheckBox.new();check.name="Select";header.add_child(check)
+	check.toggled.connect(func(value):
+		var a: Dictionary=card.get_meta("asset",{})
+		selection.set_checked(a,value);update_actions())
+	var badge := label("",header);badge.name="Imported"
 	var main := Button.new();main.name="Inspect";main.flat=true;main.size_flags_horizontal=Control.SIZE_EXPAND_FILL;main.custom_minimum_size=Vector2(210,210);main.mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND;contents.add_child(main)
 	var padding := MarginContainer.new();padding.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);padding.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	for edge in ["margin_left","margin_right","margin_top","margin_bottom"]:padding.add_theme_constant_override(edge,8)
 	main.add_child(padding)
 	var info := VBoxContainer.new();info.mouse_filter=Control.MOUSE_FILTER_IGNORE;padding.add_child(info)
 	var image := TextureRect.new();image.name="Thumbnail";image.mouse_filter=Control.MOUSE_FILTER_IGNORE;image.custom_minimum_size=Vector2(190,125);image.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;image.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED;info.add_child(image)
-	var title := label(str(asset.get("title","Asset")),info);title.name="Title";title.mouse_filter=Control.MOUSE_FILTER_IGNORE;title.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;title.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER;title.custom_minimum_size=Vector2(190,44)
-	var license_name := str(Credits.license_record(asset.get("license","")).name)
-	var license_label := label(license_name,info);license_label.name="License";license_label.mouse_filter=Control.MOUSE_FILTER_IGNORE;license_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;license_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
-	main.tooltip_text=str(asset.get("description",""))+"\n"+str(Policy.evaluate(asset).reason)
-	main.pressed.connect(func():select_asset(asset,image.texture))
+	var domain := Label.new();domain.name="Domain";domain.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	domain.add_theme_font_size_override("font_size",11);domain.add_theme_color_override("font_color",Color.WHITE)
+	domain.add_theme_color_override("font_shadow_color",Color.BLACK);domain.add_theme_constant_override("shadow_offset_x",1);domain.add_theme_constant_override("shadow_offset_y",1)
+	domain.clip_text=true;domain.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE);domain.offset_left=4;domain.offset_top=3;domain.offset_right=-4
+	image.add_child(domain)
+	var title := label("",info);title.name="Title";title.mouse_filter=Control.MOUSE_FILTER_IGNORE;title.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;title.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER;title.custom_minimum_size=Vector2(190,44)
+	var license_label := label("",info);license_label.name="License";license_label.mouse_filter=Control.MOUSE_FILTER_IGNORE;license_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;license_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	main.pressed.connect(func():
+		var a: Dictionary=card.get_meta("asset",{})
+		select_asset(a,image.texture))
 	info.minimum_size_changed.connect(func():main.custom_minimum_size.y=maxf(210,info.get_combined_minimum_size().y+16))
 	var versions := HFlowContainer.new();versions.name="Versions";contents.add_child(versions)
-	for option: Dictionary in selection.options(asset,false):
-		var version := str(option.id);var owned := imported.has(version)
-		var item := button(str(option.get("label",version))+(" ✓" if owned else " ↓"),func():download_one(asset,version),versions)
-		item.name="Version_"+version;item.disabled=busy or (not client.can_download(asset) and not owned)
-		item.tooltip_text="Already imported. Click to use the existing files." if owned else "Download "+str(option.get("label",version))
-		if option.has("triangles"):item.tooltip_text+=" · %s triangles" % option.triangles
-		if not selection.filter_key.is_empty() and Selection.option_key(asset,option)!=selection.filter_key:item.modulate=Color(1,1,1,.45)
-	for version in imported:
-		if not selection.options(asset,false).any(func(option):return str(option.id)==str(version)):label(str(version).to_upper()+" ✓",versions)
-	if selection.options(asset,false).is_empty():button("Show versions",func():load_options(asset),versions).disabled=busy
 	var footer := HBoxContainer.new();contents.add_child(footer)
-	button("Details",func():show_details(asset),footer);button("Website",func():OS.shell_open(str(asset.get("url",""))),footer)
-	var url := str(asset.get("thumbnail",""))
-	if not url.is_empty():thumbnail_queue.append({"url":url,"image":image,"asset":asset,"token":token})
+	button("Details",func():
+		var a: Dictionary=card.get_meta("asset",{})
+		show_details(a),footer)
+	button("Website",func():
+		var a: Dictionary=card.get_meta("asset",{})
+		OS.shell_open(str(a.get("url",""))),footer)
 	return card
+func configure_asset_tile(card: PanelContainer,asset: Dictionary,token: int) -> PanelContainer:
+	var url := str(asset.get("thumbnail",""));var key := thumbnail_key(asset)
+	card.set_meta("thumbnail_key",key);card.set_meta("asset",asset)
+	var tex: Texture2D=thumbnail_textures.get(key)
+	var ready := tex!=null
+	if ready:selection.ensure_default(asset)
+	card.tooltip_text=str(asset.get("title","Asset"))
+	var opts: Array=selection.options(asset,false)
+	var can_dl: bool=client.can_download(asset)
+	var check := card.get_node("Contents/Header/Select") as CheckBox
+	check.set_pressed_no_signal(ready and selection.is_checked(asset))
+	check.disabled=busy or selection.options(asset).is_empty() or not can_dl
+	var imported: Dictionary=client.inventory.versions(asset)
+	var badge := card.get_node("Contents/Header/Imported") as Label
+	badge.text="Downloaded" if not imported.is_empty() else ""
+	badge.tooltip_text=" · ".join(imported.keys())
+	var main := card.get_node("Contents/Inspect") as Button
+	var reason := str(asset.get("license_reason",""))
+	if reason.is_empty():reason=str(Policy.evaluate(asset).reason)
+	main.tooltip_text=str(asset.get("description",""))+"\n"+reason
+	var image := card.find_child("Thumbnail",true,false) as TextureRect
+	image.texture=tex
+	var domain := image.get_node("Domain") as Label
+	domain.text=domain_name(asset)
+	domain.visible=show_domains.button_pressed if is_instance_valid(show_domains) else false
+	var title := card.find_child("Title",true,false) as Label
+	title.text=str(asset.get("title","Asset"))
+	var lic = asset.get("license","")
+	var license_name := str(lic.get("name","")) if lic is Dictionary else str(Credits.license_record(lic).name)
+	var license_label := card.find_child("License",true,false) as Label
+	license_label.text=license_name
+	var versions := card.get_node("Contents/Versions") as HFlowContainer
+	var specs: Array[Dictionary]=[]
+	for option: Dictionary in opts:
+		var version := str(option.id);var owned := imported.has(version)
+		var tip := "Already imported. Click to use the existing files." if owned else "Download "+str(option.get("label",version))
+		if option.has("triangles"):tip+=" · %s triangles" % option.triangles
+		var mod := Color(1,1,1,.45) if (not selection.filter_key.is_empty() and Selection.option_key(asset,option)!=selection.filter_key) else Color.WHITE
+		specs.append({"kind":"version","version":version,"name":"Version_"+version,"text":str(option.get("label",version))+(" *" if owned else ""),"disabled":busy or (not can_dl and not owned),"tooltip":tip,"modulate":mod})
+	for version in imported:
+		if not opts.any(func(option):return str(option.id)==str(version)):
+			specs.append({"kind":"owned_only","version":str(version),"name":"Owned_"+str(version),"text":str(version).to_upper()+" *","disabled":true,"tooltip":"Already imported.","modulate":Color.WHITE})
+	if opts.is_empty():
+		specs.append({"kind":"show","version":"","name":"ShowVersions","text":"Show versions","disabled":busy,"tooltip":"","modulate":Color.WHITE})
+	while versions.get_child_count()>specs.size():
+		var extra := versions.get_child(versions.get_child_count()-1)
+		versions.remove_child(extra);extra.queue_free()
+	for i in specs.size():
+		var spec: Dictionary=specs[i]
+		var item: Button
+		if i<versions.get_child_count() and versions.get_child(i) is Button:
+			item=versions.get_child(i) as Button
+		else:
+			item=Button.new()
+			item.pressed.connect(func():
+				var a: Dictionary=card.get_meta("asset",{})
+				var k := str(item.get_meta("kind",""))
+				if k=="version":download_one(a,str(item.get_meta("version","")))
+				elif k=="show":load_options(a))
+			versions.add_child(item)
+		item.set_meta("kind",spec.kind);item.set_meta("version",spec.version)
+		item.name=str(spec.name)
+		if item.text!=str(spec.text):item.text=str(spec.text)
+		item.disabled=bool(spec.disabled)
+		item.tooltip_text=str(spec.tooltip)
+		item.modulate=spec.modulate
+	card.visible=tex!=null
+	if not url.is_empty() and tex==null and not thumbnail_failed.has(key):
+		if not thumbnail_queue.any(func(job):return job.key==key and job.token==token):
+			thumbnail_queue.append({"url":url,"key":key,"asset":asset,"token":token,"epoch":thumbnail_epoch})
+	return card
+func make_asset_tile(asset: Dictionary,token: int) -> PanelContainer:
+	return configure_asset_tile(_create_empty_tile(),asset,token)
 func select_asset(asset: Dictionary,_texture: Texture2D) -> void:
 	selected=asset
 	if selection.options(asset,false).is_empty():await load_options(asset)
@@ -460,21 +617,63 @@ func _process(delta: float) -> void:
 	if cache_tick>=15.0:
 		cache_tick=0.0
 		if not busy and is_visible_in_tree():update_cache_label()
-	thumbnail_tick+=delta
-	if thumbnail_tick<.2:return
-	thumbnail_tick=0;pump_thumbnails()
+	if not thumbnail_queue.is_empty() and thumbnails_active<4:
+		pump_thumbnails()
 func pump_thumbnails() -> void:
 	if not is_visible_in_tree():return
-	var visible_area := results_scroll.get_global_rect().grow(140);var i := 0
-	while i<thumbnail_queue.size() and thumbnails_active<4:
-		var job: Dictionary=thumbnail_queue[i]
-		if job.token!=serial or not is_instance_valid(job.image):thumbnail_queue.remove_at(i);continue
-		if not job.image.is_inside_tree() or not job.image.get_global_rect().intersects(visible_area):i+=1;continue
-		thumbnail_queue.remove_at(i);thumbnails_active+=1;load_queued_thumbnail(job)
+	# Only current-page candidates are queued. Hidden cards have no viewport rect;
+	# scheduling by their image rect would prevent them from ever becoming visible.
+	var remaining := thumbnail_queue.size()
+	while remaining>0 and not thumbnail_queue.is_empty() and thumbnails_active<4:
+		remaining-=1
+		var job: Dictionary=thumbnail_queue.pop_front()
+		if job.token!=serial or thumbnail_textures.has(job.key) or thumbnail_failed.has(job.key):continue
+		if thumbnail_pending.has(job.key):thumbnail_queue.append(job);continue
+		thumbnail_pending[job.key]=true;thumbnails_active+=1
+		load_queued_thumbnail(job)
+func _fetch_thumbnail(job: Dictionary,holder: Dictionary) -> void:
+	holder.texture=await client.thumbnail(job.url,job.asset)
+	holder.done=true
 func load_queued_thumbnail(job: Dictionary) -> void:
-	var texture: Texture2D=await client.thumbnail(job.url,job.asset)
-	if is_instance_valid(job.image) and serial==job.token:job.image.texture=texture
-	thumbnails_active-=1
+	var holder := {"done":false,"texture":null}
+	_fetch_thumbnail(job,holder)
+	var deadline := Time.get_ticks_msec()+int(THUMBNAIL_TIMEOUT*1000)
+	while not holder.done and Time.get_ticks_msec()<deadline:
+		await get_tree().process_frame
+	var texture: Texture2D=holder.texture
+	thumbnail_pending.erase(job.key);thumbnails_active-=1
+	if int(job.get("epoch",thumbnail_epoch))!=thumbnail_epoch:return
+	if texture:
+		if thumbnail_textures.size()>=THUMBNAIL_MEMORY_LIMIT:thumbnail_textures.erase(thumbnail_textures.keys()[0])
+		thumbnail_textures[job.key]=texture
+	elif job.token==serial:
+		thumbnail_failed[job.key]=true
+	# Apply to the CURRENT cards, even if a search batch rebuilt them while loading.
+	for card in grid.get_children():
+		if str(card.get_meta("thumbnail_key",""))!=str(job.key):continue
+		var image := card.find_child("Thumbnail",true,false) as TextureRect
+		if image and texture:
+			image.texture=texture;card.show()
+			var asset: Dictionary=card.get_meta("asset")
+			selection.ensure_default(asset)
+			card.get_node("Contents/Header/Select").set_pressed_no_signal(selection.is_checked(asset))
+	update_image_report();update_actions()
+	if is_processing() and not thumbnail_queue.is_empty() and thumbnails_active<4:pump_thumbnails()
+func update_image_report() -> void:
+	var counts := {};var loading := 0;var unavailable := 0;var loaded := 0
+	for asset: Dictionary in visible_assets:
+		var key := thumbnail_key(asset);var domain := domain_name(asset)
+		if not counts.has(domain):counts[domain]={"loaded":0,"loading":0,"unavailable":0}
+		if thumbnail_textures.has(key):counts[domain].loaded+=1;loaded+=1
+		elif thumbnail_failed.has(key) or str(asset.get("thumbnail","")).is_empty():counts[domain].unavailable+=1;unavailable+=1
+		else:counts[domain].loading+=1;loading+=1
+	var base := page_label.text.split(" · images:")[0]
+	page_label.text=base+" · images: %s ready, %s loading, %s unavailable" % [loaded,loading,unavailable]
+	var lines: Array[String]=[]
+	for domain in counts:
+		var item: Dictionary=counts[domain]
+		lines.append("%s: %s ready, %s loading, %s unavailable" % [domain,item.loaded,item.loading,item.unavailable])
+	page_label.tooltip_text="Images on this page\n"+"\n".join(lines)
 func write_scene_credits() -> void:
 	if not Engine.is_editor_hint():status.text="Scene credits are available in the editor.";return
 	var root := EditorInterface.get_edited_scene_root()
@@ -583,3 +782,10 @@ func export_project_credits() -> void:
 		status.text = export_msg
 		audit_status_label.text = export_msg
 
+func _exit_tree() -> void:
+	for card in card_pool:
+		if is_instance_valid(card):card.free()
+	card_pool.clear()
+	if cache_size_task>=0:
+		WorkerThreadPool.wait_for_task_completion(cache_size_task)
+		cache_size_task=-1

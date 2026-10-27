@@ -69,10 +69,24 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 		_:
 			asset.type = "material"
 
-	var display_name := str(raw.get("languageIndependentName", raw.get("name", raw.get("title", id))))
+	var display_name := str(raw.get("displayName", raw.get("languageIndependentName", raw.get("name", raw.get("title", id)))))
 	asset.title = display_name
 	asset.url = str(raw.get("url", "https://ambientcg.com/a/" + id))
-	asset.thumbnail = str(raw.get("previewImage", raw.get("thumbnail", "https://ambientcg.com/get?preview=" + id)))
+	var prev_val: Variant = raw.get("previewImage", raw.get("thumbnail", ""))
+	var thumb_url := ""
+	if prev_val is Dictionary:
+		thumb_url = str(prev_val.get("256-JPG-242424", prev_val.get("256-PNG", "")))
+		if thumb_url.is_empty() and not prev_val.is_empty():
+			thumb_url = str(prev_val.values()[0])
+	elif prev_val is String:
+		thumb_url = prev_val
+	if thumb_url.is_empty() or thumb_url.begins_with("https://ambientcg.com/get?preview="):
+		thumb_url = "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-JPG-242424/%s.jpg" % id
+	asset.thumbnail = thumb_url
+	var extracted_dl := _extract_download_data(raw)
+	if not extracted_dl.is_empty():
+		asset.downloadData = extracted_dl
+		asset.download_data = extracted_dl
 	asset.description = str(raw.get("description", asset.get("description", "%s by ambientCG" % display_name)))
 	asset.tags = raw.get("tags", asset.get("tags", []))
 	asset.price = {"free": true, "credits": 0}
@@ -96,21 +110,59 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 	asset.variants = variants(asset)
 	return asset
 
+static func _extract_download_data(raw: Dictionary) -> Dictionary:
+	if raw.get("downloadData") is Dictionary:
+		return raw.downloadData
+	if raw.get("download_data") is Dictionary:
+		return raw.download_data
+	var folders: Variant = raw.get("downloadFolders")
+	if folders is Dictionary and folders.get("default") is Dictionary:
+		var cats: Variant = folders.default.get("downloadFiletypeCategories")
+		if cats is Dictionary:
+			var out := {}
+			for cat_key in cats:
+				var cat_val: Variant = cats[cat_key]
+				if cat_val is Dictionary and cat_val.get("downloads") is Array:
+					for dl in cat_val.downloads:
+						if dl is Dictionary:
+							var attr := str(dl.get("attribute", dl.get("filetype", cat_key)))
+							var link := str(dl.get("downloadLink", dl.get("fullDownloadPath", "")))
+							if not attr.is_empty() and not link.is_empty():
+								out[attr] = {"downloadLink": link, "fileName": str(dl.get("fileName", ""))}
+			return out
+	return {}
+
 func variants(asset: Dictionary) -> Array:
-	var dl_data: Dictionary = {}
-	if asset.has("downloadData") and asset.downloadData is Dictionary:
-		dl_data = asset.downloadData
-	elif asset.has("download_data") and asset.download_data is Dictionary:
-		dl_data = asset.download_data
-	elif asset.get("source_metadata") is Dictionary and asset.source_metadata.get("downloadData") is Dictionary:
-		dl_data = asset.source_metadata.get("downloadData")
+	var dl_data: Dictionary = _extract_download_data(asset)
+	if dl_data.is_empty() and asset.get("source_metadata") is Dictionary:
+		dl_data = _extract_download_data(asset.source_metadata)
 
 	if dl_data.is_empty():
-		return asset.get("variants", [])
+		var existing: Array = asset.get("variants", [])
+		if not existing.is_empty():
+			return existing
+		var asset_type := str(asset.get("type", "material"))
+		if asset_type == "image":
+			return [
+				{"id": "1k_hdr", "label": "1K-HDR", "confirmed": true, "kind": "files", "resolution": "1k_hdr"},
+				{"id": "2k_hdr", "label": "2K-HDR", "confirmed": true, "kind": "files", "resolution": "2k_hdr"},
+				{"id": "4k_hdr", "label": "4K-HDR", "confirmed": true, "kind": "files", "resolution": "4k_hdr"}
+			]
+		return [
+			{"id": "1k_jpg", "label": "1K-JPG", "confirmed": true, "kind": "files", "resolution": "1k_jpg"},
+			{"id": "2k_jpg", "label": "2K-JPG", "confirmed": true, "kind": "files", "resolution": "2k_jpg"},
+			{"id": "4k_jpg", "label": "4K-JPG", "confirmed": true, "kind": "files", "resolution": "4k_jpg"}
+		]
 
 	var result := []
 	var keys := dl_data.keys()
-	keys.sort()
+	keys.sort_custom(func(a: String, b: String) -> bool:
+		var a_jpg := a.to_upper().ends_with("JPG") or a.to_upper().ends_with("HDR")
+		var b_jpg := b.to_upper().ends_with("JPG") or b.to_upper().ends_with("HDR")
+		if a_jpg != b_jpg:
+			return a_jpg
+		return a.naturalnocasecmp_to(b) < 0
+	)
 	for k: String in keys:
 		var vid := Importer.slug(k)
 		result.append({
@@ -136,27 +188,43 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 			type_param = ""
 
 	var offset := int(cursor) if not cursor.is_empty() else 0
-	var page_size := 30
+	var page_size := 50 if category == "model" else 30
+	var api_query := "" if category == "model" else query
 
-	var resp: Dictionary = await client.fetch_assets(query, type_param, page_size, offset)
+	var resp: Dictionary = await client.fetch_assets(api_query, type_param, page_size, offset)
 	if resp.has("error"):
 		return resp
 
 	var raw_assets: Array = []
 	if resp.has("assets") and resp.assets is Array:
 		raw_assets = resp.assets
+	elif resp.has("foundAssets") and resp.foundAssets is Array:
+		raw_assets = resp.foundAssets
 	elif resp.has("items") and resp.items is Array:
 		raw_assets = resp.items
 
+	var q_words := query.strip_edges().to_lower().split(" ", false) if category == "model" else PackedStringArray()
 	var items: Array[Dictionary] = []
 	for raw in raw_assets:
 		if raw is Dictionary:
 			var normalized := normalize(raw, true)
-			client.cache.put_asset(normalized)
+			if category != "all" and normalized.get("type", "") != category:
+				continue
+			if not q_words.is_empty():
+				var hay := (str(normalized.get("id", "")) + " " + str(normalized.get("title", "")) + " " + str(normalized.get("description", "")) + " " + " ".join(normalized.get("tags", []))).to_lower()
+				var matched := true
+				for w in q_words:
+					if not hay.contains(w):
+						matched = false
+						break
+				if not matched:
+					continue
+			client.cache.put_asset(normalized, false)
 			items.append(normalized)
 
-	var total_found := int(resp.get("foundAssets", raw_assets.size()))
+	var total_found := int(resp.get("numberOfResults", resp.get("totalResults", resp.get("foundAssets", raw_assets.size())) if not (resp.get("foundAssets") is Array) else raw_assets.size()))
 	var next_cur := str(offset + page_size) if (offset + page_size < total_found) else ""
+	client.cache.save_catalog()
 	return {"items": items, "next_cursor": next_cur}
 
 func asset_details(asset: Dictionary) -> Dictionary:
@@ -172,7 +240,7 @@ func refresh_asset(asset: Dictionary) -> Dictionary:
 	if resp.has("error"):
 		return resp
 
-	var raw_assets: Array = resp.get("assets", [])
+	var raw_assets: Array = resp.get("assets", resp.get("foundAssets", []))
 	if raw_assets.is_empty():
 		return normalize(asset, false)
 
@@ -187,13 +255,9 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 	if detailed.has("error"):
 		return detailed
 
-	var dl_data: Dictionary = {}
-	if detailed.has("downloadData") and detailed.downloadData is Dictionary:
-		dl_data = detailed.downloadData
-	elif detailed.has("download_data") and detailed.download_data is Dictionary:
-		dl_data = detailed.download_data
-	elif detailed.get("source_metadata") is Dictionary and detailed.source_metadata.get("downloadData") is Dictionary:
-		dl_data = detailed.source_metadata.get("downloadData")
+	var dl_data: Dictionary = _extract_download_data(detailed)
+	if dl_data.is_empty() and detailed.get("source_metadata") is Dictionary:
+		dl_data = _extract_download_data(detailed.source_metadata)
 
 	var matched_entry: Dictionary = {}
 	var matched_key := ""
@@ -250,6 +314,8 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
 	return await client.fetch_assets("", "Material", 1, 0)
 
 func cancel_all() -> void:

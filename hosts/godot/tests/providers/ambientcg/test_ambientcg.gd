@@ -112,6 +112,7 @@ func run() -> void:
 			hub.providers[p_id].enabled = false
 
 	var hub_provider: Provider = hub.providers["ambientcg"]
+	hub_provider.enabled=true
 	var hub_mock := MockAmbientCGClient.new()
 	hub_provider.client.queue_free()
 	hub_provider.remove_child(hub_provider.client)

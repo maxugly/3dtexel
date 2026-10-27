@@ -61,8 +61,10 @@ Add `--json` to any command for machine-readable output.
 | `nasa` | Images, audio, models | None |
 | `kenney` | Models, audio, materials, images | None |
 | `texel` | PBR materials | `3DTEXEL_API_KEY`, `TEXEL_API_KEY`, or `TEXEL` |
+| `blendswap` | 3D models (.blend) | `BLENDSWAP_API_KEY` (public browse without key) |
+| `cgtrader` | 3D models | `CGTRADER_API_TOKEN` / `CGTRADER_CLIENT_ID` |
 
-Texel is disabled for downloads when no key is configured. Poly Haven, ambientCG, OpenGameArt, Openverse, the Met, Wikimedia, NASA, and Kenney require no key.
+Texel is disabled for downloads when no key is configured. Poly Haven, ambientCG, OpenGameArt, Openverse, the Met, Wikimedia, NASA, and Kenney require no key. BlendSwap and CGTrader support public browse without keys, and require token credentials for downloads.
 
 ## MCP
 

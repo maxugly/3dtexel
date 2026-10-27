@@ -87,7 +87,9 @@ independent implementation under the MIT license and is not affiliated with or e
 by Quaternius. All imports preserve creator attribution.
 
 KayKit modular 3D game asset kits are created by Kay Lousberg and made available via
-https://kaylousberg.com/ under the Creative Commons CC0 1.0 Universal Public Domain Dedication.
+https://kaylousberg.com/ and the publisher-owned https://github.com/KayKit-Game-Assets repositories.
+The adapter checks each pack's declared license; the verified Dungeon Remastered pack declares
+Creative Commons CC0 1.0 Universal Public Domain Dedication.
 The KayKit provider adapter is an independent implementation under the MIT license and is not
 affiliated with or endorsed by Kay Lousberg. All imports preserve creator attribution.
 
@@ -370,3 +372,10 @@ Picryl public domain historical photographs, military records, patents, and arch
 via https://picryl.com/ by GetArchive LLC under Public Domain Mark 1.0 / CC0 provisions. The Picryl provider
 adapter is an independent implementation under the MIT license and is not affiliated with or endorsed by
 GetArchive LLC.
+
+Blend Swap community-created Blender 3D models, characters, architecture, and props are made available
+via https://blendswap.com/ under Creative Commons CC0 1.0 Universal and Creative Commons Attribution (CC-BY)
+terms specified by respective uploaders. The Blend Swap provider adapter is an independent implementation under
+the MIT license and is not affiliated with or endorsed by Blend Swap or Blender. All imports preserve original artist
+credits, license terms, and canonical URLs.
+

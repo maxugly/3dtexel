@@ -113,6 +113,7 @@ func run() -> void:
 			hub.providers[p_id].enabled = false
 
 	var hub_provider: Provider = hub.providers["morphosource"]
+	hub_provider.enabled=true
 	var hub_mock := MockMorphoClient.new()
 	hub_provider.remove_child(hub_provider.client)
 	hub_provider.client.queue_free()

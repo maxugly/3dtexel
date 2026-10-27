@@ -126,8 +126,15 @@ func variants(asset: Dictionary) -> Array:
 func refresh_page(query: String, category: String, cursor: String) -> Dictionary:
 	sync_network()
 
+	var wanted := ""
+	match category:
+		"model": wanted = "3D"
+		"material": wanted = "Textures"
+		"audio": wanted = "Audio"
+		"image": wanted = "2D"
+
 	var page := int(cursor) if not cursor.is_empty() else 1
-	var response: Dictionary = await client.fetch_packs(query, page)
+	var response: Dictionary = await client.fetch_packs(query, page) if wanted.is_empty() else await client.fetch_packs(query, page, wanted)
 	if response.has("error"):
 		return response
 
@@ -139,25 +146,21 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 	if packs.is_empty():
 		return {"items": [], "next_cursor": ""}
 
-	var wanted := ""
-	match category:
-		"model": wanted = "3D"
-		"material": wanted = "Textures"
-		"audio": wanted = "Audio"
-		"image": wanted = "2D"
-
 	var items: Array[Dictionary] = []
 	for raw in packs:
 		var categories: Array = raw.get("categories", [])
-		if not wanted.is_empty() and not categories.has(wanted):
-			continue
+		if not wanted.is_empty():
+			if not categories.has(wanted):
+				continue
+			raw["type"] = category
 		var normalized := normalize(raw, true)
-		client.cache.put_asset(normalized)
+		client.cache.put_asset(normalized, false)
 		items.append(normalized)
 
 	var next_cursor := ""
 	if Scan.match(html, "page:%d\\b" % (page + 1)) != "":
 		next_cursor = str(page + 1)
+	client.cache.save_catalog()
 	return {"items": items, "next_cursor": next_cursor}
 
 ## Reads the pack cards from a Kenney listing page.
@@ -169,8 +172,8 @@ func parse_listing(html: String) -> Array[Dictionary]:
 			continue
 		var title := Scan.text(Scan.match(block, "<h2>.*?</h2>"))
 		var cover := Scan.match(block, "background-image:url\\(\\\"([^\\\"]+)\\\"\\)")
-		var categories := Scan.matches(block, "category:([^']+)'")
-		var series := Scan.matches(block, "series:([^']+)'")
+		var categories := Scan.matches(block, "category:([^'?]+)")
+		var series := Scan.matches(block, "series:([^'?]+)")
 		var id := url.get_file().trim_prefix("/assets/")
 		result.append({
 			"id": id,
@@ -268,6 +271,8 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
 	return await client.fetch_packs()
 
 func cancel_all() -> void:

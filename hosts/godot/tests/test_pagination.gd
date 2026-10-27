@@ -18,12 +18,13 @@ func run():
 	var browser := Browser.new();root.add_child(browser);await process_frame
 	for id in browser.client.providers:
 		if id != "texel": browser.client.providers[id].enabled = false
-	var adapter: Node=browser.client.providers.texel
+	var adapter: Node=browser.client.providers.texel;adapter.enabled=true
 	adapter.client.free();var fake := FakeClient.new();adapter.add_child(fake);adapter.client=fake;fake.cache.root="user://offline_page_test_%s" % Time.get_ticks_usec()
 	browser.client.catalog.root=fake.cache.root+"_core";browser.client.catalog.loaded=false;browser.client.catalog.records={}
 	browser.per_page.select(browser.per_page.get_item_index(12))
 	await browser.start_search()
-	check(fake.calls==1 and browser.grid.get_child_count()==12,"Search queries one page instead of the whole query")
+	check(fake.calls==1 and browser.visible_assets.size()==12,"Search queries one page instead of the whole query")
+	check(browser.grid.get_children().all(func(card):return not card.visible),"Missing images do not show blank cards")
 	await browser.next_page();check(fake.calls==1,"Already fetched pages reuse metadata")
 	browser.page=5;browser.run_search();await browser.next_page()
 	check(fake.calls==2 and browser.page==6,"Crossing fetched page boundary queries next site page")

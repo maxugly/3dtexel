@@ -42,8 +42,13 @@ jobs:
           timeout 45s godot --headless --path hosts/godot -s tests/test_cache.gd
           timeout 45s godot --headless --path hosts/godot -s tests/test_credits.gd
           timeout 45s godot --headless --path hosts/godot -s tests/test_download_choices.gd
+          timeout 45s godot --headless --path hosts/godot -s tests/test_provider_defaults.gd
+          timeout 45s godot --headless --path hosts/godot -s tests/test_provider_functionality.gd
+          timeout 45s godot --headless --path hosts/godot -s tests/test_provider_downloads.gd
           timeout 45s godot --headless --path hosts/godot -s tests/test_providers.gd
           timeout 45s godot --headless --path hosts/godot -s tests/test_download_inventory.gd
+          timeout 45s godot --headless --path hosts/godot -s tests/test_search_responsive.gd
+          timeout 45s godot --headless --path hosts/godot -s tests/test_search_stream.gd
           timeout 45s godot --headless --path hosts/godot -s tests/test_search_session.gd
           timeout 45s godot --headless --path hosts/godot -s tests/test_batch_cards.gd
           timeout 45s godot --headless --path hosts/godot -s tests/test_credits_collector.gd
@@ -62,6 +67,7 @@ jobs:
           timeout 45s godot --headless --path hosts/godot -s tests/providers/texturecan/test_texturecan.gd
           timeout 45s godot --headless --path hosts/godot -s tests/providers/quaternius/test_quaternius.gd
           timeout 45s godot --headless --path hosts/godot -s tests/providers/kaykit/test_kaykit.gd
+          timeout 45s godot --headless --path hosts/godot -s tests/providers/texel/test_texel.gd
           timeout 45s godot --headless --path hosts/godot -s tests/providers/polypizza/test_polypizza.gd
           timeout 45s godot --headless --path hosts/godot -s tests/providers/smithsonian/test_smithsonian.gd
           timeout 45s godot --headless --path hosts/godot -s tests/providers/nih_3d/test_nih_3d.gd
@@ -118,3 +124,4 @@ jobs:
           timeout 45s godot --headless --path hosts/godot -s tests/providers/public_work/test_public_work.gd
           timeout 45s godot --headless --path hosts/godot -s tests/providers/pdimagearchive/test_pdimagearchive.gd
           timeout 45s godot --headless --path hosts/godot -s tests/providers/picryl/test_picryl.gd
+          timeout 45s godot --headless --path hosts/godot -s tests/providers/blendswap/test_blendswap.gd

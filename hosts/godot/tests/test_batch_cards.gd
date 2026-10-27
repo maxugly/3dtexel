@@ -24,6 +24,7 @@ func run():
 	var asset := {"provider_id":"fixture","provider":"Fixture","id":"texture","title":"Texture","type":"material","price":{"free":true},"license":"CC0","variants":[{"id":"2k","label":"2K","resolution":"2k","confirmed":true},{"id":"4k","label":"4K","resolution":"4k","confirmed":true}]}
 	var model := {"provider_id":"fixture","provider":"Fixture","id":"model","title":"Model","type":"model","price":{"free":true},"license":"CC0","variants":[{"id":"low","label":"L","lod":"low","triangles":1000,"confirmed":true},{"id":"high","label":"H","lod":"high","triangles":4000,"confirmed":true}]}
 	var unknown := asset.duplicate(true);unknown.id="unknown";unknown.variants=[{"id":"1k","label":"1K","confirmed":false}]
+	browser.thumbnail_textures[browser.thumbnail_key(asset)]=GradientTexture1D.new()
 	browser.client.index_assets([asset,model,unknown]);browser.session.identities.assign(["fixture:texture","fixture:model","fixture:unknown"]);browser.update_filter_choices();browser.run_search()
 	check(browser.delay.value==5,"Default pause is five seconds")
 	check(browser.selection.jobs(browser.filtered_items()).size()==4,"Missing real versions selected by default")

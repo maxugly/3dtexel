@@ -111,6 +111,7 @@ func run() -> void:
 			hub.providers[p_id].enabled = false
 
 	var hub_provider: Provider = hub.providers["yale_british_art"]
+	hub_provider.enabled=true
 	# The site is off by default here, so the test turns it on like a user would.
 	hub_provider.enabled = true
 	hub_provider.network_allowed = true

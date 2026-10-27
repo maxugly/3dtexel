@@ -12,6 +12,7 @@ func run():
 	root.size=Vector2i(1200,900)
 	var browser := TestBrowser.new();root.add_child(browser)
 	await process_frame
+	browser.thumbnail_textures[browser.thumbnail_key({})]=GradientTexture1D.new()
 	var tile := browser.make_asset_tile({"id":42,"title":"Test material","price":{"free":true,"credits":0}},0)
 	browser.grid.add_child(tile)
 	for i in 6:await process_frame

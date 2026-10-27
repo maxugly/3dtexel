@@ -102,8 +102,12 @@ func run() -> void:
 
 	# Variants
 	var vars: Array = item.variants
-	check(vars.size() >= 3, "At least 3 audio variants available")
-	check(vars[0].id == "mp3_128", "First variant is mp3_128")
+	check(vars.size() == 2, "Only the reported archive and audio recording are offered")
+	check(not vars.any(func(option):return option.id=="ogg"), "Missing OGG recording is not invented")
+	check(vars[0].id == "mp3_128", "Legacy archive version ID is preserved")
+	var archive_plan: Dictionary=await provider.resolve_download(item,"mp3_128")
+	check(not archive_plan.has("error") and str(archive_plan.files[0].filename).ends_with(".zip"), "Archive is retained as ZIP instead of mislabeled as MP3")
+	check((await provider.resolve_download(item,"ogg")).has("error"), "Missing OGG cannot silently use another file")
 
 	# 7. Preparation & Mock Download
 	var hub := Registry.new()
@@ -115,6 +119,7 @@ func run() -> void:
 			hub.providers[p_id].enabled = false
 
 	var hub_provider: Provider = hub.providers["librivox"]
+	hub_provider.enabled=true
 	var hub_mock := MockLibriVoxClient.new()
 	hub_provider.remove_child(hub_provider.client)
 	hub_provider.client.queue_free()

@@ -1,27 +1,29 @@
 @tool
 extends Node
+const Thumbnail = preload("res://addons/3dtexel/core/thumbnail_image.gd")
+const Transport = preload("res://addons/3dtexel/core/request_transport.gd")
 ## NASA Visible Earth HTTP client with rate pacing and caching.
 
 const Cache = preload("res://addons/3dtexel/providers/nasa_visible_earth/cache.gd")
 
 var cache := Cache.new()
+var allowed_thumbnails := {}
 var network_allowed := false
 var refreshing := false
 var last_network_request_ms := -1000
 var active: Array[HTTPRequest] = []
+var transport_generation := 0
 
 const BASE_URL := "https://visibleearth.nasa.gov"
 
 func cancel_all() -> void:
-	for request in active:
-		if is_instance_valid(request):
-			request.cancel_request()
-			request.queue_free()
-	active.clear()
+	transport_generation+=1
+	Thumbnail.finish_tasks(self)
+	Transport.cancel_all(active)
 
 func pace_request() -> void:
 	var elapsed := Time.get_ticks_msec() - last_network_request_ms
-	var remaining := 500 - elapsed
+	var remaining := 100 - elapsed
 	if remaining > 0:
 		await get_tree().create_timer(remaining / 1000.0).timeout
 	last_network_request_ms = Time.get_ticks_msec()
@@ -40,9 +42,11 @@ func json_request(full_url: String) -> Dictionary:
 	if not network_allowed:
 		return {"error": "Network requests require explicit action."}
 
+	var generation := transport_generation
 	await pace_request()
+	if generation!=transport_generation:return {"error":"Request cancelled."}
 
-	var request := HTTPRequest.new()
+	var request := Transport.create_request()
 	request.timeout = 30
 	request.max_redirects = 3
 	request.body_size_limit = 16 * 1024 * 1024
@@ -81,15 +85,18 @@ func get_bytes(url: String, destination := "", max_bytes := 134217728, redirects
 	if not url.begins_with("https://"):
 		return {"error": "Only HTTPS URLs are permitted."}
 
-	if not network_allowed:
+	if not network_allowed and not allowed_thumbnails.has(url):
 		return {"error": "Network downloads require explicit authorization."}
 
 	if redirects_left <= 0:
 		return {"error": "Too many redirects."}
 
-	await pace_request()
+	var generation := transport_generation
+	if not (destination.is_empty() and allowed_thumbnails.has(url)):
+		await pace_request()
+	if generation!=transport_generation:return {"error":"Request cancelled."}
 
-	var request := HTTPRequest.new()
+	var request := Transport.create_request()
 	request.timeout = 90
 	request.use_threads = true
 	request.body_size_limit = max_bytes
@@ -117,7 +124,7 @@ func get_bytes(url: String, destination := "", max_bytes := 134217728, redirects
 		return {"error": "Download failed (%s)." % response[0]}
 
 	var status_code: int = int(response[1])
-	if status_code in [301, 302, 303, 307, 308]:
+	if response[0] in [HTTPRequest.RESULT_SUCCESS,HTTPRequest.RESULT_REDIRECT_LIMIT_REACHED] and status_code in [301, 302, 303, 307, 308]:
 		for header: String in response[2]:
 			if header.to_lower().begins_with("location:"):
 				var target: String = header.split(":", false, 1)[1].strip_edges()
@@ -130,3 +137,6 @@ func get_bytes(url: String, destination := "", max_bytes := 134217728, redirects
 	if destination.is_empty():
 		return {"bytes": response[3]}
 	return {}
+
+func thumbnail(url: String) -> Texture2D:
+	return await Thumbnail.load_for(self,url)

@@ -59,7 +59,7 @@ No automated tests or previews contact providers or scrape live fixture data.
 
 Public Texel search needs no key; downloads require a free account/API key with
 appropriate permissions: https://3dtexel.com/api-keys/ . Use an inherited
-**TEXEL_API_KEY**, **3DTEXEL_API_KEY**, or **TEXEL**, or enter a masked session-only
+**3D_TEXEL_API_KEY**, **TEXEL_API_KEY**, **3DTEXEL_API_KEY**, or **TEXEL**, or enter a masked session-only
 key under Settings. Session keys are never saved. Continue launching Godot normally,
 including `mise run godot -- --editor` when it inherits your environment.
 

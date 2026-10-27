@@ -1,41 +1,35 @@
-[
-  {
-    "id": "dungeon-pack",
-    "title": "KayKit - Dungeon Remastered Pack",
-    "type": "model",
-    "description": "Modular low-poly dungeon kit with walls, floors, doors, chests, props, and enemies. Uses a single shared texture atlas.",
-    "thumbnail": "https://kaylousberg.com/assets/dungeon-pack/thumb.png",
-    "url": "https://kaylousberg.com/game-assets/dungeon-pack",
-    "download_url": "https://kaylousberg.com/assets/dungeon-pack/KayKit_Dungeon_Pack.zip",
-    "tags": ["dungeon", "modular", "lowpoly", "props", "medieval", "enemy", "atlas"],
-    "files": [
-      {
-        "filename": "KayKit_Dungeon_GLB.zip",
-        "format": "glb",
-        "url": "https://kaylousberg.com/assets/dungeon-pack/KayKit_Dungeon_GLB.zip"
+{
+  "total_count": 2,
+  "items": [
+    {
+      "name": "KayKit-Dungeon-Remastered-1.0",
+      "full_name": "KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
+      "html_url": "https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0",
+      "owner": {
+        "login": "KayKit-Game-Assets"
       },
-      {
-        "filename": "KayKit_Dungeon_FBX.zip",
-        "format": "fbx",
-        "url": "https://kaylousberg.com/assets/dungeon-pack/KayKit_Dungeon_FBX.zip"
-      }
-    ]
-  },
-  {
-    "id": "medieval-builder",
-    "title": "KayKit - Medieval Builder Pack",
-    "type": "model",
-    "description": "Modular medieval town pieces, walls, roofs, windows, chimneys, and street furniture.",
-    "thumbnail": "https://kaylousberg.com/assets/medieval-builder/thumb.png",
-    "url": "https://kaylousberg.com/game-assets/medieval-builder",
-    "download_url": "https://kaylousberg.com/assets/medieval-builder/KayKit_Medieval_Builder.zip",
-    "tags": ["medieval", "building", "modular", "props", "fantasy", "town"],
-    "files": [
-      {
-        "filename": "KayKit_Medieval_Builder_GLB.zip",
-        "format": "glb",
-        "url": "https://kaylousberg.com/assets/medieval-builder/KayKit_Medieval_Builder_GLB.zip"
-      }
-    ]
-  }
-]
+      "fork": false,
+      "description": "Synthetic Dungeon pack for offline tests",
+      "default_branch": "main",
+      "archive_url": "https://api.github.com/repos/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0/{archive_format}{/ref}",
+      "topics": [
+        "dungeon"
+      ]
+    },
+    {
+      "name": "KayKit-Example-Village-1.0",
+      "full_name": "KayKit-Game-Assets/KayKit-Example-Village-1.0",
+      "html_url": "https://github.com/KayKit-Game-Assets/KayKit-Example-Village-1.0",
+      "owner": {
+        "login": "KayKit-Game-Assets"
+      },
+      "fork": false,
+      "description": "Synthetic Village pack for offline tests",
+      "default_branch": "main",
+      "archive_url": "https://api.github.com/repos/KayKit-Game-Assets/KayKit-Example-Village-1.0/{archive_format}{/ref}",
+      "topics": [
+        "village"
+      ]
+    }
+  ]
+}

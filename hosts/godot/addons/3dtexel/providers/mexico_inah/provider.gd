@@ -158,10 +158,11 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 		var normalized := normalize(raw, true)
 		if category == "material":
 			normalized.type = "material"
-		client.cache.put_asset(normalized)
+		client.cache.put_asset(normalized, false)
 		items.append(normalized)
 
 	var next_cur := str(offset + rows) if all_items.size() >= rows else ""
+	client.cache.save_catalog()
 	return {"items": items, "next_cursor": next_cur}
 
 func asset_details(asset: Dictionary) -> Dictionary:
@@ -229,6 +230,8 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
 	return await client.search()
 
 func cancel_all() -> void:

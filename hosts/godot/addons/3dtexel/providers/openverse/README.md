@@ -1,9 +1,20 @@
-# Openverse Provider for 3DTexel
+# Openverse provider
 
-Connects 3DTexel to Openverse, giving game developers access to more than 700 million openly-licensed 2D images, textures, photographs, and audio recordings aggregated from dozens of world-class cultural institutions.
+Searches image and audio metadata through the Openverse API. Queries are bounded
+and anonymous pages use at most 20 results. Pagination follows the reported page
+count. API details are fetched only when needed and cached for reuse.
 
-## Features
-- **Massive Aggregation**: Indexes collections from Flickr Commons, Europeana, Smithsonian, Metropolitan Museum of Art, Wikimedia Commons, NASA, Freesound, and more.
-- **Multimodal**: Supports both image/texture browsing and audio recording discovery.
-- **Automatic Provenance & License Tagging**: Captures exact creator, source URL, and license terms (CC0, CC-BY, PDM).
-- **Offline Tests**: 100% offline contract and regression tests with mock client responses.
+The landing page is preserved as the asset's provenance URL; downloads use the
+separate reported media URL. Waveform images are never offered as audio streams.
+Only reported file choices appear. Missing or unsupported formats return an error
+rather than downloading a landing page or substituting another version.
+
+CC terms and reported versions are retained, including NC, ND, and share-alike
+qualifiers. Unknown terms require review. Previews use the shared threaded loader
+and disk cache. Existing normalized IDs and legacy metadata files remain readable.
+
+Tests use synthetic fixtures only. Offline tests validate the adapter's behavior;
+they do not establish live availability of upstream assets.
+
+Reference: [Openverse API](https://api.openverse.org/v1/) and
+[media properties](https://docs.openverse.org/meta/media_properties/catalog.html).

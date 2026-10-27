@@ -57,7 +57,7 @@ func run() -> void:
 	check(desc.name == "British Library", "Descriptor name is British Library")
 	check(desc.website.contains("flickr.com"), "Website points to flickr.com")
 	check(desc.capabilities.has("image") and desc.capabilities.has("material"), "Capabilities include image and material")
-	check(desc.key_env.is_empty(), "British Library requires no API key")
+	check(desc.key_env==["FLICKR_API_KEY"], "Flickr API key requirement is exposed in settings")
 
 	# 2. Attach mock transport
 	var mock := MockBLClient.new()
@@ -89,9 +89,12 @@ func run() -> void:
 
 	# License evaluation
 	var lic: Dictionary = item.license
-	check(lic.id == "public-domain", "License ID is public-domain")
+	check(lic.id == "flickr-no-known-restrictions", "Flickr no-known-restrictions terms are preserved")
 	var eval_res: Dictionary = Policy.evaluate(item)
-	check(eval_res.status == Policy.Status.PERMISSIVE, "Public domain marks evaluate to PERMISSIVE")
+	check(eval_res.status == Policy.Status.UNKNOWN, "No-known-restrictions stays under review instead of becoming a public-domain dedication")
+	check(Policy.evaluate({"price":{"free":true},"license":Provider.flickr_license("6")}).status==Policy.Status.BLOCKED,"Flickr no-derivatives license stays blocked")
+	check(Provider.flickr_license("9").id=="cc0-1.0","Flickr CC0 dedication retains its distinct meaning")
+	check(item.attribution_text.contains(item.license.name),"Attribution reflects the reported Flickr terms")
 
 	# Variants
 	var vars: Array = item.variants
@@ -108,6 +111,7 @@ func run() -> void:
 			hub.providers[p_id].enabled = false
 
 	var hub_provider: Provider = hub.providers["british_library_flickr"]
+	hub_provider.enabled=true
 	var hub_mock := MockBLClient.new()
 	hub_provider.remove_child(hub_provider.client)
 	hub_provider.client.queue_free()

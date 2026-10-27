@@ -178,10 +178,13 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 		var normalized := normalize(raw, true)
 		if category == "material":
 			normalized.type = "material"
-		client.cache.put_asset(normalized)
+		if not normalized.thumbnail.is_empty():
+			client.allowed_thumbnails[normalized.thumbnail] = true
+		client.cache.put_asset(normalized, false)
 		items.append(normalized)
 
 	var next_cur := str(offset + rows) if all_items.size() >= rows else ""
+	client.cache.save_catalog()
 	return {"items": items, "next_cursor": next_cur}
 
 func asset_details(asset: Dictionary) -> Dictionary:
@@ -219,7 +222,10 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 	if dl_url.is_empty():
 		var info_arr: Variant = detailed.get("imageinfo", detailed.get("source_metadata", {}).get("imageinfo", []))
 		if info_arr is Array and not info_arr.is_empty() and info_arr[0] is Dictionary:
-			dl_url = str(info_arr[0].get("url", ""))
+			if variant in ["1024", "2048", "thumb"] and not str(info_arr[0].get("thumburl", "")).is_empty():
+				dl_url = str(info_arr[0].get("thumburl", ""))
+			else:
+				dl_url = str(info_arr[0].get("url", ""))
 
 	if dl_url.is_empty():
 		return {"error": "No download URL available for Wikimedia artwork."}
@@ -227,7 +233,11 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 	if not dl_url.begins_with("https://"):
 		return {"error": "Insecure download URL: %s" % dl_url}
 
-	var filename := str(chosen_file.get("filename", "%s.jpg" % Importer.slug(str(detailed.id))))
+	var raw_fname := dl_url.get_slice("?", 0).get_file()
+	var ext := raw_fname.get_extension().to_lower()
+	if ext.is_empty():
+		ext = "jpg"
+	var filename := str(chosen_file.get("filename", "%s.%s" % [Importer.slug(str(detailed.id)), ext]))
 
 	return {
 		"kind": "files",
@@ -251,6 +261,8 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
 	return await client.search()
 
 func cancel_all() -> void:

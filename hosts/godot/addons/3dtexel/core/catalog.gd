@@ -6,9 +6,10 @@ const Sanitizer = preload("res://addons/3dtexel/core/public_metadata.gd")
 var root := "user://asset_browser/catalog"
 var records := {}
 var loaded := false
+var revision := 0
 func load_catalog() -> void:
 	if loaded:return
-	loaded=true
+	loaded=true;revision+=1
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(root))
 	if FileAccess.file_exists(root.path_join("assets.json")):
 		var value: Variant=JSON.parse_string(FileAccess.get_file_as_string(root.path_join("assets.json")))
@@ -21,9 +22,14 @@ func upsert(asset: Dictionary) -> void:
 	for key in ["provider_id","provider","id","title","description","url","thumbnail","type","price","license","licenses","authors","attribution_text","metadata_source_url","resolutions","variants","download","tags","license_status","license_reason","selected_license","source_metadata","retrieved_utc"]:
 		if asset.has(key):clean[key]=Sanitizer.sanitize(asset[key])
 	var prior: Dictionary=records.get(identity,{})
-	prior.merge(clean,true);records[identity]=prior
+	prior.merge(clean,true);records[identity]=prior;revision+=1
 func save() -> Error:
-	load_catalog();return Credits.write_json(root.path_join("assets.json"),records)
+	load_catalog()
+	var path := root.path_join("assets.json")
+	var file := FileAccess.open(path+".pending",FileAccess.WRITE)
+	if not file:return FileAccess.get_open_error()
+	file.store_string(JSON.stringify(records));file.close()
+	return DirAccess.rename_absolute(ProjectSettings.globalize_path(path+".pending"),ProjectSettings.globalize_path(path))
 func search(provider_ids: Array, query: String, category: String, free_only: bool, license_name: String) -> Array:
 	load_catalog();var found := []
 	for asset: Dictionary in records.values():

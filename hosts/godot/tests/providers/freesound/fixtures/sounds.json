@@ -14,7 +14,13 @@
       "channels": 2,
       "filesize": 240000,
       "type": "wav",
-      "tags": ["laser", "sci-fi", "blast", "weapon", "sound-effect"],
+      "tags": [
+        "laser",
+        "sci-fi",
+        "blast",
+        "weapon",
+        "sound-effect"
+      ],
       "previews": {
         "preview-hq-mp3": "https://cdn.freesound.org/previews/12/12345_hq.mp3",
         "preview-lq-mp3": "https://cdn.freesound.org/previews/12/12345_lq.mp3",
@@ -24,7 +30,8 @@
       "images": {
         "waveform_m": "https://cdn.freesound.org/displays/12/12345_wave.png",
         "spectral_m": "https://cdn.freesound.org/displays/12/12345_spec.png"
-      }
+      },
+      "download": "https://freesound.org/apiv2/sounds/12345/download/"
     },
     {
       "id": 67890,
@@ -37,7 +44,13 @@
       "channels": 2,
       "filesize": 860000,
       "type": "wav",
-      "tags": ["footsteps", "gravel", "boots", "foley", "walk"],
+      "tags": [
+        "footsteps",
+        "gravel",
+        "boots",
+        "foley",
+        "walk"
+      ],
       "previews": {
         "preview-hq-mp3": "https://cdn.freesound.org/previews/67/67890_hq.mp3",
         "preview-lq-mp3": "https://cdn.freesound.org/previews/67/67890_lq.mp3",
@@ -47,7 +60,8 @@
       "images": {
         "waveform_m": "https://cdn.freesound.org/displays/67/67890_wave.png",
         "spectral_m": "https://cdn.freesound.org/displays/67/67890_spec.png"
-      }
+      },
+      "download": "https://freesound.org/apiv2/sounds/67890/download/"
     }
   ]
 }

@@ -5,7 +5,7 @@ const Credits = preload("res://addons/3dtexel/credits.gd")
 func prepare(provider: Node,folder: String,asset: Dictionary,plan: Dictionary) -> Dictionary:
 	var files: Array=plan.get("files",[])
 	if files.is_empty():return {"error":"Provider returned no files."}
-	var names := {};var supported := ["glb","gltf","obj","fbx","blend","png","jpg","jpeg","webp","tga","exr","hdr","wav","ogg","mp3","mp4","ogv","webm","mkv","zip","7z","tar","gz","txt","md","pdf"]
+	var names := {};var supported := ["glb","gltf","bin","mtl","obj","fbx","blend","stl","dae","ply","3ds","usd","usda","usdc","usdz","png","jpg","jpeg","webp","tga","tif","tiff","bmp","gif","svg","exr","hdr","wav","ogg","mp3","flac","m4a","mp4","ogv","webm","mkv","zip","7z","rar","tar","gz","tgz","txt","md","pdf"]
 	for entry: Dictionary in files:
 		var name := str(entry.get("filename",""))
 		if name.is_empty() or name!=name.get_file() or name.begins_with(".") or ":" in name or "\\" in name or ".." in name or name.get_extension().to_lower() not in supported or names.has(name.to_lower()):return {"error":"Unsafe, unsupported or duplicate source filename."}

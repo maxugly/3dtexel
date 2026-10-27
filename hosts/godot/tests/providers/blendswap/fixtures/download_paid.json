@@ -1,0 +1,13 @@
+{
+  "download_url": "https://blendswap.com/downloads/26300/801/stylized_pumpkin.blend",
+  "expires_at": "2026-10-27T04:00:00Z",
+  "charged": true,
+  "credits_spent": 10,
+  "credits_remaining": 40,
+  "reason": "paid",
+  "file": {
+    "id": 801,
+    "filename": "stylized_pumpkin.blend",
+    "size_bytes": 1048576
+  }
+}

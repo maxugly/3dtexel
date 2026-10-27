@@ -5,6 +5,8 @@ extends "res://addons/3dtexel/core/provider.gd"
 const Client = preload("res://addons/3dtexel/providers/librivox/client.gd")
 const Cache = preload("res://addons/3dtexel/providers/librivox/cache.gd")
 const Credits = preload("res://addons/3dtexel/credits.gd")
+const Files = preload("res://addons/3dtexel/core/reported_files.gd")
+const SourceLicense = preload("res://addons/3dtexel/core/source_license.gd")
 const Importer = preload("res://addons/3dtexel/importer.gd")
 
 var client: Node
@@ -67,7 +69,27 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 	asset.title = display_title
 
 	asset.url = str(raw.get("url_librivox", raw.get("url", "https://librivox.org/search?q=%s" % clean_id)))
-	asset.thumbnail = str(raw.get("thumbnail", raw.get("coverart_thumbnail", "")))
+
+	for field in ["url_zip_file", "url_audio_file", "audio_url", "url_ogg_file"]:
+		if raw.has(field) and raw[field] is String:
+			var u: String = str(raw[field])
+			if u.begins_with("http://"):
+				u = "https://" + u.substr(7)
+			raw[field] = u.replace(" ", "%20")
+			asset[field] = raw[field]
+
+	var thumb := str(raw.get("thumbnail", raw.get("coverart_thumbnail", "")))
+	if thumb.is_empty():
+		var ia_url := str(raw.get("url_iarchive", ""))
+		var zip_url := str(raw.get("url_zip_file", ""))
+		var ia_id := ""
+		if not ia_url.is_empty() and ia_url != "null":
+			ia_id = ia_url.get_file()
+		elif zip_url.contains("/compress/"):
+			ia_id = zip_url.split("/compress/")[1].split("/")[0]
+		if not ia_id.is_empty():
+			thumb = "https://archive.org/services/img/" + ia_id
+	asset.thumbnail = thumb
 
 	# Authors and readers
 	var authors_list: Array = raw.get("authors", [])
@@ -98,7 +120,7 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 		tags.append(str(raw.language))
 	asset.tags = tags
 
-	asset.price = {"free": true, "credits": 0}
+	asset.price = raw.get("price",{"free":true,"credits":0})
 
 	var lic_val := {
 		"id": "public-domain",
@@ -106,38 +128,28 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 		"url": "https://creativecommons.org/publicdomain/mark/1.0/",
 		"attribution_required": false
 	}
+	if raw.has("license"):lic_val=SourceLicense.record(raw.license,str(raw.get("license_version","")))
 	asset.license = Credits.license_record(lic_val)
 	asset.licenses = [asset.license]
 	asset.selected_license = asset.license
 
 	asset.attribution_text = "\"%s\" by %s - LibriVox (Public Domain)" % [display_title, author_str]
+	if raw.has("license"):
+		var supplied := str(raw.get("attribution_text",""))
+		var names: Array[String]=[]
+		for person in asset.authors:
+			if person is Dictionary and not str(person.get("name","")).is_empty():names.append(str(person.name))
+		asset.attribution_text=supplied if not supplied.is_empty() else "%s — %s (%s)" % [asset.title,", ".join(names),asset.license.name]
 	asset.metadata_source_url = asset.url
-	asset.source_metadata = Cache.public_asset(raw)
+	asset.source_metadata = Cache.public_asset(raw.get("source_metadata",raw))
 	asset.retrieved_utc = Time.get_datetime_string_from_system(true) if fetched else raw.get("retrieved_utc", "")
 	asset.variants = variants(asset)
 	return asset
 
+func file_offers(asset: Dictionary) -> Array:
+	return Files.offers(asset,[["url_zip_file","mp3_128","Audio Archive"],["url_audio_file","mp3_64","Audio Recording"],["audio_url","mp3_64","Audio Recording"],["url_ogg_file","ogg","OGG Recording"]])
 func variants(asset: Dictionary) -> Array:
-	return [
-		{
-			"id": "mp3_128",
-			"label": "128kbps MP3 Audio Stream",
-			"kind": "files",
-			"confirmed": true
-		},
-		{
-			"id": "mp3_64",
-			"label": "64kbps MP3 Audio Stream",
-			"kind": "files",
-			"confirmed": true
-		},
-		{
-			"id": "ogg",
-			"label": "OGG Audio Stream",
-			"kind": "files",
-			"confirmed": true
-		}
-	]
+	return Files.variants(file_offers(asset))
 
 func refresh_page(query: String, category: String, cursor: String) -> Dictionary:
 	sync_network()
@@ -156,6 +168,8 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 	for r in results:
 		if r is Dictionary:
 			var norm: Dictionary = normalize(r, true)
+			if not norm.thumbnail.is_empty():
+				client.allowed_thumbnails[norm.thumbnail] = true
 			client.cache.catalog[norm.id] = norm
 			all_items.append(norm)
 
@@ -172,47 +186,15 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 	}
 
 func asset_details(asset: Dictionary) -> Dictionary:
-	return asset
+	var cached: Dictionary=client.cache.asset(str(asset.id))
+	if cached.is_empty():return asset
+	return Cache.merge_asset(cached,asset)
 
-func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
-	sync_network()
+func resolve_download(asset: Dictionary,variant: String) -> Dictionary:
+	if not network_allowed:return {"error":"Download requires explicit action."}
 	var detailed := await asset_details(asset)
-	if detailed.has("error"):
-		return detailed
-
-	var target_variant := variant if not variant.is_empty() else "mp3_128"
-	var download_url := ""
-	var filename := ""
-
-	var files: Dictionary = detailed.get("files", {})
-	if files.has(target_variant):
-		download_url = str(files[target_variant])
-	elif target_variant == "mp3_128":
-		download_url = str(detailed.get("url_zip_file", detailed.get("url_audio_file", detailed.get("audio_url", ""))))
-	elif target_variant == "ogg":
-		download_url = str(detailed.get("url_ogg_file", detailed.get("audio_url", "")))
-	else:
-		download_url = str(detailed.get("url_audio_file", detailed.get("audio_url", "")))
-
-	if download_url.is_empty():
-		return {"error": "No download URL available for LibriVox recording."}
-
-	var ext := download_url.get_file().get_extension()
-	if ext.is_empty() or ext.contains("?"):
-		ext = "mp3"
-	filename = "%s_%s.%s" % [str(detailed.get("id", "librivox")), target_variant, ext]
-
-	return {
-		"kind": "files",
-		"asset": detailed,
-		"variant": target_variant,
-		"files": [
-			{
-				"filename": filename,
-				"url": download_url
-			}
-		]
-	}
+	if detailed.has("error"):return detailed
+	return Files.plan(detailed,variant,file_offers(detailed))
 
 func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	if not network_allowed:
@@ -220,4 +202,13 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func thumbnail(url: String) -> Texture2D:
-	return null
+	sync_network()
+	return await client.thumbnail(url)
+
+func cancel_all() -> void:
+	client.cancel_all()
+
+func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
+	return await client.search("",1,1)

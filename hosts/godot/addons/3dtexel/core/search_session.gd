@@ -15,9 +15,13 @@ var ranks := {}
 var identity_seq := {}
 var requests := 0
 var outcomes := {}
+var _cached_items: Array = []
+var _cached_count := -1
+var _cached_catalog_rev := -1
 func begin(text: String, kind: String) -> void:
 	query=text;category=kind;states.clear();identities.clear();requests=0;outcomes.clear()
 	order.clear();order_index=0;claimed.clear();in_flight.clear();ranks.clear();identity_seq.clear()
+	_cached_items.clear();_cached_count=-1;_cached_catalog_rev=-1
 	var ids: Array=registry.active_ids()
 	for id in PRIORITY:
 		if id in ids:order.append(id)
@@ -27,6 +31,7 @@ func begin(text: String, kind: String) -> void:
 	for id in order:states[id]={"cursor":"","done":false,"seen":{}}
 func reset() -> void:
 	query="";category="all";states.clear();identities.clear();order.clear();order_index=0;claimed.clear();in_flight.clear();ranks.clear();identity_seq.clear();requests=0;outcomes.clear()
+	_cached_items.clear();_cached_count=-1;_cached_catalog_rev=-1
 func next_id() -> String:
 	for id in order:
 		if claimed.has(id):continue
@@ -59,8 +64,9 @@ func fetch_id(id: String, timeout_seconds := 0.0) -> Dictionary:
 	for asset: Dictionary in items:
 		if str(asset.get("provider_id",""))!=str(id):continue
 		var identity := str(id)+":"+str(asset.id)
-		if identity not in identities:
+		if not identity_seq.has(identity):
 			identities.append(identity);identity_seq[identity]=identities.size();added.append(asset)
+			_cached_count=-1
 	var next := str(response.get("next_cursor",""))
 	state.done=next.is_empty() or state.seen.has(next)
 	var error := ""
@@ -124,11 +130,13 @@ func fetch_round(timeout_seconds := 0.0) -> Dictionary:
 			_record_outcome(id,provider,"timeout" if response.get("timeout",false) else "failed",0,message,0)
 			errors.append(message);state.done=true;return {"added":added,"errors":errors}
 		var items: Array=response.get("items",[])
-		registry.index_assets(items)
+		registry.index_assets(items,false)
 		for asset: Dictionary in items:
 			if str(asset.get("provider_id",""))!=str(id):continue
 			var identity := str(id)+":"+str(asset.id)
-			if identity not in identities:identities.append(identity);added+=1
+			if not identity_seq.has(identity):
+				identities.append(identity);identity_seq[identity]=identities.size();added+=1
+				_cached_count=-1
 		var next := str(response.get("next_cursor",""))
 		state.done=next.is_empty() or state.seen.has(next)
 		if state.seen.has(next):errors.append(str(provider.descriptor().name)+": repeated search page; stopped.")
@@ -136,12 +144,18 @@ func fetch_round(timeout_seconds := 0.0) -> Dictionary:
 		return {"added":added,"errors":errors}
 	return {"added":added,"errors":errors}
 func items() -> Array:
-	registry.catalog.load_catalog();var result := []
-	for identity in identities:
-		if registry.catalog.records.has(identity):result.append(registry.catalog.records[identity].duplicate(true))
+	registry.catalog.load_catalog()
+	if _cached_count==identities.size() and _cached_catalog_rev==registry.catalog.revision:
+		return _cached_items
+	var result := []
+	for i in identities.size():
+		var identity := identities[i]
+		if not identity_seq.has(identity):identity_seq[identity]=i+1
+		if registry.catalog.records.has(identity):result.append(registry.catalog.records[identity])
 	result.sort_custom(func(a: Dictionary,b: Dictionary):
 		var ar := int(ranks.get(str(a.get("provider_id","")),999999));var br := int(ranks.get(str(b.get("provider_id","")),999999))
 		if ar!=br:return ar<br
 		var ak := str(a.get("provider_id",""))+":"+str(a.get("id",""));var bk := str(b.get("provider_id",""))+":"+str(b.get("id",""))
 		return int(identity_seq.get(ak,0))<int(identity_seq.get(bk,0)))
-	return result
+	_cached_items=result;_cached_count=identities.size();_cached_catalog_rev=registry.catalog.revision
+	return _cached_items

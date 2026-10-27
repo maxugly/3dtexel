@@ -61,8 +61,8 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 	var mediatype := str(raw.get("mediatype", asset.get("mediatype", "image"))).to_lower()
 	match mediatype:
 		"image": asset.type = "image"
-		"audio": asset.type = "audio"
-		"3d": asset.type = "model"
+		"audio", "etree": asset.type = "audio"
+		"3d", "data": asset.type = "model"
 		_: asset.type = "image"
 
 	var display_name := str(raw.get("title", asset.get("title", id)))
@@ -95,26 +95,41 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 	asset.variants = variants(asset)
 	return asset
 
+const IMAGE_EXTS := ["jpg", "jpeg", "png", "webp", "tif", "tiff", "zip", "7z"]
+const AUDIO_EXTS := ["mp3", "ogg", "wav", "flac", "m4a", "zip", "7z"]
+const MODEL_EXTS := ["glb", "gltf", "obj", "stl", "fbx", "blend", "dae", "ply", "3ds", "zip", "7z"]
+
+static func _allowed_exts_for_type(asset_type: String) -> Array:
+	match asset_type:
+		"model": return MODEL_EXTS
+		"audio": return AUDIO_EXTS
+		_: return IMAGE_EXTS
+
+static func _is_valid_type_file(fname: String, asset_type: String) -> bool:
+	var lower := fname.to_lower()
+	if lower == "__ia_thumb.jpg" or lower.ends_with("_thumb.jpg") or lower.ends_with("_thumb.png"):
+		return false
+	var ext := lower.get_extension()
+	return ext in _allowed_exts_for_type(asset_type)
+
 func variants(asset: Dictionary) -> Array:
 	var files: Array = asset.get("files", [])
 	if files.is_empty() and asset.get("source_metadata") is Dictionary:
 		files = asset.source_metadata.get("files", [])
 
-	if files.is_empty():
-		return asset.get("variants", [])
-
+	var asset_type := str(asset.get("type", "image"))
 	var result := []
-	var supported := ["jpg", "jpeg", "png", "webp", "tif", "tiff", "mp3", "ogg", "wav", "flac", "glb", "gltf", "obj"]
 
-	for f: Dictionary in files:
-		var fname := str(f.get("name", ""))
-		var ext := fname.get_extension().to_lower()
-		if ext not in supported:
+	for f in files:
+		if not (f is Dictionary):
 			continue
-
+		var fname := str(f.get("name", ""))
+		if not _is_valid_type_file(fname, asset_type):
+			continue
+		var ext := fname.get_extension().to_lower()
 		var source_type := str(f.get("source", "original")).to_lower()
-		var vid := Importer.slug(fname.get_basename())
-		var label := fname
+		var vid := Importer.slug(fname.get_file().get_basename())
+		var label := fname.get_file()
 		if source_type == "original":
 			label = "Original (" + ext.to_upper() + ")"
 			vid = "original_" + ext
@@ -124,12 +139,26 @@ func variants(asset: Dictionary) -> Array:
 		result.append({
 			"id": vid,
 			"label": label,
-			"filename": fname,
+			"filename": fname.get_file(),
 			"format": ext,
 			"confirmed": true,
 			"kind": "files"
 		})
-	return result
+
+	if not result.is_empty():
+		return result
+
+	var existing: Array = asset.get("variants", [])
+	if not existing.is_empty():
+		return existing
+
+	match asset_type:
+		"model":
+			return [{"id": "original_zip", "label": "Model Pack (ZIP/STL)", "confirmed": true, "kind": "files"}]
+		"audio":
+			return [{"id": "original_mp3", "label": "Audio (MP3/WAV)", "confirmed": true, "kind": "files"}]
+		_:
+			return [{"id": "original_jpg", "label": "Original (JPG)", "confirmed": true, "kind": "files"}]
 
 func refresh_page(query: String, category: String, cursor: String) -> Dictionary:
 	sync_network()
@@ -146,12 +175,12 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 			collection = "flickrcommons"
 		"audio":
 			mediatype = "audio"
-			collection = ""
+			collection = "opensource_audio"
 		"model":
-			mediatype = "3d"
-			collection = ""
+			mediatype = "data"
+			collection = "thingiverse"
 		_:
-			mediatype = ""
+			mediatype = "image"
 			collection = "flickrcommons"
 
 	var page := int(cursor) if not cursor.is_empty() else 1
@@ -171,10 +200,11 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 	for raw in docs:
 		if raw is Dictionary:
 			var normalized := normalize(raw, true)
-			client.cache.put_asset(normalized)
+			client.cache.put_asset(normalized, false)
 			items.append(normalized)
 
 	var next_cur := str(page + 1) if (page * rows < total_found) else ""
+	client.cache.save_catalog()
 	return {"items": items, "next_cursor": next_cur}
 
 func asset_details(asset: Dictionary) -> Dictionary:
@@ -212,29 +242,53 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 		files = detailed.source_metadata.get("files", [])
 
 	var id := str(detailed.id)
+	var asset_type := str(detailed.get("type", "image"))
+	var valid_files: Array[Dictionary] = []
+	for f in files:
+		if f is Dictionary and _is_valid_type_file(str(f.get("name", "")), asset_type):
+			valid_files.append(f)
+
 	var matched_file: Dictionary = {}
 	var target_slug := Importer.slug(variant)
 
-	for f: Dictionary in files:
+	# 1. Exact match by slug or original_<ext>
+	for f: Dictionary in valid_files:
 		var fname := str(f.get("name", ""))
 		var ext := fname.get_extension().to_lower()
-		var vid := Importer.slug(fname.get_basename())
-		var source_type := str(f.get("source", "")).to_lower()
-		if source_type == "original" and target_slug.begins_with("original"):
-			matched_file = f
-			break
-		if vid == target_slug:
+		var vid := Importer.slug(fname.get_file().get_basename())
+		if vid == target_slug or ("original_" + ext) == target_slug:
 			matched_file = f
 			break
 
-	if matched_file.is_empty() and not files.is_empty():
-		matched_file = files[0]
+	# 2. Priority for audio when original_mp3 is requested
+	if matched_file.is_empty() and asset_type == "audio":
+		for f: Dictionary in valid_files:
+			var ext := str(f.get("name", "")).get_extension().to_lower()
+			if ext in ["mp3", "ogg", "wav", "flac"]:
+				matched_file = f
+				break
+
+	# 3. Match original source type
+	if matched_file.is_empty():
+		for f: Dictionary in valid_files:
+			var source_type := str(f.get("source", "")).to_lower()
+			if source_type == "original":
+				matched_file = f
+				break
+
+	if matched_file.is_empty() and not valid_files.is_empty():
+		matched_file = valid_files[0]
 
 	if matched_file.is_empty():
-		return {"error": "No downloadable file found for variant %s." % variant}
+		return {"error": "No downloadable %s file found for variant %s." % [asset_type, variant]}
 
-	var filename := str(matched_file.get("name", "archive_file.bin"))
-	var dl_url := "https://archive.org/download/%s/%s" % [id, filename.uri_encode()]
+	var raw_name := str(matched_file.get("name", "archive_file.bin"))
+	var safe_filename := raw_name.get_file()
+	var path_parts := raw_name.split("/", false)
+	var encoded_parts: Array[String] = []
+	for p in path_parts:
+		encoded_parts.append(p.uri_encode())
+	var dl_url := "https://archive.org/download/%s/%s" % [id, "/".join(encoded_parts)]
 
 	return {
 		"kind": "files",
@@ -242,7 +296,7 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 		"variant": variant,
 		"files": [
 			{
-				"filename": filename,
+				"filename": safe_filename,
 				"url": dl_url
 			}
 		]
@@ -258,6 +312,8 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
 	return await client.search("locomotive", "image", "flickrcommons", 1, 1)
 
 func cancel_all() -> void:

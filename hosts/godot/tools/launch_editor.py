@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 env = os.environ.copy()
-key = next((env.get(name, "").strip() for name in ("TEXEL_API_KEY", "3DTEXEL_API_KEY", "TEXEL") if env.get(name, "").strip()), "")
+key = next((env.get(name, "").strip() for name in ("3D_TEXEL_API_KEY", "TEXEL_API_KEY", "3DTEXEL_API_KEY", "TEXEL") if env.get(name, "").strip()), "")
 if key:
     # A conventional variable name also survives shells that drop digit-leading names.
     env["TEXEL_API_KEY"] = key

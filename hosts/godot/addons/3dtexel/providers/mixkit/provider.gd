@@ -5,6 +5,8 @@ extends "res://addons/3dtexel/core/provider.gd"
 const Client = preload("res://addons/3dtexel/providers/mixkit/client.gd")
 const Cache = preload("res://addons/3dtexel/providers/mixkit/cache.gd")
 const Credits = preload("res://addons/3dtexel/credits.gd")
+const Files = preload("res://addons/3dtexel/core/reported_files.gd")
+const SourceLicense = preload("res://addons/3dtexel/core/source_license.gd")
 const Importer = preload("res://addons/3dtexel/importer.gd")
 
 var client: Node
@@ -92,7 +94,7 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 			tags.append(str(raw[k]))
 	asset.tags = tags
 
-	asset.price = {"free": true, "credits": 0}
+	asset.price = raw.get("price",{"free":true,"credits":0})
 
 	var lic_val := {
 		"id": "cc0-1.0",
@@ -100,32 +102,28 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 		"url": "https://mixkit.co/license/#sfxFree",
 		"attribution_required": false
 	}
+	if raw.has("license"):lic_val=SourceLicense.record(raw.license,str(raw.get("license_version","")))
 	asset.license = Credits.license_record(lic_val)
 	asset.licenses = [asset.license]
 	asset.selected_license = asset.license
 
 	asset.attribution_text = "\"%s\" - Mixkit Free Sound Effects License" % display_title
+	if raw.has("license"):
+		var supplied := str(raw.get("attribution_text",""))
+		var names: Array[String]=[]
+		for person in asset.authors:
+			if person is Dictionary and not str(person.get("name","")).is_empty():names.append(str(person.name))
+		asset.attribution_text=supplied if not supplied.is_empty() else "%s — %s (%s)" % [asset.title,", ".join(names),asset.license.name]
 	asset.metadata_source_url = asset.url
-	asset.source_metadata = Cache.public_asset(raw)
+	asset.source_metadata = Cache.public_asset(raw.get("source_metadata",raw))
 	asset.retrieved_utc = Time.get_datetime_string_from_system(true) if fetched else raw.get("retrieved_utc", "")
 	asset.variants = variants(asset)
 	return asset
 
+func file_offers(asset: Dictionary) -> Array:
+	return Files.offers(asset,[["audio_url","preview","Audio Preview"],["preview_url","preview","Audio Preview"]])
 func variants(asset: Dictionary) -> Array:
-	return [
-		{
-			"id": "mp3",
-			"label": "MP3 Audio File",
-			"kind": "files",
-			"confirmed": true
-		},
-		{
-			"id": "wav",
-			"label": "WAV Audio File",
-			"kind": "files",
-			"confirmed": true
-		}
-	]
+	return Files.variants(file_offers(asset))
 
 func refresh_page(query: String, category: String, cursor: String) -> Dictionary:
 	sync_network()
@@ -160,45 +158,15 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 	}
 
 func asset_details(asset: Dictionary) -> Dictionary:
-	return asset
+	var cached: Dictionary=client.cache.asset(str(asset.id))
+	if cached.is_empty():return asset
+	return Cache.merge_asset(cached,asset)
 
-func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
-	sync_network()
+func resolve_download(asset: Dictionary,variant: String) -> Dictionary:
+	if not network_allowed:return {"error":"Download requires explicit action."}
 	var detailed := await asset_details(asset)
-	if detailed.has("error"):
-		return detailed
-
-	var target_variant := variant if not variant.is_empty() else "mp3"
-	var files: Dictionary = detailed.get("files", {})
-	if files.is_empty() and detailed.get("source_metadata") is Dictionary:
-		files = detailed.source_metadata.get("files", {})
-
-	var download_url := ""
-	var filename := ""
-
-	if files.has(target_variant):
-		download_url = str(files[target_variant])
-		filename = "%s.%s" % [str(detailed.get("id", "mixkit")), target_variant]
-	else:
-		download_url = str(detailed.get("audio_url", detailed.get("download_url", "")))
-		if download_url.is_empty():
-			return {"error": "No download URL available for Mixkit audio."}
-		var ext := download_url.get_file().get_extension()
-		if ext.is_empty() or ext.contains("?"):
-			ext = target_variant
-		filename = "%s.%s" % [str(detailed.get("id", "mixkit")), ext]
-
-	return {
-		"kind": "files",
-		"asset": detailed,
-		"variant": target_variant,
-		"files": [
-			{
-				"filename": filename,
-				"url": download_url
-			}
-		]
-	}
+	if detailed.has("error"):return detailed
+	return Files.plan(detailed,variant,file_offers(detailed))
 
 func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	if not network_allowed:
@@ -206,4 +174,13 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func thumbnail(url: String) -> Texture2D:
-	return null
+	sync_network()
+	return await client.thumbnail(url)
+
+func cancel_all() -> void:
+	client.cancel_all()
+
+func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
+	return await client.search("",1,1)

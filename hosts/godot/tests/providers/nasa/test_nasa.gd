@@ -157,6 +157,7 @@ func run() -> void:
 		p.enabled = false
 
 	var hub_provider: Node = hub.providers["nasa"]
+	hub_provider.enabled=true
 	hub_provider.client.queue_free()
 	hub_provider.remove_child(hub_provider.client)
 	var hub_mock := MockNASAClient.new()

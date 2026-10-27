@@ -1,0 +1,15 @@
+{
+  "id": 101,
+  "title": "Synthetic wood material",
+  "type": "pbr",
+  "url": "https://3dtexel.com/product/offline-wood/",
+  "thumbnail": "https://example.invalid/texel-thumb.png",
+  "license": "CC0 1.0 (public domain)",
+  "price": {
+    "free": true,
+    "credits": 0
+  },
+  "download": {
+    "via_api": true
+  }
+}

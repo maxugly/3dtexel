@@ -140,6 +140,8 @@ static func parse_search_page(html: String, query_url := "") -> Dictionary:
 
 	for m in matches:
 		var row_html := m.get_string(1)
+		if row_html.contains("node-art-challenge") or row_html.contains("/forumtopic/"):
+			continue
 
 		# Title & link
 		var title_regex := RegEx.create_from_string("(?is)<div class=\"[^\"]*views-field-title[^\"]*\"[^>]*>.*?<a [^>]*href=\"([^\"]+)\"[^>]*>(.*?)</a>")
@@ -156,13 +158,13 @@ static func parse_search_page(html: String, query_url := "") -> Dictionary:
 		var slug := extract_slug(tm.get_string(1))
 
 		# Thumbnail preview
-		var thumb_regex := RegEx.create_from_string("(?is)<div class=\"[^\"]*views-field-field-art-preview[^\"]*\"[^>]*>.*?<img [^>]*src=\"([^\"]+)\"")
+		var thumb_regex := RegEx.create_from_string("(?is)<div class=\"[^\"]*(?:views-field-field-art-preview|field-name-field-art-preview)[^\"]*\"[^>]*>.*?<img [^>]*src=['\"]([^'\"]+)['\"]")
 		var thumb_match := thumb_regex.search(row_html)
 		var thumbnail := ""
 		if thumb_match:
 			thumbnail = clean_url(thumb_match.get_string(1))
 		else:
-			var img_fallback := RegEx.create_from_string("(?is)<img [^>]*src=\"([^\"]+)\"")
+			var img_fallback := RegEx.create_from_string("(?is)<img [^>]*src=['\"]([^'\"]+)['\"]")
 			var im := img_fallback.search(row_html)
 			if im:
 				thumbnail = clean_url(im.get_string(1))
@@ -172,6 +174,13 @@ static func parse_search_page(html: String, query_url := "") -> Dictionary:
 		var type_match := type_regex.search(row_html)
 		var type_str := clean_text(type_match.get_string(1)) if type_match else ""
 		var type := map_art_type(type_str)
+		if type_str.is_empty():
+			if "field_art_type_tid[]=10" in query_url:
+				type = "model"
+			elif "field_art_type_tid[]=14" in query_url:
+				type = "material"
+			elif "field_art_type_tid[]=12" in query_url or "field_art_type_tid[]=13" in query_url:
+				type = "audio"
 
 		# Licenses
 		var lic_div_regex := RegEx.create_from_string("(?is)<div class=\"[^\"]*views-field-field-art-licenses[^\"]*\"[^>]*>(.*?)</div>")
@@ -265,6 +274,12 @@ static func parse_asset_page(html: String, asset_url := "") -> Dictionary:
 		tm = h1_any.search(html)
 	if tm:
 		result.title = clean_text(tm.get_string(1))
+
+	# Art type on detail page
+	var type_start := RegEx.create_from_string("(?is)<div class=\"[^\"]*field-name-field-art-type[^\"]*\"[^>]*>.*?<a [^>]*>(.*?)</a>")
+	var tpm := type_start.search(html)
+	if tpm:
+		result.type = map_art_type(clean_text(tpm.get_string(1)))
 
 	# Description / Body
 	var body_start := RegEx.create_from_string("(?is)<div class=\"[^\"]*(?:field-name-body|art-description)[^\"]*\"[^>]*>")
@@ -420,7 +435,7 @@ static func parse_asset_page(html: String, asset_url := "") -> Dictionary:
 		var pnext := RegEx.create_from_string("(?is)<div class=\"[^\"]*field-name-[^\"]*\"")
 		var pnm := pnext.search(html, start)
 		var prev_html := html.substr(start, (pnm.get_start() - start) if pnm else 1000)
-		var img_regex := RegEx.create_from_string("(?is)<img [^>]*src=\"([^\"]+)\"")
+		var img_regex := RegEx.create_from_string("(?is)<img [^>]*src=['\"]([^'\"]+)['\"]")
 		for im in img_regex.search_all(prev_html):
 			previews.append(clean_url(im.get_string(1)))
 	result.preview_images = previews

@@ -7,3 +7,13 @@ Connects 3DTexel to the David Rumsey Historical Map Collection of 150,000+ antiq
 - **Parchment & Paper Textures**: High-resolution scanned fibers, antique ink, and cartographic illustrations.
 - **IIIF Integration**: Dynamic tile and resolution delivery via Luna IIIF endpoints (max, 2048px, 1024px, 512px).
 - **Offline Tests**: 100% offline contract and unit tests with mock responses.
+
+## Adapter behavior
+
+Preview URLs use the shared threaded image loader, exact-URL authorization, and
+persistent PNG cache. Connection checks perform one bounded query and propagate
+site errors. Legacy metadata cache paths remain readable and are included with
+previews in the browser's cache size/clear controls.
+
+Coverage is offline with synthetic fixtures. These checks validate adapter
+mechanics, not live endpoint availability or the rights of every upstream item.

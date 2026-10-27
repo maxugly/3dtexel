@@ -1,0 +1,130 @@
+{
+  "data": [
+    {
+      "id": 26300,
+      "title": "Low Poly Stylized Pumpkin",
+      "url": "https://blendswap.com/blend/26300",
+      "description": "A spooky stylized pumpkin sculpted and modeled in Blender.",
+      "asset_type": "model_3d",
+      "asset_type_label": "3D Model",
+      "license": {
+        "key": "cc0",
+        "name": "CC0",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "license_source": "uploader_declared"
+      },
+      "tags": ["pumpkin", "halloween", "stylized", "low poly"],
+      "category": {
+        "id": 5,
+        "name": "Characters & Creatures",
+        "slug": "characters"
+      },
+      "author": {
+        "id": 101,
+        "username": "PumpkinArtist",
+        "url": "https://blendswap.com/profile/101"
+      },
+      "blender_versions": ["4.2"],
+      "size_bytes": 1048576,
+      "thumbnail_url": "https://blendswap.com/blend_previews/26300/0/500?v=abcd1234",
+      "preview_urls": ["https://blendswap.com/blend_previews/26300/0/500?v=abcd1234"],
+      "download_url": "https://blendswap.com/downloads/26300/pumpkin.blend",
+      "files": [
+        {
+          "id": 801,
+          "filename": "stylized_pumpkin.blend",
+          "format": "blend",
+          "size_bytes": 1048576,
+          "blender_version": "4.2",
+          "render_engine": "Eevee"
+        }
+      ]
+    },
+    {
+      "id": 28450,
+      "title": "Sci-Fi Surveillance Drone",
+      "url": "https://blendswap.com/blend/28450",
+      "description": "Rigged robotic drone model with procedural materials.",
+      "asset_type": "model_3d",
+      "asset_type_label": "3D Model",
+      "license": {
+        "key": "cc-by",
+        "name": "CC-BY",
+        "url": "https://creativecommons.org/licenses/by/4.0/",
+        "license_source": "uploader_declared"
+      },
+      "tags": ["drone", "scifi", "robot", "rigged"],
+      "category": {
+        "id": 12,
+        "name": "Vehicles",
+        "slug": "vehicles"
+      },
+      "author": {
+        "id": 204,
+        "username": "MechaForge",
+        "url": "https://blendswap.com/profile/204"
+      },
+      "blender_versions": ["3.6"],
+      "size_bytes": 3145728,
+      "thumbnail_url": "https://blendswap.com/blend_previews/28450/0/500?v=ef012345",
+      "preview_urls": ["https://blendswap.com/blend_previews/28450/0/500?v=ef012345"],
+      "download_url": "https://blendswap.com/downloads/28450/drone.blend",
+      "files": [
+        {
+          "id": 802,
+          "filename": "scifi_drone.blend",
+          "format": "blend",
+          "size_bytes": 3145728,
+          "blender_version": "3.6",
+          "render_engine": "Cycles"
+        }
+      ]
+    },
+    {
+      "id": 29999,
+      "title": "Restricted Commercial Concept",
+      "url": "https://blendswap.com/blend/29999",
+      "description": "Non-commercial test model.",
+      "asset_type": "model_3d",
+      "asset_type_label": "3D Model",
+      "license": {
+        "key": "cc-by-nc",
+        "name": "CC-BY-NC",
+        "url": "https://creativecommons.org/licenses/by-nc/4.0/",
+        "license_source": "uploader_declared"
+      },
+      "tags": ["test", "noncommercial"],
+      "category": {
+        "id": 1,
+        "name": "Props",
+        "slug": "props"
+      },
+      "author": {
+        "id": 999,
+        "username": "RestrictArtist",
+        "url": "https://blendswap.com/profile/999"
+      },
+      "blender_versions": ["4.0"],
+      "size_bytes": 524288,
+      "thumbnail_url": "https://blendswap.com/blend_previews/29999/0/500?v=99999999",
+      "preview_urls": ["https://blendswap.com/blend_previews/29999/0/500?v=99999999"],
+      "download_url": "https://blendswap.com/downloads/29999/restricted.blend",
+      "files": [
+        {
+          "id": 803,
+          "filename": "restricted.blend",
+          "format": "blend",
+          "size_bytes": 524288,
+          "blender_version": "4.0",
+          "render_engine": "Cycles"
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pages": 1,
+    "count": 3,
+    "per_page": 25
+  }
+}

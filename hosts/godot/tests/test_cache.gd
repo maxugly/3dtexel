@@ -1,5 +1,6 @@
 extends SceneTree
 const Client = preload("res://addons/3dtexel/client.gd")
+const Thumbnail = preload("res://addons/3dtexel/core/thumbnail_image.gd")
 const Registry = preload("res://addons/3dtexel/core/registry.gd")
 class FakeClient:
 	extends Client
@@ -50,6 +51,16 @@ func run():
 	check(Registry.format_size(2048)=="2.0 KB","Cache size is human readable")
 	Registry.clear_cache_path(cache_root)
 	check(Registry.cache_path_size(cache_root)==0 and not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(cache_root)),"Clear cache removes nested files and directories")
+	var holder := {"done":false}
+	complete_disk_job(client,holder)
+	client.cancel_all();client.cancel_all()
+	var deadline := Time.get_ticks_msec()+1000
+	while not holder.done and Time.get_ticks_msec()<deadline:await process_frame
+	check(holder.done,"Cancelling an image decode joins its worker and resumes its caller")
 	client.queue_free();other.queue_free();await process_frame
 	print("Disk cache tests complete; failures=",failures)
 	quit(1 if failures else 0)
+
+func complete_disk_job(client: Node,holder: Dictionary) -> void:
+	await Thumbnail.image_task(client,func():return Image.create(4,4,false,Image.FORMAT_RGBA8))
+	holder.done=true

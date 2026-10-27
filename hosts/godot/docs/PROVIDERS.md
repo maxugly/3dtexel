@@ -20,6 +20,12 @@ addon per website. Site protocol code belongs only in `providers/<site>/`.
 - `core/provider.gd`: adapter interface. Extend this script; do not introduce global
   class names or autoloads. An optional external addon can call `register_provider()`.
 - `core/catalog.gd`: persistent public JSON catalog, identity `provider_id:id`.
+- `core/provider_cache.gd`: shared public metadata/thumbnail caching for adapters
+  retaining legacy JSON paths, recursive sanitization, and fresh-summary merging.
+- `core/reported_files.gd`: explicit source-file choices and exact download plans;
+  no missing-version substitution or guessed resolutions.
+- `core/source_license.gd`: CC license parsing that retains source versions and
+  restrictions instead of rewriting unknown terms to CC0 or plain CC-BY.
 - `core/preparation.gd`: native PBR material preparation, completed-import reuse,
   hashes, original source maps, portable sidecars and optional Terrain handoff.
 - `core/file_preparation.gd`: generic source-file downloads for models, audio, images
@@ -59,7 +65,7 @@ rendering reuse existing metadata. Search responses must be fresh, while repeate
 detail/image requests reuse cache. `refreshing` means bypass cached search responses during a submitted search. `can_download()` is an offline availability
 check, not a network probe. `check_connection()` is explicit. Thumbnail downloading
 must honor a cache plus authorization granted by an explicit search/details/download action;
-keep lazy viewport loading, bounded concurrency and disk caching. `cancel_all()`
+keep current-page image loading, bounded concurrency and disk caching. Cards stay hidden until a thumbnail succeeds; the shared loader retains in-flight images across redraws. Reuse `core/request_transport.gd` for threaded requests and cancellation that resumes awaiters, and `core/thumbnail_image.gd` for worker decoding and disk image caching. `cancel_all()`
 cancels outstanding requests when disabled/removed. No hidden catalog updates.
 
 ## Normalized asset
@@ -153,8 +159,31 @@ not implemented. Default imports must never spend money or credits.
 
 ## Verification
 
-Run the twelve scripts in `.github/workflows/test.yml`, using mocks only.
+Run the offline scripts in `.github/workflows/test.yml`, using mocks only.
 `tests/test_providers.gd` demonstrates a second provider with string IDs, namespace
 collisions, disabled sites, nested secret stripping, persistence, generic file import,
 sidecars and completed-import reuse. Do not run `test_live.gd` or hit real providers
 as part of automated tests. New provider tests must override every network path.
+
+## Default enabled sites
+
+Bundled adapters start checked only when `addons/3dtexel/provider_verification.json`
+records a complete live search, a rendered UI image, a downloaded/validated asset,
+and provenance. A successful HTTP response or mocked contract test is insufficient.
+`core/provider_defaults.gd` applies this gate in the registry. Unlisted/new adapters
+start unchecked until they are verified; external addon providers retain their own
+configuration behavior.
+
+Preferences from before this policy do not silently re-enable unverified sites.
+A user can explicitly opt back in through Settings to investigate or repair one;
+that choice is saved under the current policy revision. Picking an unchecked site
+in the dropdown or entering credentials alone does not turn it on. Reload the addon
+after updating verification evidence to reconstruct its default checkbox states.
+
+The manual checker is `tools/verify_provider_live.gd` and requires
+`ASSET_LIBRARY_ALLOW_LIVE_CHECK=1` plus a real rendering display (Xvfb is suitable).
+It is not part of automated/offline CI. Run only for an explicit user-authorized
+live check; use bounded searches, respect provider pacing, and preserve sidecars.
+The checker writes results/screenshots/imports under the ignored `AssetLibrary/`
+folder. Only public stage results and asset/version IDs belong in the checked-in
+verification manifest; never provider responses, credentials or signed URLs.

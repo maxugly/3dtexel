@@ -39,8 +39,10 @@ test("HTTP API enforces bearer auth and serves offline provider contracts", asyn
     const providers = await fetch(`${server.url}/v1/providers`, { headers: auth });
     assert.equal(providers.status, 200);
     const providerBody = await providers.json() as { providers: Array<{ id: string }> };
-    assert.equal(providerBody.providers.length, 9);
+    assert.equal(providerBody.providers.length, 11);
     assert.ok(providerBody.providers.some((entry) => entry.id === "polyhaven"));
+    assert.ok(providerBody.providers.some((entry) => entry.id === "blendswap"));
+    assert.ok(providerBody.providers.some((entry) => entry.id === "cgtrader"));
 
     const search = await fetch(`${server.url}/v1/search?q=brick&category=material&providers=polyhaven`, { headers: auth });
     assert.equal(search.status, 200);

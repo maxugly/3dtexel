@@ -185,10 +185,11 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 	var upper := mini(offset + page_size, matched.size())
 	for i in range(offset, upper):
 		var normalized := normalize(matched[i], true)
-		client.cache.put_asset(normalized)
+		client.cache.put_asset(normalized, false)
 		items.append(normalized)
 
 	var next_cur := str(offset + page_size) if (offset + page_size < matched.size()) else ""
+	client.cache.save_catalog()
 	return {"items": items, "next_cursor": next_cur}
 
 func asset_details(asset: Dictionary) -> Dictionary:
@@ -264,6 +265,8 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
 	return await client.fetch_models()
 
 func cancel_all() -> void:

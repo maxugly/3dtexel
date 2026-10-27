@@ -15,10 +15,13 @@ func run():
 	check(browser.cache_button!=null and browser.cache_button.text.begins_with("Cache"),"Cache size control is visible")
 	check(browser.cache_button.text=="Cache","Cache size is lazy until the browser is shown")
 	browser.hide();browser.show();await settle()
+	var cache_deadline := Time.get_ticks_msec()+3000
+	while browser.cache_size_updating and Time.get_ticks_msec()<cache_deadline:await process_frame
 	check(browser.cache_button.text.begins_with("Cache "),"Cache size loads when the browser becomes visible")
 	browser.confirm_clear_cache()
 	check(browser.cache_dialog!=null,"Clearing the cache asks for confirmation")
 	browser.cache_dialog.queue_free();browser.cache_dialog=null
+	browser.thumbnail_textures[browser.thumbnail_key({})]=GradientTexture1D.new()
 	for i in 12:
 		browser.grid.add_child(browser.make_asset_tile({"id":i,"title":"A long ground material title for layout testing","price":{"free":true,"credits":0}},0))
 	for viewport_size in [Vector2i(1600,900),Vector2i(850,1000),Vector2i(640,960)]:

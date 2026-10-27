@@ -106,6 +106,7 @@ func run() -> void:
 			hub.providers[p_id].enabled = false
 
 	var hub_provider: Provider = hub.providers["kansallisgalleria"]
+	hub_provider.enabled=true
 	var hub_mock := MockKansallisgalleriaClient.new()
 	hub_provider.client.queue_free()
 	hub_provider.remove_child(hub_provider.client)

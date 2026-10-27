@@ -1,0 +1,39 @@
+{
+  "data": [
+    {
+      "id": 26300,
+      "title": "Low Poly Stylized Pumpkin",
+      "url": "https://blendswap.com/blend/26300",
+      "description": "A spooky stylized pumpkin sculpted and modeled in Blender.",
+      "asset_type": "model_3d",
+      "asset_type_label": "3D Model",
+      "license": {
+        "key": "cc0",
+        "name": "CC0",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "tags": ["pumpkin", "halloween", "stylized", "low poly"],
+      "author": {
+        "id": 101,
+        "username": "PumpkinArtist",
+        "url": "https://blendswap.com/profile/101"
+      },
+      "thumbnail_url": "https://blendswap.com/blend_previews/26300/0/500?v=abcd1234",
+      "download_url": "https://blendswap.com/downloads/26300/pumpkin.blend",
+      "files": [
+        {
+          "id": 801,
+          "filename": "stylized_pumpkin.blend",
+          "format": "blend",
+          "size_bytes": 1048576
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pages": 1,
+    "count": 1,
+    "per_page": 25
+  }
+}

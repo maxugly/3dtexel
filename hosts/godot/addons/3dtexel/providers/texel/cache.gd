@@ -12,7 +12,7 @@ func ensure_loaded() -> void:
 		var data: Variant=JSON.parse_string(FileAccess.get_file_as_string(root.path_join("catalog.json")))
 		if data is Dictionary:catalog=data
 static func cacheable(path: String) -> bool:
-	return path.begins_with("/assets/search?") or RegEx.create_from_string("^/assets/[0-9]+$").search(path)!=null
+	return path.begins_with("/assets/search?") or (path.begins_with("/assets/") and path.substr(8).is_valid_int())
 func response_path(path: String) -> String:return root.path_join(path.sha256_text()+".json")
 func get_response(path: String) -> Dictionary:
 	ensure_loaded()
@@ -82,17 +82,23 @@ func thumbnail_path(url: String) -> String:
 	ensure_loaded();return root.path_join("thumb_"+url.sha256_text()+".png")
 func load_local_imports(folder: String, depth := 3) -> void:
 	ensure_loaded()
-	if depth<0:return
+	if _scan_local_imports(folder, depth):
+		Credits.write_json(root.path_join("catalog.json"),catalog)
+
+func _scan_local_imports(folder: String, depth: int) -> bool:
+	if depth<0:return false
 	var directory := DirAccess.open(folder)
-	if not directory:return
+	if not directory:return false
+	var changed := false
 	if FileAccess.file_exists(folder.path_join("provenance.json")):
 		var item: Variant=JSON.parse_string(FileAccess.get_file_as_string(folder.path_join("provenance.json")))
 		if item is Dictionary and item.get("provider","")=="3DTexel":
 			if not FileAccess.file_exists(folder.path_join("asset.credits.json")):Credits.write_asset_sidecars(folder,Credits.asset_record(item))
-			item.id=item.get("asset_id",0);item.type="pbr";item.url=item.get("source_url","");item.price={"free":int(item.get("charged_credits",-1))==0,"credits":int(item.get("charged_credits",-1))};upsert(item)
+			item.id=item.get("asset_id",0);item.type="pbr";item.url=item.get("source_url","");item.price={"free":int(item.get("charged_credits",-1))==0,"credits":int(item.get("charged_credits",-1))};upsert(item);changed=true
 	for name in directory.get_directories():
-		if not name.begins_with(".") and name!="_source":load_local_imports(folder.path_join(name),depth-1)
-	Credits.write_json(root.path_join("catalog.json"),catalog)
+		if not name.begins_with(".") and name!="_source" and name!="live-verification":
+			if _scan_local_imports(folder.path_join(name),depth-1):changed=true
+	return changed
 
 func response_validators(path: String) -> Dictionary:
 	ensure_loaded()

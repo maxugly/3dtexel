@@ -5,6 +5,7 @@ extends "res://addons/3dtexel/core/provider.gd"
 const Client = preload("res://addons/3dtexel/providers/david_rumsey/client.gd")
 const Cache = preload("res://addons/3dtexel/providers/david_rumsey/cache.gd")
 const Credits = preload("res://addons/3dtexel/credits.gd")
+const SourceLicense = preload("res://addons/3dtexel/core/source_license.gd")
 const Importer = preload("res://addons/3dtexel/importer.gd")
 
 var client: Node
@@ -87,7 +88,7 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 			tags.append(str(raw[k]))
 	asset.tags = tags
 
-	asset.price = {"free": true, "credits": 0}
+	asset.price = raw.get("price",{"free":true,"credits":0})
 
 	var lic_str := str(raw.get("license", "CC0")).to_upper()
 	var lic_val: Dictionary
@@ -105,18 +106,26 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 			"url": "https://creativecommons.org/publicdomain/mark/1.0/",
 			"attribution_required": false
 		}
+	if raw.has("license"):lic_val=SourceLicense.record(raw.license,str(raw.get("license_version","")))
 	asset.license = Credits.license_record(lic_val)
 	asset.licenses = [asset.license]
 	asset.selected_license = asset.license
 
 	asset.attribution_text = "%s - %s (David Rumsey Map Collection / Stanford University)" % [display_title, author_name]
+	if raw.has("license"):
+		var supplied := str(raw.get("attribution_text",""))
+		var names: Array[String]=[]
+		for person in asset.authors:
+			if person is Dictionary and not str(person.get("name","")).is_empty():names.append(str(person.name))
+		asset.attribution_text=supplied if not supplied.is_empty() else "%s — %s (%s)" % [asset.title,", ".join(names),asset.license.name]
 	asset.metadata_source_url = asset.url
-	asset.source_metadata = Cache.public_asset(raw)
+	asset.source_metadata = Cache.public_asset(raw.get("source_metadata",raw))
 	asset.retrieved_utc = Time.get_datetime_string_from_system(true) if fetched else raw.get("retrieved_utc", "")
 	asset.variants = variants(asset)
 	return asset
 
 func variants(asset: Dictionary) -> Array:
+	if str(asset.get("source_metadata",{}).get("iiif_image",asset.get("iiif_image",""))).is_empty():return []
 	return [
 		{
 			"id": "max",
@@ -180,6 +189,9 @@ func asset_details(asset: Dictionary) -> Dictionary:
 	return asset
 
 func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
+	if not network_allowed:return {"error":"Download requires explicit action."}
+	if not variant.is_empty() and not variants(asset).any(func(option):return str(option.id)==variant):return {"error":"The requested image version is not reported by this asset."}
+	if variants(asset).is_empty():return {"error":"The source has not reported an image service for this asset."}
 	sync_network()
 	var detailed := await asset_details(asset)
 	if detailed.has("error"):
@@ -249,7 +261,13 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func thumbnail(url: String) -> Texture2D:
-	return null
+	sync_network()
+	return await client.thumbnail(url)
 
 func cancel_all() -> void:
 	client.cancel_all()
+
+func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
+	return await client.search("",0,1)

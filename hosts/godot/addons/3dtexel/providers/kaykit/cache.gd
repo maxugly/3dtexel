@@ -23,7 +23,7 @@ static func cacheable(path: String) -> bool:
 	var clean := path.to_lower()
 	if "password" in clean or "token" in clean or "session" in clean or "key" in clean:
 		return false
-	return clean.contains("/assets") or clean.contains("kaylousberg.com")
+	return clean.begins_with("https://api.github.com/repos/KayKit-Game-Assets/".to_lower())
 
 func thumbnail_path(url: String) -> String:
 	ensure_loaded()
@@ -38,7 +38,13 @@ func get_response(path: String) -> Dictionary:
 	if not cacheable(path) or not FileAccess.file_exists(response_path(path)):
 		return {}
 	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(response_path(path)))
-	return data.get("data", {}) if data is Dictionary else {}
+	var response: Dictionary=data.get("data",{}) if data is Dictionary and data.get("data") is Dictionary else {}
+	# Older cached GitHub listings lost their static links during sanitization.
+	# Refetch just this response; a 304 cannot repair its missing fields.
+	if "/contents/" in path and response.get("items") is Array:
+		for entry in response.items:
+			if entry is Dictionary and entry.get("type")=="file" and not entry.has("source_file_url"):return {}
+	return response
 
 func response_validators(path: String) -> Dictionary:
 	ensure_loaded()
@@ -48,6 +54,7 @@ func response_validators(path: String) -> Dictionary:
 	return record.get("validators", {}) if record is Dictionary else {}
 
 func conditional_headers(path: String) -> PackedStringArray:
+	if get_response(path).is_empty():return PackedStringArray()
 	var validators := response_validators(path)
 	var headers := PackedStringArray()
 	if validators.has("etag") and not str(validators.etag).is_empty():
@@ -77,7 +84,7 @@ func asset(id: String) -> Dictionary:
 	ensure_loaded()
 	return catalog.get(id, {}).duplicate(true)
 
-func put_asset(asset: Dictionary) -> void:
+func put_asset(asset: Dictionary, save := true) -> void:
 	ensure_loaded()
 	if asset.is_empty():
 		return
@@ -88,7 +95,8 @@ func put_asset(asset: Dictionary) -> void:
 	clean.provider_id = "kaykit"
 	clean.provider = "KayKit"
 	catalog[id] = clean
-	save_catalog()
+	if save:
+		save_catalog()
 
 func save_catalog() -> void:
 	ensure_loaded()
@@ -108,7 +116,7 @@ static func public_asset(asset: Dictionary) -> Dictionary:
 		"provider_id", "provider", "id", "title", "type", "url", "thumbnail",
 		"description", "tags", "categories", "price", "authors", "license", "licenses",
 		"selected_license", "attribution_text", "metadata_source_url", "source_metadata",
-		"retrieved_utc", "variants", "files", "download_url"
+		"retrieved_utc", "variants", "files", "download_url", "repository", "license_text", "license_source_url"
 	]
 	var out := {}
 	for key in allowed:

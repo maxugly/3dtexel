@@ -23,7 +23,7 @@ static func cacheable(path: String) -> bool:
 	var clean := path.to_lower()
 	if "password" in clean or "token" in clean or "session" in clean or "key" in clean:
 		return false
-	return clean.contains("/search") or clean.contains("/asset/") or clean.contains("/metadata/")
+	return clean.contains("/search") or clean.contains("/asset/") or clean.contains("/metadata/") or clean.contains("/git/trees/")
 
 func response_path(path: String) -> String:
 	ensure_loaded()
@@ -94,6 +94,10 @@ func upsert(asset: Dictionary) -> void:
 	var incoming := public_asset(asset)
 	previous.merge(incoming, true)
 	catalog[id] = previous
+
+func save_catalog() -> void:
+	ensure_loaded()
+	Credits.write_json(root.path_join("catalog.json"), catalog)
 
 func asset(id: String) -> Dictionary:
 	ensure_loaded()

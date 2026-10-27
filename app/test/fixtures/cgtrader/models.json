@@ -1,0 +1,76 @@
+{
+  "total": 2,
+  "page": 1,
+  "per_page": 30,
+  "data": [
+    {
+      "id": "cgt-99120",
+      "title": "Low Poly Plants Kit",
+      "slug": "shapespark-low-poly-plants-kit-free-low-poly-3d-model",
+      "category": "plant",
+      "user": {
+        "username": "NatureHero",
+        "profile_url": "https://www.cgtrader.com/naturehero"
+      },
+      "price": 0.0,
+      "free": true,
+      "polygons": 12450,
+      "vertices": 14200,
+      "description": "Game-ready low-poly plants kit with bushes and foliage.",
+      "tags": ["plant", "bush", "foliage", "lowpoly", "nature"],
+      "thumbnail": "https://img-new.cgtrader.com/items/99120/plants_preview.jpg",
+      "license": {
+        "type": "royalty_free",
+        "name": "CGTrader Royalty Free",
+        "url": "https://www.cgtrader.com/pages/terms-and-conditions#royalty-free-license"
+      },
+      "files": [
+        {
+          "id": "file-1",
+          "format": "fbx",
+          "filename": "plants_kit.fbx",
+          "size": 3200000,
+          "download_url": "https://api.cgtrader.com/v1/models/cgt-99120/files/file-1/download"
+        },
+        {
+          "id": "file-2",
+          "format": "blend",
+          "filename": "plants_kit.blend",
+          "size": 4800000,
+          "download_url": "https://api.cgtrader.com/v1/models/cgt-99120/files/file-2/download"
+        }
+      ]
+    },
+    {
+      "id": "cgt-99121",
+      "title": "Old Tree Model",
+      "slug": "tree-old-9f244f52-f333-4815-88c9-a78cbb269d29",
+      "category": "plant",
+      "user": {
+        "username": "TreeCraft",
+        "profile_url": "https://www.cgtrader.com/treecraft"
+      },
+      "price": 0.0,
+      "free": true,
+      "polygons": 24000,
+      "vertices": 26000,
+      "description": "Detailed old oak tree model.",
+      "tags": ["tree", "nature", "old", "wood"],
+      "thumbnail": "https://img-new.cgtrader.com/items/99121/tree_preview.jpg",
+      "license": {
+        "type": "royalty_free",
+        "name": "CGTrader Royalty Free",
+        "url": "https://www.cgtrader.com/pages/terms-and-conditions#royalty-free-license"
+      },
+      "files": [
+        {
+          "id": "file-3",
+          "format": "obj",
+          "filename": "old_tree.obj",
+          "size": 5100000,
+          "download_url": "https://api.cgtrader.com/v1/models/cgt-99121/files/file-3/download"
+        }
+      ]
+    }
+  ]
+}

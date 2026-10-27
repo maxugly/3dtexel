@@ -68,11 +68,17 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 
 	asset.url = str(raw.get("links", {}).get("item", raw.get("url", "https://www.loc.gov/pictures/item/" + id)))
 
+	var thumb_url := ""
 	var image_dict: Variant = raw.get("image", null)
 	if image_dict is Dictionary:
-		asset.thumbnail = str(image_dict.get("thumb", image_dict.get("square", "")))
-	else:
-		asset.thumbnail = str(raw.get("thumbnail", ""))
+		thumb_url = str(image_dict.get("thumb", image_dict.get("square", "")))
+	elif raw.get("image_url") is Array:
+		var urls: Array = raw.image_url
+		if not urls.is_empty():
+			thumb_url = str(urls[0]).get_slice("#", 0)
+	if thumb_url.begins_with("http://"):
+		thumb_url = "https://" + thumb_url.substr(7)
+	asset.thumbnail = thumb_url
 
 	asset.description = str(raw.get("summary", raw.get("description", "%s in Library of Congress" % display_name)))
 	asset.tags = raw.get("tags", asset.get("tags", []))
@@ -164,12 +170,16 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 		if not (raw is Dictionary):
 			continue
 		var normalized := normalize(raw, true)
+		if normalized.thumbnail.is_empty():
+			continue
 		if category == "material":
 			normalized.type = "material"
-		client.cache.put_asset(normalized)
+		client.allowed_thumbnails[normalized.thumbnail] = true
+		client.cache.put_asset(normalized, false)
 		items.append(normalized)
 
 	var next_cur := str(offset + rows) if all_items.size() >= rows else ""
+	client.cache.save_catalog()
 	return {"items": items, "next_cursor": next_cur}
 
 func asset_details(asset: Dictionary) -> Dictionary:
@@ -211,6 +221,18 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 				dl_url = str(img_dict.get("alt", img_dict.get("full", "")))
 			else:
 				dl_url = str(img_dict.get("full", img_dict.get("alt", "")))
+		elif detailed.get("image_url") is Array or detailed.get("source_metadata", {}).get("image_url") is Array:
+			var img_urls: Array = detailed.get("image_url", detailed.get("source_metadata", {}).get("image_url", []))
+			if not img_urls.is_empty():
+				var picked_url := str(img_urls[-1]).get_slice("#", 0)
+				for u in img_urls:
+					var clean_u := str(u).get_slice("#", 0)
+					if clean_u.ends_with(".jpg") or clean_u.ends_with(".png"):
+						picked_url = clean_u
+				dl_url = picked_url
+
+	if dl_url.begins_with("http://"):
+		dl_url = "https://" + dl_url.substr(7)
 
 	if dl_url.is_empty():
 		return {"error": "No download URL available for Library of Congress item."}
@@ -218,7 +240,11 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 	if not dl_url.begins_with("https://"):
 		return {"error": "Insecure download URL: %s" % dl_url}
 
-	var filename := str(chosen_file.get("filename", "%s.jpg" % Importer.slug(str(detailed.id))))
+	var raw_fname := dl_url.get_file()
+	var ext := raw_fname.get_extension().to_lower()
+	if ext.is_empty():
+		ext = "jpg"
+	var filename := str(chosen_file.get("filename", "%s.%s" % [Importer.slug(str(detailed.id)), ext]))
 
 	return {
 		"kind": "files",
@@ -242,6 +268,8 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
 	return await client.search()
 
 func cancel_all() -> void:

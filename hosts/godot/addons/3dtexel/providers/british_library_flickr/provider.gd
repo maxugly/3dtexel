@@ -5,6 +5,8 @@ extends "res://addons/3dtexel/core/provider.gd"
 const Client = preload("res://addons/3dtexel/providers/british_library_flickr/client.gd")
 const Cache = preload("res://addons/3dtexel/providers/british_library_flickr/cache.gd")
 const Credits = preload("res://addons/3dtexel/credits.gd")
+const Files = preload("res://addons/3dtexel/core/reported_files.gd")
+const SourceLicense = preload("res://addons/3dtexel/core/source_license.gd")
 const Importer = preload("res://addons/3dtexel/importer.gd")
 
 var client: Node
@@ -18,7 +20,7 @@ func descriptor() -> Dictionary:
 		"id": "british_library_flickr",
 		"name": "British Library",
 		"website": "https://www.flickr.com/photos/britishlibrary/",
-		"key_env": [],
+		"key_env": ["FLICKR_API_KEY"],
 		"capabilities": ["image", "material", "files", "variants"]
 	}
 
@@ -27,13 +29,15 @@ func sync_network() -> void:
 	client.refreshing = refreshing
 
 func api_key() -> String:
-	return ""
+	return client.api_key()
 
-func set_session_key(_value: String) -> void:
-	pass
+func set_session_key(value: String) -> void:
+	client.custom_key=value
 
 func credential_status() -> String:
-	return "No key required."
+	return "API key configured." if not api_key().is_empty() else "Flickr API key required."
+func default_enabled() -> bool:return not api_key().is_empty()
+func disabled_reason() -> String:return "Set FLICKR_API_KEY or enter a session API key."
 
 func can_download(asset: Dictionary) -> bool:
 	if not Importer.free_asset(asset):
@@ -103,7 +107,7 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 			tag_list = t_val
 	asset.tags = tag_list
 
-	asset.price = {"free": true, "credits": 0}
+	asset.price = raw.get("price",{"free":true,"credits":0})
 
 	var author_name := "The British Library"
 	if raw.has("ownername") and not str(raw.ownername).is_empty():
@@ -116,63 +120,28 @@ func normalize(raw: Dictionary, fetched := false) -> Dictionary:
 		"url": "https://creativecommons.org/publicdomain/mark/1.0/",
 		"attribution_required": false
 	}
+	lic_val=flickr_license(raw.get("license",""))
 	asset.license = Credits.license_record(lic_val)
 	asset.licenses = [asset.license]
 	asset.selected_license = asset.license
 
 	asset.attribution_text = "%s - British Library (Flickr Commons / Public Domain)" % display_title
+	if raw.has("license"):
+		var supplied := str(raw.get("attribution_text",""))
+		var names: Array[String]=[]
+		for person in asset.authors:
+			if person is Dictionary and not str(person.get("name","")).is_empty():names.append(str(person.name))
+		asset.attribution_text=supplied if not supplied.is_empty() else "%s — %s (%s)" % [asset.title,", ".join(names),asset.license.name]
 	asset.metadata_source_url = asset.url
-	asset.source_metadata = Cache.public_asset(raw)
+	asset.source_metadata = Cache.public_asset(raw.get("source_metadata",raw))
 	asset.retrieved_utc = Time.get_datetime_string_from_system(true) if fetched else raw.get("retrieved_utc", "")
 	asset.variants = variants(asset)
 	return asset
 
+func file_offers(asset: Dictionary) -> Array:
+	return Files.offers(asset,[["url_o","orig","Original Image"],["url_b","1024","Large Image"],["url_z","640","Medium Image"],["url_m","preview","Image Preview"]])
 func variants(asset: Dictionary) -> Array:
-	var files: Array = asset.get("files", [])
-	if files.is_empty() and asset.get("source_metadata") is Dictionary:
-		files = asset.source_metadata.get("files", [])
-
-	var result := []
-	if not files.is_empty():
-		for f in files:
-			if not (f is Dictionary):
-				continue
-			var f_dict: Dictionary = f
-			var fname := str(f_dict.get("filename", ""))
-			var res := str(f_dict.get("resolution", fname.get_basename()))
-			var vid := Importer.slug(res)
-			result.append({
-				"id": vid,
-				"label": "%s Resolution" % vid.to_upper(),
-				"kind": "files",
-				"confirmed": true,
-				"resolution": vid
-			})
-		return result
-
-	var src: Dictionary = asset.get("source_metadata", {})
-	if src.has("url_o") and not str(src.url_o).is_empty():
-		result.append({
-			"id": "orig",
-			"label": "Original Maximum Resolution",
-			"kind": "files",
-			"confirmed": true
-		})
-	if src.has("url_b") or result.is_empty():
-		result.append({
-			"id": "1024",
-			"label": "1024px Resolution",
-			"kind": "files",
-			"confirmed": true
-		})
-	if src.has("url_z"):
-		result.append({
-			"id": "640",
-			"label": "640px Resolution",
-			"kind": "files",
-			"confirmed": true
-		})
-	return result
+	return Files.variants(file_offers(asset))
 
 func refresh_page(query: String, category: String, cursor: String) -> Dictionary:
 	sync_network()
@@ -209,58 +178,15 @@ func refresh_page(query: String, category: String, cursor: String) -> Dictionary
 	}
 
 func asset_details(asset: Dictionary) -> Dictionary:
-	return asset
+	var cached: Dictionary=client.cache.asset(str(asset.id))
+	if cached.is_empty():return asset
+	return Cache.merge_asset(cached,asset)
 
-func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
-	sync_network()
+func resolve_download(asset: Dictionary,variant: String) -> Dictionary:
+	if not network_allowed:return {"error":"Download requires explicit action."}
 	var detailed := await asset_details(asset)
-	if detailed.has("error"):
-		return detailed
-
-	var target_variant := variant
-	var all_vars := variants(detailed)
-	if target_variant.is_empty() and not all_vars.is_empty():
-		target_variant = str(all_vars[0].id)
-
-	var download_url := ""
-	var src: Dictionary = detailed.get("source_metadata", {})
-
-	if target_variant == "orig" and src.has("url_o"):
-		download_url = str(src.url_o)
-	elif target_variant == "1024" and src.has("url_b"):
-		download_url = str(src.url_b)
-	elif target_variant == "640" and src.has("url_z"):
-		download_url = str(src.url_z)
-	else:
-		for k in ["url_o", "url_b", "url_z", "url_m"]:
-			if src.has(k) and not str(src[k]).is_empty():
-				download_url = str(src[k])
-				break
-
-	if download_url.is_empty():
-		download_url = str(detailed.get("thumbnail", ""))
-
-	if download_url.is_empty():
-		return {"error": "No download URL available for British Library item."}
-
-	var ext := download_url.get_file().get_extension()
-	if ext.is_empty() or ext.contains("?"):
-		ext = "jpg"
-
-	var clean_id: String = str(detailed.get("id", "asset"))
-	var filename := "%s_%s.%s" % [clean_id, target_variant, ext]
-
-	return {
-		"kind": "files",
-		"asset": detailed,
-		"variant": target_variant,
-		"files": [
-			{
-				"filename": filename,
-				"url": download_url
-			}
-		]
-	}
+	if detailed.has("error"):return detailed
+	return Files.plan(detailed,variant,file_offers(detailed))
 
 func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	if not network_allowed:
@@ -268,7 +194,24 @@ func get_bytes(url: String, destination: String, limit: int) -> Dictionary:
 	return await client.get_bytes(url, destination, limit)
 
 func thumbnail(url: String) -> Texture2D:
-	return null
+	sync_network()
+	return await client.thumbnail(url)
 
 func cancel_all() -> void:
 	client.cancel_all()
+
+func check_connection() -> Dictionary:
+	if not network_allowed:return {"error":"Connection checks require explicit action."}
+	sync_network()
+	return await client.search("",1,1)
+
+static func flickr_license(value: Variant) -> Dictionary:
+	var code := str(value)
+	if code=="7":return {"id":"flickr-no-known-restrictions","name":"No known copyright restrictions","url":"https://www.flickr.com/commons/usage/","attribution_required":false}
+	if code=="8":return {"id":"public-domain","name":"United States Government Work","url":"https://www.usa.gov/government-copyright","attribution_required":false}
+	if code=="9":return SourceLicense.record("cc0")
+	if code=="10":return SourceLicense.record("pdm")
+	if code=="0":return {"id":"all-rights-reserved","name":"All Rights Reserved","url":"","attribution_required":false}
+	var cc := {"1":"by-nc-sa","2":"by-nc","3":"by-nc-nd","4":"by","5":"by-sa","6":"by-nd","11":"by","12":"by-sa","13":"by-nd","14":"by-nc","15":"by-nc-sa","16":"by-nc-nd"}
+	if cc.has(code):return SourceLicense.record(cc[code],"2.0" if int(code)<7 else "4.0")
+	return SourceLicense.record(value)

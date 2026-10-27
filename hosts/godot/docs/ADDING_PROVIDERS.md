@@ -270,8 +270,10 @@ Check `enabled`/`network_allowed` before initiating source operations. Search,
 requested details and downloads authorize the corresponding access; constructors,
 local searches and `variants()` do not. Thumbnail fetching must reuse disk images
 and be limited to URLs authorized by user searches/downloads. The browser schedules
-visible thumbnails with bounded concurrency; the adapter still owns its cache and
-transport safety.
+current-page thumbnails with bounded concurrency and reveals cards after an image
+succeeds; the adapter still owns its cache and transport safety. Use the shared
+`core/request_transport.gd` and `core/thumbnail_image.gd` mechanics for threaded
+HTTP, cancellation completion, authorized image redirects, and worker decoding.
 
 Keep authentication on the documented API origin. Do not forward it to file/CDN
 hosts or arbitrary redirects. Use HTTPS, bounded response sizes/timeouts and safe
