@@ -61,7 +61,7 @@ test("polyhaven search, details, and material plan contract", async () => {
 
 test("ambientcg search, details, and archive plan contract", async () => {
   const http = new FakeHttp({
-    json: [{ match: "https://ambientcg.com/api/v3/assets", value: fixtureJsonSync("ambientcg/search_page_0.json") }]
+    json: [{ match: "https://ambientcg.com/api/v2/full_json", value: fixtureJsonSync("ambientcg/search_page_0.json") }]
   });
   const provider = new AmbientCgProvider(context(http));
   const page = await provider.search(params("paving", "material"));
@@ -175,20 +175,31 @@ test("nasa manifests expose image and audio variants", async () => {
   assert.equal(audioPlan.kind, "files");
 });
 
-test("kenney packs resolve archive downloads", async () => {
-  const http = new FakeHttp({
-    json: [{ match: "https://kenney.nl/assets.json", value: fixtureJsonSync("kenney/packs.json") }]
-  });
+test("kenney searches the real listing and resolves the pack page", async () => {
+  const http = new FakeHttp({ text: [
+    { match: "https://kenney.nl/assets/platformer-art-buildings", value: await fixtureText("kenney/pack.html") },
+    { match: "https://kenney.nl/assets", value: await fixtureText("kenney/listing.html") }
+  ] });
   const provider = new KenneyProvider(context(http));
-  const page = await provider.search(params("prototype", "material"));
-  assert.equal(page.items.length, 1);
-  const asset = first(page.items);
+  const page = await provider.search(params("platformer", "image"));
+  assert.equal(page.items.length, 2);
+  assert.equal(page.next_cursor, "2");
+  const asset = await provider.details(first(page.items));
   assert.equal(asset.license.id, "cc0");
-  const plan = await provider.resolveDownload(asset, "prototype_textures");
+  const plan = await provider.resolveDownload(asset, "zip");
   assert.equal(plan.kind, "files");
-  if (plan.kind === "files") {
-    assert.match(plan.files[0]!.url, /^https:\/\/kenney\.nl\//);
-  }
+  if (plan.kind === "files") assert.match(plan.files[0]!.url, /^https:\/\/kenney\.nl\/media\//);
+});
+
+test("ambientcg v2 resolves nested download folders", async () => {
+  const http = new FakeHttp({json:[{match:"https://ambientcg.com/api/v2/full_json",value:fixtureJsonSync("ambientcg/detail_gravel_v2.json")}]});
+  const provider = new AmbientCgProvider(context(http));
+  const page = await provider.search(params("gravel", "material"));
+  const asset = first(page.items);
+  assert.ok(asset.variants.some(v => v.id === "1k_jpg"));
+  const plan = await provider.resolveDownload(asset,"1k_jpg");
+  assert.equal(plan.kind,"files");
+  if(plan.kind === "files") assert.match(plan.files[0]!.url,/Gravel043_1K-JPG/);
 });
 
 test("texel preview does not call the download endpoint and actual plans use zero credits", async () => {

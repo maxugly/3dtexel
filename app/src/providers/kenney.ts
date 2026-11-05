@@ -15,7 +15,7 @@ import { filenameFromUrl, slug } from "../util/fs.js";
 import { sanitizeRecord } from "../util/sanitize.js";
 import { asArray, asRecord, asString, canDownload, matchesText, variant } from "./helpers.js";
 
-const API = "https://kenney.nl/assets.json";
+const API = "https://kenney.nl/assets";
 const PAGE_SIZE = 30;
 
 interface KenneyPack extends Record<string, unknown> {
@@ -128,30 +128,39 @@ export class KenneyProvider implements Provider {
     });
   }
 
-  private async load(): Promise<KenneyPack[]> {
-    const response = await this.ctx.http.json<KenneyPack[] | { items?: KenneyPack[]; data?: KenneyPack[] }>(API);
-    if (Array.isArray(response)) {
-      return response;
-    }
-    return response.items ?? response.data ?? [];
-  }
-
   async search(params: SearchParams): Promise<SearchPage> {
-    const packs = await this.load();
-    const assets = packs
-      .map((pack) => this.normalize(pack, true))
-      .filter((asset) => params.category === "all" || asset.type === params.category)
-      .filter((asset) => matchesText(asset, params.query))
-      .sort((left, right) => left.title.localeCompare(right.title));
-    const offset = Number.parseInt(params.cursor ?? "0", 10) || 0;
-    const page = assets.slice(offset, offset + PAGE_SIZE).slice(0, params.limit);
-    const next = offset + PAGE_SIZE < assets.length ? String(offset + PAGE_SIZE) : null;
-    return { items: page, next_cursor: next };
+    const page = Math.max(1, Number.parseInt(params.cursor ?? "1", 10) || 1);
+    const kind = { model: "3D", image: "2D", audio: "Audio", material: "Textures" }[params.category as "model" | "image" | "audio" | "material"];
+    const url = new URL(API + (kind ? `/category:${kind}` : "") + (page > 1 ? `/page:${page}` : ""));
+    if (params.query.trim()) url.searchParams.set("search", params.query.trim());
+    const html = await this.ctx.http.text(url.toString(), { signal: params.signal, refresh: params.refresh });
+    const cards = html.split(/<div\s+class=['"]asset['"]\s*>/i).slice(1);
+    const items: Asset[] = [];
+    for (const card of cards) {
+      const target = card.match(/href=['"](https:\/\/kenney\.nl\/assets\/[^'"?#]+)['"]/i)?.[1];
+      if (!target) continue;
+      const name = card.match(/<h2[^>]*>[\s\S]*?<a[^>]*>([\s\S]*?)<\/a>/i)?.[1]?.replace(/<[^>]+>/g, "").trim() ?? "";
+      const categories = [...card.matchAll(/category:([^'"?#/]+)/gi)].map(m => decodeURIComponent(m[1]!));
+      const type = kind === "3D" || categories.includes("3D") ? "model" : kind === "Textures" || categories.includes("Textures") ? "material" : kind === "Audio" || categories.includes("Audio") ? "audio" : "image";
+      const thumbnail = card.match(/background-image:url\(["']?([^"')]+)["']?\)/i)?.[1];
+      items.push(this.normalize({ id: target.split("/").pop(), title: name, url: target, thumbnail, type }, true));
+    }
+    return { items: items.slice(0, params.limit), next_cursor: html.includes(`page:${page + 1}`) ? String(page + 1) : null };
   }
 
-  async details(asset: Asset): Promise<Asset> {
-    return asset;
+  async details(asset: Asset, options: { refresh?: boolean; signal?: AbortSignal } = {}): Promise<Asset> {
+    if (!options.refresh && this.isDetailed(asset)) return asset;
+    const url = new URL(asset.url ?? "");
+    if (url.protocol !== "https:" || url.hostname !== "kenney.nl" || !url.pathname.startsWith("/assets/")) throw new Error("Invalid Kenney asset page.");
+    const html = await this.ctx.http.text(url.toString(), { refresh: options.refresh, signal: options.signal });
+    if (!/creativecommons\.org\/publicdomain\/zero\/1\.0/i.test(html)) throw new Error("Kenney page did not confirm CC0 licensing.");
+    const archive = html.match(/href=['"](https:\/\/kenney\.nl\/media\/[^'"?#]+\.zip)['"]/i)?.[1];
+    if (archive) return this.normalize({ id: asset.id, title: asset.title, url: asset.url, thumbnail: asset.thumbnail_url, type: asset.type, download_url: archive }, true);
+    const downloadId = html.match(/data-download-id=['"]([0-9a-f]+)['"]/i)?.[1];
+    if (!downloadId) throw new Error("Kenney did not provide a download on this page.");
+    return { ...asset, variants: [variant("zip", "Full asset pack (ZIP)", "files", { format:"zip" })], download_data: { zip: { kind:"files", download_id:downloadId } } };
   }
+
 
   variants(asset: Asset): AssetVariant[] {
     return asset.variants;
@@ -165,22 +174,22 @@ export class KenneyProvider implements Provider {
     return canDownload(asset);
   }
 
-  async resolveDownload(asset: Asset, variantId: string): Promise<DownloadPlan> {
+  async resolveDownload(asset: Asset, variantId: string, options: { signal?: AbortSignal; preview?: boolean } = {}): Promise<DownloadPlan> {
+    asset = await this.details(asset, { signal: options.signal });
     const entry = asset.download_data?.[variantId] as Record<string, unknown> | undefined;
-    if (!entry || !asset.variants.some((candidate) => candidate.id === variantId)) {
-      throw new Error(`Unknown variant for ${asset.provider_id}:${asset.id}: ${variantId}`);
+    if (!entry || !asset.variants.some((candidate) => candidate.id === variantId)) throw new Error(`Unknown variant for ${asset.provider_id}:${asset.id}: ${variantId}`);
+    if (typeof entry.download_id === "string") {
+      if (options.preview) return { kind:"files", asset, variant:variantId, files:[] } satisfies FilesPlan;
+      const result = await this.ctx.http.json<{url?: string}>(`https://kenney.nl/download-link/${entry.download_id}`, { headers: { Referer: asset.url ?? "https://kenney.nl/assets", Origin: "https://kenney.nl", "User-Agent": "Mozilla/5.0" }, cache:false, refresh:true, signal:options.signal });
+      if (!result.url?.startsWith("https://")) throw new Error("Kenney did not issue a secure download link.");
+      return {kind:"files", asset, variant:variantId, files:[{filename:`${asset.id}.zip`,url:result.url}]} satisfies FilesPlan;
     }
-    return {
-      kind: "files",
-      asset,
-      variant: variantId,
-      files: entry.files as SourceFile[]
-    } satisfies FilesPlan;
+    return { kind: "files", asset, variant: variantId, files: entry.files as SourceFile[] } satisfies FilesPlan;
   }
 
   async checkConnection(options: { signal?: AbortSignal } = {}): Promise<{ ok: boolean; message: string }> {
     try {
-      await this.ctx.http.json<unknown>(API, { signal: options.signal });
+      await this.ctx.http.text(API, { signal: options.signal });
       return { ok: true, message: "Kenney asset index reachable." };
     } catch (error) {
       return { ok: false, message: error instanceof Error ? error.message : String(error) };

@@ -163,3 +163,16 @@ export async function directorySize(directory: string): Promise<number> {
   }
   return total;
 }
+
+/** A provider-relative path, preserving glTF dependencies without traversal. */
+export function ensureAllowedRelativeFile(value: string): string {
+  if (!value || value.includes("\\") || value.startsWith("/") || value.split("/").some((part) => !part || part === "." || part === "..")) {
+    throw new Error(`Unsafe relative filename from provider: ${JSON.stringify(value)}`);
+  }
+  const parts = value.split("/");
+  for (const part of parts.slice(0, -1)) {
+    if (safeFilename(part) !== part || part.startsWith(".")) throw new Error(`Unsafe directory from provider: ${JSON.stringify(value)}`);
+  }
+  ensureAllowedFilename(parts[parts.length - 1]!);
+  return parts.join("/");
+}

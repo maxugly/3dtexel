@@ -379,3 +379,13 @@ terms specified by respective uploaders. The Blend Swap provider adapter is an i
 the MIT license and is not affiliated with or endorsed by Blend Swap or Blender. All imports preserve original artist
 credits, license terms, and canonical URLs.
 
+Sketchfab 3D models and assets are made available via https://sketchfab.com/ by independent creators under
+Creative Commons licenses (CC0, CC-BY, CC-BY-SA) or standard store terms. The Sketchfab provider adapter is an
+independent implementation under the MIT license and is not affiliated with or endorsed by Sketchfab or Epic Games.
+All imports preserve original artist credits, license terms, and canonical URLs.
+
+BlenderKit 3D models, materials, and digital assets are made available via https://www.blendkit.com/ by independent
+creators under BlenderKit Standard Free (Royalty Free) and Creative Commons terms. The BlenderKit provider adapter
+is an independent implementation under the MIT license and is not affiliated with or endorsed by Blender Kit s.r.o.
+All imports preserve original artist credits, license terms, and canonical URLs.
+

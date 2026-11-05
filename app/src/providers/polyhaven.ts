@@ -220,6 +220,34 @@ export class PolyHavenProvider implements Provider {
         : files.png && typeof files.png === "object"
           ? "png"
           : "";
+      // Current Poly Haven API groups files by map role, then resolution and
+      // encoding; older fixture/catalog data may be grouped by encoding first.
+      if (!format) {
+        const byResolution = new Map<string, Partial<Record<MaterialRole, MaterialSource>>>();
+        for (const [mapName, rawResolutions] of Object.entries(files)) {
+          const role = mappedRole(mapName);
+          if (!role || !rawResolutions || typeof rawResolutions !== "object") continue;
+          for (const [resolution, encodings] of Object.entries(rawResolutions as Record<string, unknown>)) {
+            if (!encodings || typeof encodings !== "object") continue;
+            const variantsByEncoding = encodings as Record<string, unknown>;
+            const source = mapSource(variantsByEncoding.jpg ?? variantsByEncoding.png);
+            if (!source) continue;
+            const maps = byResolution.get(resolution) ?? {};
+            // Prefer OpenGL normals for Godot when both conventions are present.
+            if (!(role === "normal" && mapName.toLowerCase().includes("dx") && maps.normal)) maps[role] = source;
+            byResolution.set(resolution, maps);
+          }
+        }
+        for (const [resolution, maps] of byResolution) {
+          if (!maps.albedo) continue;
+          const entry = variant(`jpg_${resolution}`, `${resolution.toUpperCase()} JPG`, "material", {
+            resolution: slug(resolution), format: "jpg", filter_key: `resolution:${slug(resolution)}`, filter_label: resolution.toUpperCase()
+          });
+          variants.push(entry);
+          downloadData[entry.id] = { kind: "material", maps, normal_format: maps.normal?.url.toLowerCase().includes("nor_dx") ? "directx" : "opengl" };
+          for (const [role, source] of Object.entries(maps)) sourceFiles.push(fileFromUrl(source.url, `${role}.jpg`, role, source.size));
+        }
+      }
       if (format) {
         const resolutions = files[format] as Record<string, unknown>;
         for (const resolution of Object.keys(resolutions).sort()) {
@@ -271,6 +299,14 @@ export class PolyHavenProvider implements Provider {
             const source = mapSource(value);
             if (source) {
               entries.push(fileFromUrl(source.url, `${asset.id}.${formatName}`, undefined, source.size));
+              const includes = (value as Record<string, unknown>).include;
+              if (includes && typeof includes === "object") {
+                for (const [filename, dependency] of Object.entries(includes as Record<string, unknown>)) {
+                  const dep = mapSource(dependency);
+                  if (!dep) throw new Error(`Missing dependency URL for ${filename}`);
+                  entries.push({ filename, url: dep.url, size: dep.size });
+                }
+              }
             }
           }
           if (!entries.length) {
@@ -323,7 +359,20 @@ export class PolyHavenProvider implements Provider {
   }
 
   isDetailed(asset: Asset): boolean {
-    return Boolean(asset.variants.length && Object.keys(asset.download_data ?? {}).length);
+    if (!asset.variants.length || !Object.keys(asset.download_data ?? {}).length) return false;
+    // Catalogs created before dependency support need their plans rebuilt.
+    const source = asset.source_metadata?.files as Record<string, any> | undefined;
+    const gltf = source?.gltf as Record<string, any> | undefined;
+    if (gltf) {
+      for (const [resolution, formats] of Object.entries(gltf)) {
+        const include = formats?.gltf?.include as Record<string, unknown> | undefined;
+        if (!include) continue;
+        const plan = asset.download_data?.[`gltf_${resolution}`] as {files?: SourceFile[]} | undefined;
+        const names = new Set((plan?.files ?? []).map(file => file.filename));
+        if (Object.keys(include).some(name => !names.has(name))) return false;
+      }
+    }
+    return true;
   }
 
   canDownload(asset: Asset): boolean {

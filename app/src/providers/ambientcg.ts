@@ -15,7 +15,7 @@ import { filenameFromUrl, slug } from "../util/fs.js";
 import { canDownload, matchesText, pageSlice, variant } from "./helpers.js";
 import { sanitizeRecord } from "../util/sanitize.js";
 
-const API = "https://ambientcg.com/api/v3";
+const API = "https://ambientcg.com/api/v2/full_json";
 const PAGE_SIZE = 30;
 
 interface RawAsset extends Record<string, unknown> {
@@ -32,6 +32,7 @@ interface RawResponse {
   assets?: RawAsset[];
   results?: RawAsset[];
   foundAssets?: number | RawAsset[];
+  numberOfResults?: number;
 }
 
 export class AmbientCgProvider implements Provider {
@@ -67,6 +68,14 @@ export class AmbientCgProvider implements Provider {
     const downloads = raw.downloadData && typeof raw.downloadData === "object"
       ? raw.downloadData
       : {};
+    const folders = raw.downloadFolders && typeof raw.downloadFolders === "object" ? raw.downloadFolders as Record<string, any> : {};
+    for (const folder of Object.values(folders)) {
+      for (const group of Object.values((folder as any)?.downloadFiletypeCategories ?? {}) as any[]) {
+        for (const item of group?.downloads ?? []) {
+          if (item && typeof item.attribute === "string") downloads[item.attribute] = item;
+        }
+      }
+    }
     const files: SourceFile[] = [];
     const variants: AssetVariant[] = [];
     const variantFiles: SourceFile[] = [];
@@ -139,7 +148,8 @@ export class AmbientCgProvider implements Provider {
       return { items: [], next_cursor: null };
     }
     const offset = Number.parseInt(params.cursor ?? "0", 10) || 0;
-    const url = new URL(`${API}/assets`);
+    const url = new URL(API);
+    url.searchParams.set("include", "displayData,previewData,downloadData");
     url.searchParams.set("limit", String(PAGE_SIZE));
     url.searchParams.set("offset", String(offset));
     if (params.query.trim()) {
@@ -165,7 +175,7 @@ export class AmbientCgProvider implements Provider {
       .filter((asset) => matchesText(asset, params.query))
       .slice(0, params.limit);
     const total = Array.isArray(response) || Array.isArray(response.foundAssets)
-      ? undefined
+      ? (Array.isArray(response) ? undefined : response.numberOfResults)
       : response.foundAssets;
     const next = typeof total === "number"
       ? (offset + PAGE_SIZE < total ? String(offset + PAGE_SIZE) : null)
@@ -177,8 +187,9 @@ export class AmbientCgProvider implements Provider {
     if (!options.refresh && this.isDetailed(asset)) {
       return asset;
     }
-    const url = new URL(`${API}/assets`);
-    url.searchParams.set("q", asset.id);
+    const url = new URL(API);
+    url.searchParams.set("id", asset.id);
+    url.searchParams.set("include", "displayData,previewData,downloadData");
     url.searchParams.set("limit", "10");
     const response = await this.ctx.http.json<RawResponse | RawAsset[]>(url.toString(), {
       refresh: options.refresh,

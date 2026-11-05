@@ -221,7 +221,7 @@ export class HttpClient implements HttpTransport {
   }
 
   private async textInternal(url: string, options: TextRequestOptions & { pace_ms?: number } = {}): Promise<string> {
-    const cached = await this.readCache(url);
+    const cached = options.cache === false ? null : await this.readCache(url);
     if (cached && !options.refresh) {
       return cached.body;
     }
@@ -261,7 +261,7 @@ export class HttpClient implements HttpTransport {
       throw new HttpError(`HTTP ${response.status} from ${redactUrl(finalUrl)}`, response.status);
     }
     const text = await this.readText(response, finalUrl);
-    await this.writeCache(url, response, text);
+    if (options.cache !== false) await this.writeCache(url, response, text);
     return text;
   }
 
@@ -274,6 +274,7 @@ export class HttpClient implements HttpTransport {
     if (method === "GET") {
       const body = await this.textInternal(url, {
         headers: options.headers,
+        cache: options.cache,
         refresh: options.refresh,
         timeout_ms: options.timeout_ms,
         signal: options.signal,

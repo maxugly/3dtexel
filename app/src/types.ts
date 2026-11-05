@@ -149,6 +149,7 @@ export interface ProviderContext {
 }
 
 export interface JsonRequestOptions {
+  cache?: boolean;
   method?: "GET" | "POST";
   headers?: Record<string, string>;
   body?: unknown;
@@ -159,6 +160,7 @@ export interface JsonRequestOptions {
 }
 
 export interface TextRequestOptions {
+  cache?: boolean;
   headers?: Record<string, string>;
   refresh?: boolean;
   timeout_ms?: number;

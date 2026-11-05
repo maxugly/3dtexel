@@ -1,4 +1,6 @@
 import path from "node:path";
+import { readFile } from "node:fs/promises";
+import { ensureAllowedRelativeFile } from "./util/fs.js";
 import type { ImportRecord } from "./types.js";
 import { pathExists, readJson, writeJsonAtomic } from "./util/fs.js";
 
@@ -62,6 +64,19 @@ export class Inventory {
     for (const file of record.files) {
       if (!(await pathExists(path.join(record.folder, file.path)))) {
         return undefined;
+      }
+    }
+    // Old imports may list only a glTF while its referenced files were omitted.
+    for (const file of record.files) {
+      if (!file.path.toLowerCase().endsWith(".gltf")) continue;
+      let gltf: { buffers?: Array<{uri?: string}>; images?: Array<{uri?: string}> };
+      try { gltf = JSON.parse(await readFile(path.join(record.folder, file.path), "utf8")); }
+      catch { throw new Error(`Existing glTF import is unreadable: ${record.folder}`); }
+      for (const entry of [...(gltf.buffers ?? []), ...(gltf.images ?? [])]) {
+        if (!entry.uri || entry.uri.startsWith("data:")) continue;
+        const relative = ensureAllowedRelativeFile(entry.uri);
+        const target = path.join(record.folder, path.dirname(file.path), relative);
+        if (!(await pathExists(target))) throw new Error(`Existing glTF import is incomplete (missing ${relative}): ${record.folder}`);
       }
     }
     return record;

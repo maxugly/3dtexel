@@ -80,9 +80,11 @@ test("MCP stdio exposes local tools without provider network access", async () =
     const providers = await request("tools/call", { name: "list_providers", arguments: {} });
     const content = (providers.result?.content ?? []) as Array<{ text: string }>;
     const body = JSON.parse(content[0]!.text) as { providers: Array<{ id: string }> };
-    assert.equal(body.providers.length, 11);
+    assert.equal(body.providers.length, 13);
     assert.ok(body.providers.some((entry) => entry.id === "blendswap"));
+    assert.ok(body.providers.some((entry) => entry.id === "blenderkit"));
     assert.ok(body.providers.some((entry) => entry.id === "cgtrader"));
+    assert.ok(body.providers.some((entry) => entry.id === "sketchfab"));
 
     const imports = await request("tools/call", { name: "list_imports", arguments: {} });
     const importContent = (imports.result?.content ?? []) as Array<{ text: string }>;
@@ -121,9 +123,11 @@ test("CLI providers and stats run offline", async () => {
     assert.equal(providers.code, 0);
     assert.equal(providers.stderr, "");
     const body = JSON.parse(providers.stdout) as { providers: Array<{ id: string }> };
-    assert.equal(body.providers.length, 11);
+    assert.equal(body.providers.length, 13);
     assert.ok(body.providers.some((entry) => entry.id === "blendswap"));
+    assert.ok(body.providers.some((entry) => entry.id === "blenderkit"));
     assert.ok(body.providers.some((entry) => entry.id === "cgtrader"));
+    assert.ok(body.providers.some((entry) => entry.id === "sketchfab"));
 
     const stats = await run(["stats", "--json"]);
     assert.equal(stats.code, 0);

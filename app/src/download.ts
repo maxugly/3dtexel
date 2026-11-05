@@ -23,6 +23,7 @@ import { MATERIAL_ROLES } from "./types.js";
 import {
   directorySize,
   ensureAllowedFilename,
+  ensureAllowedRelativeFile,
   ensureDir,
   extensionOf,
   pathExists,
@@ -336,6 +337,7 @@ export class DownloadService {
       const filename = `${role}.${imageExtension(url)}`;
       const relative = path.posix.join("_source", filename);
       const destination = path.join(folder, relative);
+      await ensureDir(path.dirname(destination));
       const result = await this.http.download(url, destination, {
         max_bytes: this.config.max_download_bytes,
         signal
@@ -414,6 +416,7 @@ export class DownloadService {
     for (const entry of files) {
       const url = assertHttpsUrl(entry.url);
       const destination = path.join(folder, entry.filename);
+      await ensureDir(path.dirname(destination));
       const result = await this.http.download(url, destination, {
         max_bytes: this.config.max_download_bytes,
         signal
@@ -520,7 +523,7 @@ export class DownloadService {
     const valid: SourceFile[] = [];
     for (const entry of files) {
       assertHttpsUrl(entry.url);
-      const filename = ensureAllowedFilename(entry.filename);
+      const filename = ensureAllowedRelativeFile(entry.filename);
       const key = filename.toLowerCase();
       if (names.has(key)) {
         throw new Error(`Duplicate source filename: ${filename}`);
