@@ -21,7 +21,7 @@ func ensure_loaded() -> void:
 
 static func cacheable(path: String) -> bool:
 	var clean := path.to_lower()
-	if "password" in clean or "token" in clean or "session" in clean or "key" in clean:
+	if "/download-link/" in clean or "password" in clean or "token" in clean or "session" in clean or "key" in clean:
 		return false
 	return clean.contains("/assets") or clean.contains("kenney.nl")
 
@@ -109,7 +109,7 @@ static func public_asset(asset: Dictionary) -> Dictionary:
 		"provider_id", "provider", "id", "title", "type", "url", "thumbnail",
 		"description", "tags", "categories", "price", "authors", "license", "licenses",
 		"selected_license", "attribution_text", "metadata_source_url", "source_metadata",
-		"retrieved_utc", "variants", "files", "download_url"
+		"retrieved_utc", "variants", "files", "download_url", "download_id"
 	]
 	var out := {}
 	for key in allowed:

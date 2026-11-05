@@ -59,7 +59,7 @@ func text_request(path_or_url: String) -> Dictionary:
 	return {"raw_text": str(fetched.get("body",""))}
 
 ## Performs the paced request, following safe redirects, and returns the body.
-func _fetch(path_or_url: String) -> Dictionary:
+func _fetch(path_or_url: String, referer := "") -> Dictionary:
 	var full_url := path_or_url if path_or_url.begins_with("https://") else BASE_URL + path_or_url
 	if not full_url.begins_with("https://"):
 		return {"error": "Only HTTPS requests are permitted."}
@@ -85,8 +85,9 @@ func _fetch(path_or_url: String) -> Dictionary:
 
 	var headers := PackedStringArray([
 		"Accept: text/html, application/json",
-		"User-Agent: 3dtexel-AssetLibrary/1.0 (Godot Engine; https://github.com/3dtexel)"
+		"User-Agent: Mozilla/5.0" if not referer.is_empty() else "User-Agent: 3dtexel-AssetLibrary/1.0 (Godot Engine; https://github.com/3dtexel)"
 	])
+	if not referer.is_empty():headers.append_array(PackedStringArray(["Referer: "+referer,"Origin: https://kenney.nl"]))
 	headers.append_array(cache.conditional_headers(full_url))
 
 	var error := request.request(full_url, headers, HTTPClient.METHOD_GET)
@@ -121,6 +122,17 @@ func _fetch(path_or_url: String) -> Dictionary:
 		return {"error": "Site returned HTTP %s." % status_code}
 
 	return {"url":full_url,"headers":response[2],"body":response[3].get_string_from_utf8()}
+
+## Resolve a fresh URL only for an explicitly requested download. Never cache it.
+func fetch_download_link(download_id: String, referer: String) -> Dictionary:
+	if not download_id.is_valid_hex_number(false) or not referer.begins_with("https://kenney.nl/assets/"):
+		return {"error":"Invalid Kenney download request."}
+	var fetched := await _fetch("/download-link/"+download_id,referer)
+	if fetched.has("error"):return fetched
+	var data: Variant=JSON.parse_string(str(fetched.get("body","")))
+	if not data is Dictionary or not str(data.get("url","")).begins_with("https://"):
+		return {"error":"Kenney did not return a secure download link."}
+	return {"url":str(data.url)}
 
 func fetch_packs(query := "",page := 1,category := "") -> Dictionary:
 	var path := "/assets"

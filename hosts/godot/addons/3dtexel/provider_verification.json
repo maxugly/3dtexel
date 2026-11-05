@@ -86,6 +86,17 @@
       "passed": false,
       "reason": "credentials_not_configured"
     },
+    "blenderkit": {
+      "name": "BlenderKit",
+      "checked_date": "2026-10-27",
+      "query": "assassin",
+      "search": false,
+      "ui_image": false,
+      "download": false,
+      "valid_asset": false,
+      "passed": false,
+      "reason": "unverified"
+    },
     "bioart": {
       "name": "NIAID BioArt",
       "checked_date": "2026-10-25",

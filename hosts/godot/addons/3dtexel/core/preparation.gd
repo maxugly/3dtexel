@@ -9,8 +9,33 @@ var registry: Node
 var output_directory := "res://AssetLibrary"
 var send_to_terrain := false
 var terrain_inbox := "res://assets/terrain/inbox"
+
+## Downloads may target res:// (Godot imports them and wraps props) or anywhere
+## outside it — an absolute path or user:// — where they stay a plain library
+## that Godot never scans. See AGENTS.md "Asset library boundary".
+static func normalize_output(path: String) -> String:
+	var trimmed := path.strip_edges()
+	if ".." in trimmed: return trimmed
+	if trimmed == "~" or trimmed.begins_with("~/"):
+		var home := OS.get_environment("HOME")
+		if home.is_empty(): home = OS.get_environment("USERPROFILE")
+		if not home.is_empty(): trimmed = home.path_join(trimmed.substr(2)) if trimmed.length() > 1 else home
+	# Native paths inside the project are still imported by Godot. Convert them
+	# to res:// so the download follows the same import and prop workflow.
+	if trimmed.is_absolute_path() and not trimmed.begins_with("res://") and not trimmed.begins_with("user://"):
+		return ProjectSettings.localize_path(trimmed)
+	return trimmed
+
+static func is_valid_output(path: String) -> bool:
+	if path.is_empty() or ".." in path:return false
+	return path.begins_with("res://") or path.begins_with("user://") or path.is_absolute_path()
+
+static func is_project_path(path: String) -> bool:
+	return normalize_output(path).begins_with("res://")
+
 func prepare(asset: Dictionary, requested: String) -> Dictionary:
-	if not output_directory.begins_with("res://") or ".." in output_directory:return {"error":"Output must be inside res://."}
+	output_directory = normalize_output(output_directory)
+	if not is_valid_output(output_directory):return {"error":"Choose a library folder (absolute path, user:// or res://) without '..'."}
 	if requested.is_empty() or requested!=Importer.slug(requested):return {"error":"Variant ID must be a safe lowercase slug."}
 	if int(Policy.evaluate(asset).status)==Policy.Status.BLOCKED:return {"error":"Asset is blocked by project license/entitlement policy."}
 	var provider: Node=registry.provider_for(asset)
@@ -47,7 +72,9 @@ func prepare(asset: Dictionary, requested: String) -> Dictionary:
 		var handler := Files.new();add_child(handler)
 		var prepared: Dictionary=await handler.prepare(provider,folder,asset,plan)
 		handler.queue_free()
-		if not prepared.has("error"):remember(asset,actual,folder,requested)
+		if not prepared.has("error"):
+			remember(asset,actual,folder,requested)
+			prepared.folder=folder;prepared.version=actual
 		return prepared
 	if plan.get("kind","")!="material":return {"error":"Unsupported preparation kind; expected material or files."}
 	var source := folder.path_join("_source")
@@ -115,7 +142,7 @@ func reuse_local(folder: String, asset: Dictionary, requested: String) -> Dictio
 		var result := Importer.terrain_handoff(folder,provenance.get("maps",{}),credit_source,str(provenance.get("normal_format","opengl")),terrain_inbox)
 		if result.has("error"):return result
 	remember(asset,str(provenance.get("returned_resolution",folder.get_file())),folder,requested)
-	return {"note":requested.to_upper()+" reused locally · "+str(provenance.get("returned_resolution",folder.get_file())).to_upper()}
+	return {"note":requested.to_upper()+" reused locally · "+str(provenance.get("returned_resolution",folder.get_file())).to_upper(), "folder":folder, "version":str(provenance.get("returned_resolution",folder.get_file()))}
 
 func remember(asset: Dictionary,actual: String,folder: String,requested: String) -> void:
 	if registry.get("inventory")!=null:registry.inventory.record_import(asset,actual,folder,requested)

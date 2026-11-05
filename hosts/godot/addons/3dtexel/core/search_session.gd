@@ -15,11 +15,12 @@ var ranks := {}
 var identity_seq := {}
 var requests := 0
 var outcomes := {}
+var cancelled := false
 var _cached_items: Array = []
 var _cached_count := -1
 var _cached_catalog_rev := -1
 func begin(text: String, kind: String) -> void:
-	query=text;category=kind;states.clear();identities.clear();requests=0;outcomes.clear()
+	query=text;category=kind;cancelled=false;states.clear();identities.clear();requests=0;outcomes.clear()
 	order.clear();order_index=0;claimed.clear();in_flight.clear();ranks.clear();identity_seq.clear()
 	_cached_items.clear();_cached_count=-1;_cached_catalog_rev=-1
 	var ids: Array=registry.active_ids()
@@ -52,6 +53,7 @@ func fetch_id(id: String, timeout_seconds := 0.0) -> Dictionary:
 		return {"id":id,"items":[],"error":"Search was not started.","done":true}
 	var response: Dictionary=await _fetch_page(provider,str(state.cursor),timeout_seconds)
 	in_flight.erase(id);requests+=1
+	if cancelled:return {"id":id,"items":[],"error":"Search cancelled.","done":true}
 	var elapsed := Time.get_ticks_msec()-started
 	if response.has("error"):
 		state.done=true
@@ -88,8 +90,9 @@ func _fetch_page(provider: Node,cursor: String,timeout_seconds: float) -> Dictio
 	var holder := {"finished":false,"response":{}}
 	_refresh_async(provider,cursor,holder)
 	var deadline := Time.get_ticks_msec()+roundi(timeout_seconds*1000)
-	while not holder.finished and Time.get_ticks_msec() < deadline:
+	while not holder.finished and not cancelled and Time.get_ticks_msec() < deadline:
 		await registry.get_tree().process_frame
+	if cancelled:return {"error":"Search cancelled."}
 	if holder.finished:return holder.response
 	return {"error":"Timed out after %s s." % int(timeout_seconds),"timeout":true}
 func _refresh_async(provider: Node,cursor: String,holder: Dictionary) -> void:

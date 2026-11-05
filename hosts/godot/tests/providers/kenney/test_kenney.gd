@@ -8,8 +8,13 @@ const Policy = preload("res://addons/3dtexel/core/license_policy.gd")
 class FixtureClient:
 	extends "res://addons/3dtexel/providers/kenney/client.gd"
 	var requested: Array[String] = []
+	var modern := false
+	func fetch_download_link(download_id: String, _referer: String) -> Dictionary:
+		return {"url":"https://example.invalid/temporary.zip?signature=not-persisted"} if download_id=="abcdef" else {"error":"bad id"}
 	func text_request(path_or_url: String) -> Dictionary:
 		requested.append(path_or_url)
+		if modern and path_or_url.contains("platformer-art-buildings"):
+			return {"raw_text":"<a href='https://creativecommons.org/publicdomain/zero/1.0/'>CC0</a><a data-download-id='abcdef'>Download</a>"}
 		if path_or_url.contains("page:2"):
 			return {"raw_text": "<html><body>no more</body></html>"}
 		if path_or_url.contains("platformer-art-buildings"):
@@ -61,6 +66,13 @@ func run() -> void:
 	check(not plan.has("error"), "Download plan resolves: " + str(plan.get("error", "")))
 	check(plan.get("files", []).size() == 1, "Plan carries one archive")
 	check(str(plan.get("files", [{}])[0].get("url", "")).ends_with(".zip"), "Archive points at a zip")
+
+	fixture.modern=true
+	var modern_plan: Dictionary=await provider.resolve_download(first,"zip")
+	check(not modern_plan.has("error"),"Modern Kenney signed-link plan resolves")
+	check(str(modern_plan.get("files",[{}])[0].get("filename","")).ends_with(".zip"),"Modern plan uses a stable filename")
+	check(not JSON.stringify(modern_plan.get("asset",{})).contains("signature="),"Signed URL is not stored in asset metadata")
+	check(not fixture.cache.cacheable("https://kenney.nl/download-link/abcdef"),"Signed-link endpoint is never cached")
 
 	provider.queue_free()
 	await process_frame

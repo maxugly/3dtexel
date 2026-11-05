@@ -12,9 +12,20 @@ func prepare(provider: Node,folder: String,asset: Dictionary,plan: Dictionary) -
 		if not str(entry.get("url","")).begins_with("https://"):return {"error":"Only HTTPS source downloads are supported."}
 		names[name.to_lower()]=true
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(folder))
+	# Blender sources must never be scanned by Godot's .blend importer. They are
+	# downloaded into an ignored _source folder and, by default, removed after
+	# the .glb export below.
+	var source := folder.path_join("_source")
+	if files.any(func(entry): return str(entry.filename).get_extension().to_lower() == "blend"):
+		if DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(source)) != OK:return {"error":"Cannot create ignored Blender source folder."}
+		var ignore := FileAccess.open(source.path_join(".gdignore"),FileAccess.WRITE)
+		if not ignore:return {"error":"Cannot protect Blender sources from Godot import."}
+		ignore.close()
+	var path_for := func(filename: String) -> String:
+		return source.path_join(filename) if filename.get_extension().to_lower()=="blend" else folder.path_join(filename)
 	var hashes := {};var record := Credits.asset_record(asset)
 	for entry: Dictionary in files:
-		var path := folder.path_join(str(entry.filename))
+		var path: String = path_for.call(str(entry.filename))
 		if FileAccess.file_exists(path):return {"error":"Partial import exists; preserved for review instead of overwritten."}
 		var result: Dictionary=await provider.get_bytes(str(entry.url),ProjectSettings.globalize_path(path+".pending"),256*1024*1024)
 		if result.has("error"):return result
@@ -22,7 +33,7 @@ func prepare(provider: Node,folder: String,asset: Dictionary,plan: Dictionary) -
 		hashes[str(entry.filename)]=FileAccess.get_sha256(path)
 		if Credits.write_json(path+".credits.json",record)!=OK:return {"error":"Cannot preserve file credits."}
 	record.sha256=hashes;record.returned_resolution=plan.get("variant","original");record.imported_utc=Time.get_datetime_string_from_system(true)
-	
+
 	# Automated Model & Audio conversions
 	var convert_models := bool(ProjectSettings.get_setting("asset_browser/preparation/convert_models_to_glb", true))
 	var delete_source_models := bool(ProjectSettings.get_setting("asset_browser/preparation/delete_source_models", true))
@@ -45,7 +56,7 @@ func prepare(provider: Node,folder: String,asset: Dictionary,plan: Dictionary) -
 	for entry: Dictionary in files:
 		var fname := str(entry.filename)
 		var ext := fname.get_extension().to_lower()
-		var source_path := folder.path_join(fname)
+		var source_path: String = path_for.call(fname)
 		var global_source := ProjectSettings.globalize_path(source_path)
 
 		if convert_models and ext in ["blend", "obj", "fbx"] and not blender_bin.is_empty():
@@ -101,8 +112,9 @@ func prepare(provider: Node,folder: String,asset: Dictionary,plan: Dictionary) -
 					hashes.erase(fname)
 
 	for entry: Dictionary in files:
-		if hashes.has(str(entry.filename)):
-			Credits.write_json(folder.path_join(str(entry.filename))+".credits.json",record)
+		var fname := str(entry.filename)
+		if hashes.has(fname):
+			Credits.write_json(str(path_for.call(fname))+".credits.json",record)
 	for name in ["asset.credits.json","provenance.json","import_receipt.json"]:
 		if Credits.write_json(folder.path_join(name),record)!=OK:return {"error":"Cannot save import metadata."}
 	return {"note":"Source files imported with credits. Archives are preserved intact; extract through a reviewed importer."}

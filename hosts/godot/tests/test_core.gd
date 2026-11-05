@@ -2,11 +2,17 @@ extends SceneTree
 const Importer = preload("res://addons/3dtexel/importer.gd")
 const Client = preload("res://addons/3dtexel/client.gd")
 const Browser = preload("res://addons/3dtexel/browser.gd")
+const Preparation = preload("res://addons/3dtexel/core/preparation.gd")
 var failures := 0
 func check(condition: bool, message: String) -> void:
 	if not condition: failures+=1;push_error(message)
 func _initialize():call_deferred("run")
 func run():
+	var project_folder := ProjectSettings.globalize_path("res://assets/example")
+	check(Preparation.normalize_output(project_folder) == "res://assets/example", "Native project folder is localized")
+	check(Preparation.is_project_path(project_folder), "Native project folder is treated as imported")
+	check(not Preparation.is_project_path(OS.get_user_data_dir()), "User data stays outside project")
+	check(not Preparation.is_valid_output("res://../outside"), "Reject parent traversal")
 	check(Importer.slug("Green Grass / ../ Sample") == "green_grass_sample","Safe slug")
 	check(Importer.extension("https://cdn.example/map.tga?signature=hidden")=="tga","Signed extension")
 	check(Importer.file_url({"url":"https://example.test"})=="https://example.test","Structured map URL")

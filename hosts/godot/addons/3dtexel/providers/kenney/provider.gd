@@ -196,6 +196,7 @@ func parse_detail(html: String) -> Dictionary:
 		files.append({"filename": archive.get_file(), "url": archive})
 	return {
 		"download_url": archive,
+		"download_id": Scan.match(html, "data-download-id=['\"]([0-9a-fA-F]+)['\"]"),
 		"files": files,
 		"license_cc0": not license_url.is_empty(),
 		"preview": preview
@@ -242,12 +243,17 @@ func resolve_download(asset: Dictionary, variant: String) -> Dictionary:
 		dl_url = str(detailed.get("download_url", ""))
 
 	if dl_url.is_empty():
-		return {"error": "Kenney does not publish a direct archive for this pack."}
+		var metadata: Dictionary=detailed.get("source_metadata",{})
+		var download_id := str(metadata.get("download_id",""))
+		if download_id.is_empty():return {"error": "Kenney does not publish a direct archive for this pack."}
+		var resolved: Dictionary=await client.fetch_download_link(download_id,str(detailed.get("url","")))
+		if resolved.has("error"):return resolved
+		dl_url=str(resolved.get("url",""))
 
 	if not dl_url.begins_with("https://"):
-		return {"error": "Insecure download URL: %s" % dl_url}
+		return {"error": "Kenney returned an insecure download URL."}
 
-	var filename := dl_url.get_file()
+	var filename := Importer.slug(str(detailed.get("id","kenney_pack")))+".zip"
 
 	return {
 		"kind": "files",

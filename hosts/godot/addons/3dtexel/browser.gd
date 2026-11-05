@@ -7,6 +7,30 @@ const Selection = preload("res://addons/3dtexel/core/download_selection.gd")
 const Policy = preload("res://addons/3dtexel/core/license_policy.gd")
 const Credits = preload("res://addons/3dtexel/credits.gd")
 const Pagination = preload("res://addons/3dtexel/pagination.gd")
+const Defaults = preload("res://addons/3dtexel/core/provider_defaults.gd")
+const ModelProps = preload("res://addons/3dtexel/core/model_props.gd")
+signal prop_choice(path: String)
+const CONFIG_PATH := "user://asset_browser.cfg"
+const LEGACY_CONFIG_PATH := "user://3dtexel_browser.cfg"
+
+## Default library folder: ~/snc/game, outside res:// so Godot never scans it.
+static func default_library_root() -> String:
+	var home := OS.get_environment("HOME")
+	if home.is_empty(): home = OS.get_environment("USERPROFILE")
+	if not home.is_empty(): return home.path_join("snc/game")
+	return "res://AssetLibrary"
+
+static func read_pref(key: String, fallback: String) -> String:
+	var prefs := ConfigFile.new()
+	if prefs.load(CONFIG_PATH) != OK and prefs.load(LEGACY_CONFIG_PATH) != OK: return fallback
+	return str(prefs.get_value("browser", key, fallback))
+
+static func write_pref(key: String, value: String) -> void:
+	var prefs := ConfigFile.new()
+	prefs.load(CONFIG_PATH)
+	prefs.set_value("browser", key, value)
+	prefs.save(CONFIG_PATH)
+
 var editor_plugin: EditorPlugin
 var content: VBoxContainer
 var client: Node
@@ -25,7 +49,14 @@ var check_all: CheckBox
 var download: Button
 var stop_button: Button
 var delay: SpinBox
+var settings_scroll: ScrollContainer
 var settings_panel: VBoxContainer
+var settings_button: Button
+var filters: HFlowContainer
+var actions: HFlowContainer
+var pages: HBoxContainer
+var provider_rows: Array[HFlowContainer] = []
+var provider_count_label: Label
 var output: LineEdit
 var handoff: CheckBox
 var inbox: LineEdit
@@ -67,7 +98,7 @@ var audit_lic_custom: CheckBox
 var audit_status_label: Label
 var last_audit_data := {}
 var seeded := false
-const SEARCH_WORKERS := 32
+const SEARCH_WORKERS := 8
 ## Per-site deadline. A slow provider now loses only its own slot instead of
 ## cutting the whole sweep short.
 const PROVIDER_TIMEOUT := 12.0
@@ -96,15 +127,23 @@ func _ready() -> void:
 	preparation.progress.connect(func(message):status.text=message)
 	label("Asset Library",content).add_theme_font_size_override("font_size",24)
 	var toolbar := HFlowContainer.new();content.add_child(toolbar)
+	var toggle_settings := func(forced_state: Variant = null) -> void:
+		var show: bool = not settings_scroll.visible if forced_state == null else bool(forced_state)
+		settings_scroll.visible = show
+		results_scroll.visible = not show
+		filters.visible = not show
+		actions.visible = not show
+		pages.visible = not show
+		settings_button.text = "Back to Assets" if show else "Settings"
 	search=LineEdit.new();search.placeholder_text="Search assets…";search.custom_minimum_size.x=200;search.size_flags_horizontal=Control.SIZE_EXPAND_FILL;toolbar.add_child(search)
-	search.text_submitted.connect(func(_text):start_search())
+	search.text_submitted.connect(func(_text): toggle_settings.call(false); start_search())
 	sites=OptionButton.new();toolbar.add_child(sites);rebuild_sites();sites.item_selected.connect(_on_site_selected)
 	kind=OptionButton.new()
 	for name in ["All assets","Materials","Models","Audio","2D images"]:kind.add_item(name)
 	toolbar.add_child(kind);kind.item_selected.connect(func(_index):start_search())
-	search_button=button("Search",start_search,toolbar)
-	button("Settings",func():settings_panel.visible=not settings_panel.visible,toolbar)
-	var filters := HFlowContainer.new();content.add_child(filters)
+	search_button=button("Search",func(): toggle_settings.call(false); start_search(),toolbar)
+	settings_button=button("Settings",func(): toggle_settings.call(),toolbar)
+	filters = HFlowContainer.new();content.add_child(filters)
 	price_filter=OptionButton.new();price_filter.add_item("Free only");price_filter.add_item("All prices");filters.add_child(price_filter)
 	license_filter=OptionButton.new();license_filter.add_item("Any license");filters.add_child(license_filter)
 	policy_filter=OptionButton.new();policy_filter.add_item("All license statuses",-1)
@@ -113,16 +152,21 @@ func _ready() -> void:
 	version_filter=OptionButton.new();version_filter.add_item("All versions");version_filter.set_item_metadata(0,"");filters.add_child(version_filter)
 	for control in [price_filter,license_filter,policy_filter]:control.item_selected.connect(func(_index):page=1;run_search(true,true,false,not searching))
 	version_filter.item_selected.connect(func(index):selection.filter_key=str(version_filter.get_item_metadata(index));selection.checked.clear();page=1;run_search(true,true,false,not searching))
-	var actions := HFlowContainer.new();content.add_child(actions)
+	actions = HFlowContainer.new();content.add_child(actions)
 	check_all=CheckBox.new();check_all.text="Check all";check_all.tooltip_text="Select or unselect the cards on this page.";actions.add_child(check_all);check_all.toggled.connect(toggle_all)
 	download=button("Download selected",download_selected,actions);download.disabled=true
 	label("Pause between downloads:",actions)
 	delay=SpinBox.new();delay.min_value=0;delay.max_value=300;delay.step=1;delay.value=5;delay.suffix="s";actions.add_child(delay)
-	stop_button=button("Stop",func():stopping=true;client.cancel_all();status.text="Stopping…",actions);stop_button.disabled=true
-	settings_panel=VBoxContainer.new();settings_panel.visible=false;content.add_child(settings_panel);build_settings()
+	stop_button=button("Stop",func():
+		stopping=true
+		if searching:session.cancelled=true
+		else:client.cancel_all()
+		status.text="Stopping…",actions);stop_button.disabled=true
+	settings_scroll=ScrollContainer.new();settings_scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;settings_scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;settings_scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED;settings_scroll.visible=false;content.add_child(settings_scroll)
+	settings_panel=VBoxContainer.new();settings_panel.size_flags_horizontal=Control.SIZE_EXPAND_FILL;settings_scroll.add_child(settings_panel);build_settings()
 	results_scroll=ScrollContainer.new();results_scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;results_scroll.size_flags_horizontal=Control.SIZE_EXPAND_FILL;results_scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED;content.add_child(results_scroll)
 	grid=GridContainer.new();grid.size_flags_horizontal=Control.SIZE_EXPAND_FILL;grid.add_theme_constant_override("h_separation",12);grid.add_theme_constant_override("v_separation",12);results_scroll.add_child(grid)
-	var pages := HBoxContainer.new();content.add_child(pages)
+	pages = HBoxContainer.new();content.add_child(pages)
 	previous=button("< Previous",func():
 		if busy and not searching:return
 		page=maxi(1,page-1);run_search(true,true,false,not searching),pages)
@@ -154,11 +198,15 @@ func build_settings() -> void:
 			var overlay := card.find_child("Domain",true,false)
 			if overlay:overlay.visible=value)
 	var row := HFlowContainer.new();settings_panel.add_child(row)
-	label("Save to:",row);output=LineEdit.new();output.text=str(ProjectSettings.get_setting("asset_browser/output_directory",ProjectSettings.get_setting("3dtexel/output_directory","res://AssetLibrary")));output.custom_minimum_size.x=230;row.add_child(output)
-	button("Open folder",func():OS.shell_open(ProjectSettings.globalize_path(output.text)),row)
+	label("Save to:",row);output=LineEdit.new();output.text=read_pref("output_directory",str(ProjectSettings.get_setting("asset_browser/output_directory",ProjectSettings.get_setting("3dtexel/output_directory",default_library_root()))));output.custom_minimum_size.x=230;output.tooltip_text="Library folder. An absolute path (for example ~/snc/game) keeps downloads outside res://, so Godot never imports or scans them. A res:// folder imports them and offers prop creation.";row.add_child(output)
+	output.text_submitted.connect(func(_value):write_pref("output_directory",Preparation.normalize_output(output.text)))
+	output.focus_exited.connect(func():write_pref("output_directory",Preparation.normalize_output(output.text)))
+	button("Open folder",func():OS.shell_open(ProjectSettings.globalize_path(Preparation.normalize_output(output.text))),row)
 	var terrain := HFlowContainer.new();settings_panel.add_child(terrain)
 	handoff=CheckBox.new();handoff.text="Also send materials to Terrain imports";terrain.add_child(handoff)
-	inbox=LineEdit.new();inbox.text=str(ProjectSettings.get_setting("asset_browser/terrain_inbox",ProjectSettings.get_setting("3dtexel/terrain_inbox","res://assets/terrain/inbox")));inbox.custom_minimum_size.x=230;terrain.add_child(inbox)
+	inbox=LineEdit.new();inbox.text=read_pref("terrain_inbox",str(ProjectSettings.get_setting("asset_browser/terrain_inbox",ProjectSettings.get_setting("3dtexel/terrain_inbox","res://assets/terrain/inbox"))));inbox.custom_minimum_size.x=230;terrain.add_child(inbox)
+	inbox.text_submitted.connect(func(_value):write_pref("terrain_inbox",inbox.text))
+	inbox.focus_exited.connect(func():write_pref("terrain_inbox",inbox.text))
 	var credits := HFlowContainer.new();settings_panel.add_child(credits)
 	var auto := CheckBox.new();auto.text="Credits on scene save";auto.button_pressed=bool(ProjectSettings.get_setting("asset_browser/automatic_scene_credits",ProjectSettings.get_setting("3dtexel/automatic_scene_credits",true)));credits.add_child(auto)
 	auto.toggled.connect(func(value):ProjectSettings.set_setting("asset_browser/automatic_scene_credits",value);ProjectSettings.save())
@@ -185,16 +233,61 @@ func build_settings() -> void:
 	cb_a_opus.toggled.connect(func(v): ProjectSettings.set_setting("asset_browser/preparation/convert_audio_to_opus", v); ProjectSettings.save())
 	var cb_a_del := CheckBox.new(); cb_a_del.text = "Delete source audio after Opus transcode"; cb_a_del.button_pressed = bool(ProjectSettings.get_setting("asset_browser/preparation/delete_source_audio", true)); a_row.add_child(cb_a_del)
 	cb_a_del.toggled.connect(func(v): ProjectSettings.set_setting("asset_browser/preparation/delete_source_audio", v); ProjectSettings.save())
+	# Provider Sites Header & Controls
+	var prov_header := HFlowContainer.new(); settings_panel.add_child(prov_header)
+	provider_count_label = label("Provider Sites:", prov_header)
+	provider_count_label.add_theme_font_size_override("font_size", 14)
+
+	button("Enable all", func():
+		for id in client.providers:
+			client.set_enabled(str(id), true)
+		rebuild_sites()
+		update_settings_provider_ui()
+	, prov_header)
+
+	button("Disable all", func():
+		for id in client.providers:
+			client.set_enabled(str(id), false)
+		rebuild_sites()
+		update_settings_provider_ui()
+	, prov_header)
+
+	button("Reset verified", func():
+		for id in client.providers:
+			var provider: Node = client.providers[id]
+			var fallback: bool = Defaults.verified(id) if Defaults.bundled(provider, id) else true
+			client.set_enabled(str(id), fallback)
+		rebuild_sites()
+		update_settings_provider_ui()
+	, prov_header)
+
+	var prov_filter := LineEdit.new()
+	prov_filter.placeholder_text = "Filter sites…"
+	prov_filter.custom_minimum_size.x = 180
+	prov_header.add_child(prov_filter)
+	prov_filter.text_changed.connect(func(query: String):
+		var q := query.strip_edges().to_lower()
+		for p_row in provider_rows:
+			var site_name: String = str(p_row.get_meta("provider_name", "")).to_lower()
+			var site_id: String = str(p_row.get_meta("provider_id", "")).to_lower()
+			p_row.visible = q.is_empty() or site_name.contains(q) or site_id.contains(q)
+	)
+
 	account=label("API keys can come from the environment or be entered for this editor session.",settings_panel);account.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	provider_rows.clear()
 	for id in client.providers:
 		var provider: Node=client.providers[id];var info: Dictionary=provider.descriptor()
 		var site := HFlowContainer.new();settings_panel.add_child(site)
-		var enabled := CheckBox.new();enabled.text=str(info.name);enabled.tooltip_text=client.provider_status(str(info.id));enabled.button_pressed=provider.enabled;site.add_child(enabled)
+		site.set_meta("provider_id", str(info.id))
+		site.set_meta("provider_name", str(info.name))
+		provider_rows.append(site)
+		var enabled := CheckBox.new();enabled.name="EnabledCheck";enabled.text=str(info.name);enabled.tooltip_text=client.provider_status(str(info.id));enabled.button_pressed=provider.enabled;site.add_child(enabled)
 		enabled.toggled.connect(func(value):
 			if busy:enabled.set_pressed_no_signal(provider.enabled);return
-			client.set_enabled(str(info.id),value);rebuild_sites();start_search())
+			client.set_enabled(str(info.id),value);rebuild_sites();update_settings_provider_ui())
 		button("Website",func():OS.shell_open(str(info.website)),site)
 		var state := label(provider.credential_status(),site)
+		state.name="CredentialStatus"
 		if not info.get("key_env",[]).is_empty():
 			var key := LineEdit.new();key.secret=true;key.placeholder_text="Session API key";key.custom_minimum_size.x=180;site.add_child(key)
 			var apply := func():
@@ -202,24 +295,54 @@ func build_settings() -> void:
 				# Credentials alone do not opt an unchecked site back into searches.
 				run_search()
 			key.text_submitted.connect(func(_value):apply.call());button("Use key",apply,site)
+	update_settings_provider_ui()
+func update_settings_provider_ui() -> void:
+	if not is_instance_valid(provider_count_label): return
+	var enabled_count := 0
+	var total_count: int = client.providers.size()
+	for id in client.providers:
+		var p: Node = client.providers[id]
+		if p.enabled:
+			enabled_count += 1
+	provider_count_label.text = "Provider Sites (%d/%d enabled):" % [enabled_count, total_count]
+	for row in provider_rows:
+		var pid := str(row.get_meta("provider_id", ""))
+		var p: Node = client.providers.get(pid)
+		if p:
+			var cb := row.get_node_or_null("EnabledCheck") as CheckBox
+			if cb and cb.button_pressed != p.enabled:
+				cb.set_pressed_no_signal(p.enabled)
+			var st := row.get_node_or_null("CredentialStatus") as Label
+			if st:
+				st.text = p.credential_status()
 func update_layout() -> void:
 	if not is_instance_valid(results_scroll):return
 	var available := results_scroll.size.x-results_scroll.get_v_scroll_bar().size.x
 	grid.columns=clampi(floori((available+12.0)/222.0),1,8)
 func rebuild_sites() -> void:
-	var scope: String=client.scope
-	sites.clear();sites.add_item("All enabled sites");sites.set_item_metadata(0,"")
+	var scope: String = client.scope
+	var enabled_count := 0
+	var total_count: int = client.providers.size()
+	for p in client.providers.values():
+		if p.enabled:
+			enabled_count += 1
+	sites.clear()
+	var all_label := "All enabled sites (%d/%d on)" % [enabled_count, total_count]
+	sites.add_item(all_label)
+	sites.set_item_metadata(0, "")
 	for id in client.providers:
-		var provider: Node=client.providers[id]
-		var label := str(provider.descriptor().name)
-		var disabled: bool = not provider.enabled
-		if disabled:label+=" (off)"
-		sites.add_item(label);sites.set_item_metadata(sites.item_count-1,id)
-		if disabled:
-			var reason: String=client.provider_status(str(id))
-			sites.set_item_tooltip(sites.item_count-1,reason if not reason.is_empty() else "Disabled.")
-		elif scope==id:sites.select(sites.item_count-1)
-	client.scope=str(sites.get_item_metadata(sites.selected))
+		var provider: Node = client.providers[id]
+		var name_str := str(provider.descriptor().name)
+		var is_on: bool = provider.enabled
+		var item_label := ("● " if is_on else "○ ") + name_str + ("" if is_on else " (off)")
+		sites.add_item(item_label)
+		sites.set_item_metadata(sites.item_count - 1, id)
+		if not is_on:
+			var reason: String = client.provider_status(str(id))
+			sites.set_item_tooltip(sites.item_count - 1, reason if not reason.is_empty() else "Disabled.")
+		elif scope == id:
+			sites.select(sites.item_count - 1)
+	client.scope = str(sites.get_item_metadata(sites.selected))
 ## Selecting an unchecked site does not silently opt it back into searches.
 ## Enable it explicitly in Settings when returning to investigate or repair it.
 func _on_site_selected(index: int) -> void:
@@ -256,32 +379,38 @@ func _on_search_batch(result: Dictionary) -> void:
 func start_search() -> void:
 	if busy and not searching:return
 	if busy:
-		if restarting:return
-		restarting=true
-		stopping=true;client.cancel_all();search_generation+=1
-		while busy:await get_tree().process_frame
-		restarting=false
+		if not seeded:
+			if restarting:return
+			restarting=true;stopping=true
+			while busy:await get_tree().process_frame
+			restarting=false
+		else:
+			# Retire a session without joining HTTP or image workers on the UI thread.
+			session.cancelled=true;search_generation+=1
+			busy=false;searching=false
 	await refresh_search()
 func refresh_search() -> void:
 	if busy:return
 	busy=true;searching=true;stopping=false;page=1;selection.checked.clear()
+	search_generation+=1
+	var generation := search_generation
 	status.text="Preparing search…";update_actions()
 	# Paint feedback before any disk work, and scan import receipts off the UI thread.
 	await get_tree().process_frame
 	await ensure_seeded()
+	if generation!=search_generation:return
 	if stopping:
 		busy=false;searching=false;update_actions();return
 	thumbnail_failed.clear()
 	var next_session := Session.new();next_session.registry=client
 	next_session.begin(search.text,["all","material","model","audio","image"][kind.selected]);session=next_session
-	search_generation+=1
-	var generation := search_generation
 	search_completed=0;search_total=session.order.size();search_errors=0;search_status_ms=0;search_render_ms=0
 	client.network_allowed=true;client.refreshing=true;update_actions();status.text="Searching…";status.tooltip_text=""
 	run_search(true,true,false,false)
 	for _worker in mini(SEARCH_WORKERS,search_total):_search_worker.call_deferred(generation,session)
-	while search_completed<search_total and not stopping:
+	while search_completed<search_total and not stopping and generation==search_generation:
 		await get_tree().process_frame
+	if generation!=search_generation:return
 	search_generation+=1
 	client.network_allowed=false;client.refreshing=false;searching=false;busy=false
 	session.flush()
@@ -503,10 +632,15 @@ func _create_empty_tile() -> PanelContainer:
 		select_asset(a,image.texture))
 	info.minimum_size_changed.connect(func():main.custom_minimum_size.y=maxf(210,info.get_combined_minimum_size().y+16))
 	var versions := HFlowContainer.new();versions.name="Versions";contents.add_child(versions)
-	var footer := HBoxContainer.new();contents.add_child(footer)
+	var footer := HBoxContainer.new();footer.name="Footer";contents.add_child(footer)
 	button("Details",func():
 		var a: Dictionary=card.get_meta("asset",{})
 		show_details(a),footer)
+	var create_prop := button("Create Prop",func():
+		var a: Dictionary=card.get_meta("asset",{})
+		create_existing_prop(a),footer)
+	create_prop.name="CreateProp"
+	create_prop.tooltip_text="Create a grounded prop with solid proxy collision. Review doors, interiors and vehicles before use."
 	button("Website",func():
 		var a: Dictionary=card.get_meta("asset",{})
 		OS.shell_open(str(a.get("url",""))),footer)
@@ -524,6 +658,9 @@ func configure_asset_tile(card: PanelContainer,asset: Dictionary,token: int) -> 
 	check.set_pressed_no_signal(ready and selection.is_checked(asset))
 	check.disabled=busy or selection.options(asset).is_empty() or not can_dl
 	var imported: Dictionary=client.inventory.versions(asset)
+	var prop_button := card.get_node("Contents/Footer/CreateProp") as Button
+	prop_button.visible=not available_prop_files(asset).is_empty()
+	prop_button.disabled=busy
 	var badge := card.get_node("Contents/Header/Imported") as Label
 	badge.text="Downloaded" if not imported.is_empty() else ""
 	badge.tooltip_text=" · ".join(imported.keys())
@@ -609,10 +746,15 @@ func download_one(asset: Dictionary,version: String) -> void:
 	await run_jobs([{"asset":asset.duplicate(true),"version":version}])
 func run_jobs(jobs: Array) -> void:
 	if busy or jobs.is_empty():return
-	if not output.text.begins_with("res://") or ".." in output.text:status.text="Choose an output folder inside res://.";return
+	output.text=Preparation.normalize_output(output.text)
+	if not Preparation.is_valid_output(output.text):status.text="Choose a library folder: an absolute path (for example ~/snc/game), user:// or res://, without '..'.";return
 	if handoff.button_pressed and (not inbox.text.begins_with("res://") or ".." in inbox.text):status.text="Choose a Terrain inbox inside res://.";return
+	write_pref("output_directory",output.text)
+	# Downloads outside res:// are a library: Godot does not import them, so there
+	# is no prop wrapper to build and no filesystem rescan to wait for.
+	var into_project := Preparation.is_project_path(output.text)
 	busy=true;stopping=false;update_actions();progress.max_value=jobs.size();progress.value=0
-	var completed := 0;var failure := ""
+	var completed := 0;var failure := "";var prop_results: Array[String]=[]
 	for job: Dictionary in jobs:
 		if stopping:break
 		status.text="Downloading %s / %s · %s · %s…" % [completed+1,jobs.size(),job.asset.title,str(job.version).to_upper()]
@@ -621,6 +763,14 @@ func run_jobs(jobs: Array) -> void:
 		client.network_allowed=false
 		if result.has("error"):failure=str(result.error);break
 		completed+=1;progress.value=completed;selection.checked.erase(Selection.identity(job.asset))
+		if str(job.asset.get("type",""))=="model" and result.has("folder") and into_project:
+			var candidates := []
+			for path in ModelProps.glbs(str(result.folder)):candidates.append({"path":path,"version":str(result.get("version",job.version))})
+			if not candidates.is_empty():
+				var created: Dictionary=await create_prop_from_candidates(job.asset,candidates)
+				if created.has("error"):prop_results.append("Prop failed: "+str(created.error)+" Use Create Prop to retry.")
+				elif created.has("path"):prop_results.append("Prop ready: "+str(created.path)+" · Review solid collision before placement.")
+				else:prop_results.append("Prop creation cancelled; use Create Prop to retry.")
 		if completed<jobs.size() and not stopping:
 			var deadline := Time.get_ticks_msec()+roundi(delay.value*1000)
 			while Time.get_ticks_msec()<deadline and not stopping:
@@ -628,8 +778,71 @@ func run_jobs(jobs: Array) -> void:
 				status.text="%s / %s complete · next download in %s s…" % [completed,jobs.size(),ceili(remaining)]
 				await get_tree().create_timer(minf(.1,remaining)).timeout
 	busy=false;client.network_allowed=false;run_search();update_actions()
-	if Engine.is_editor_hint():EditorInterface.get_resource_filesystem().scan()
+	if Engine.is_editor_hint() and into_project:EditorInterface.get_resource_filesystem().scan()
 	status.text="Download stopped: "+failure if not failure.is_empty() else "%s / %s downloads complete%s" % [completed,jobs.size()," · stopped" if stopping else "."]
+	if not into_project:status.text+="  Library folder — Godot does not import it. Copy an asset into res:// when you want to use it."
+	if not prop_results.is_empty():status.text+="  "+"  ".join(prop_results)
+func available_prop_files(asset: Dictionary) -> Array:
+	var result := []
+	if str(asset.get("type",""))!="model":return result
+	var versions: Dictionary=client.inventory.versions(asset)
+	for version in versions:
+		var entry: Dictionary=versions[version]
+		for path in ModelProps.glbs(str(entry.get("folder",""))):
+			result.append({"path":path,"version":str(version)})
+	return result
+
+func create_existing_prop(asset: Dictionary) -> void:
+	if busy:return
+	var candidates := available_prop_files(asset)
+	if candidates.is_empty():status.text="No downloaded GLB found for this asset.";return
+	if not Preparation.is_project_path(str(candidates[0].get("path",""))):
+		status.text="This asset lives in the library outside res://. Copy its GLB into assets/models/… before creating a prop."
+		return
+	busy=true;update_actions()
+	var result: Dictionary=await create_prop_from_candidates(asset,candidates)
+	busy=false;update_actions()
+	if result.has("error"):status.text="Prop failed: "+str(result.error)+" Use Create Prop to retry."
+	elif result.has("path"):status.text="Prop ready: "+str(result.path)+" · Review solid proxy collision before placement."
+	else:status.text="Prop creation cancelled."
+
+func create_prop_from_candidates(asset: Dictionary, candidates: Array) -> Dictionary:
+	var chosen: Dictionary=candidates[0]
+	if candidates.size()>1:
+		var dialog := ConfirmationDialog.new()
+		dialog.title="Choose a GLB for the prop"
+		dialog.dialog_text="Automatic collision is a solid proxy; review doors, interiors and vehicles."
+		var choices := OptionButton.new()
+		for item: Dictionary in candidates:choices.add_item(str(item.version)+" · "+str(item.path).get_file())
+		dialog.add_child(choices);add_child(dialog)
+		dialog.confirmed.connect(func():prop_choice.emit(str(choices.selected)))
+		dialog.canceled.connect(func():prop_choice.emit(""))
+		dialog.popup_centered(Vector2i(520,180))
+		var picked: String=await prop_choice
+		dialog.queue_free()
+		if picked.is_empty():return {}
+		chosen=candidates[picked.to_int()]
+	var source := str(chosen.path)
+	if not FileAccess.file_exists(source):return {"error":"Downloaded GLB is missing."}
+	if not Engine.is_editor_hint():return {"error":"Prop creation requires the Godot editor."}
+	status.text="Waiting for Godot to import "+source.get_file()+"…"
+	var filesystem := EditorInterface.get_resource_filesystem()
+	var deadline := Time.get_ticks_msec()+120000
+	while filesystem.is_scanning() and Time.get_ticks_msec()<deadline:
+		await get_tree().create_timer(.1).timeout
+	if filesystem.is_scanning():return {"error":"Godot's filesystem scan did not finish. Use Create Prop to retry."}
+	filesystem.scan()
+	while Time.get_ticks_msec()<deadline:
+		await get_tree().process_frame
+		if not filesystem.is_scanning() and ResourceLoader.exists(source,"PackedScene"):break
+		await get_tree().create_timer(.1).timeout
+	if filesystem.is_scanning() or not ResourceLoader.exists(source,"PackedScene"):
+		return {"error":"Godot did not finish importing the GLB. Check its import errors."}
+	status.text="Creating grounded prop and collision…"
+	await get_tree().process_frame
+	var result := ModelProps.create(asset,str(chosen.version),source)
+	if result.has("path"):filesystem.scan()
+	return result
 func download_resolution(asset: Dictionary,requested: String) -> Dictionary:
 	preparation.output_directory=output.text;preparation.send_to_terrain=handoff.button_pressed and asset.get("type","")=="material";preparation.terrain_inbox=inbox.text
 	return await preparation.prepare(asset,requested)
@@ -650,7 +863,7 @@ func pump_thumbnails() -> void:
 		var job: Dictionary=thumbnail_queue.pop_front()
 		if job.token!=serial or thumbnail_textures.has(job.key) or thumbnail_failed.has(job.key):continue
 		if thumbnail_pending.has(job.key):thumbnail_queue.append(job);continue
-		thumbnail_pending[job.key]=true;thumbnails_active+=1
+		thumbnail_pending[job.key]=job.token;thumbnails_active+=1
 		load_queued_thumbnail(job)
 func _fetch_thumbnail(job: Dictionary,holder: Dictionary) -> void:
 	holder.texture=await client.thumbnail(job.url,job.asset)
@@ -659,15 +872,18 @@ func load_queued_thumbnail(job: Dictionary) -> void:
 	var holder := {"done":false,"texture":null}
 	_fetch_thumbnail(job,holder)
 	var deadline := Time.get_ticks_msec()+int(THUMBNAIL_TIMEOUT*1000)
+	# Keep holding this queue slot while the request is in flight even if a rebuild
+	# replaced the token: the image is still keyed by URL and is reused below.
 	while not holder.done and Time.get_ticks_msec()<deadline:
 		await get_tree().process_frame
 	var texture: Texture2D=holder.texture
-	thumbnail_pending.erase(job.key);thumbnails_active-=1
+	if thumbnail_pending.get(job.key,-1)==job.token:thumbnail_pending.erase(job.key)
+	thumbnails_active-=1
 	if int(job.get("epoch",thumbnail_epoch))!=thumbnail_epoch:return
 	if texture:
 		if thumbnail_textures.size()>=THUMBNAIL_MEMORY_LIMIT:thumbnail_textures.erase(thumbnail_textures.keys()[0])
 		thumbnail_textures[job.key]=texture
-	elif job.token==serial:
+	else:
 		thumbnail_failed[job.key]=true
 	# Apply to the CURRENT cards, even if a search batch rebuilt them while loading.
 	for card in grid.get_children():
